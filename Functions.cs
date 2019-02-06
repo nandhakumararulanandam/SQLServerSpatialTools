@@ -9,6 +9,7 @@ namespace SQLSpatialTools
 	// This class contains functions that can be registered in SQL Server.
 	public class Functions
 	{
+        public const int DEFAULT_SRID = 4236;
 		const double THRESHOLD = .01;  // 1 cm tolerance in most SRIDs
 
 		// Make our ShiftGeometrySink into a function call by hooking it into a simple pipeline.

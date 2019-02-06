@@ -11,6 +11,7 @@ drop aggregate GeographyUnionAggregate
 drop function ShiftGeometry
 drop function LocateAlongGeog
 drop function LocateAlongGeom
+drop function LocateMAlongGeom
 drop function InterpolateBetweenGeog
 drop function InterpolateBetweenGeom
 drop function VacuousGeometryToGeography
