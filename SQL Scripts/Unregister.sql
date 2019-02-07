@@ -27,6 +27,11 @@ drop function MakeValidGeographyFromText
 drop function FilterArtifactsGeometry
 drop function FilterArtifactsGeography
 
+drop function ReverseLinearGeometry
+drop function PopulateGeometryMeasures
+drop function ClipGeometrySegment
+drop function MergeGeometrySegments
+
 -- Drop the types...
 drop type Projection
 drop type AffineTransform

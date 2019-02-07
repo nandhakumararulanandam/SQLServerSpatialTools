@@ -85,6 +85,22 @@ create function FilterArtifactsGeography(@g geography, @filterEmptyShapes bit, @
 as external name SQLSpatialTools.[SQLSpatialTools.Functions].FilterArtifactsGeography
 go
 
+create function ReverseLinearGeometry(@g geometry) returns geometry
+as external name SQLSpatialTools.[SQLSpatialTools.Functions].ReverseLinearGeometry
+go
+
+create function PopulateGeometryMeasures(@g geometry, @startMeasure float, @endMeasure float) returns geometry
+as external name SQLSpatialTools.[SQLSpatialTools.Functions].PopulateGeometryMeasures
+go
+
+create function ClipGeometrySegment(@g geometry, @startMeasure float, @endMeasure float) returns geometry
+as external name SQLSpatialTools.[SQLSpatialTools.Functions].ClipGeometrySegment
+go
+
+create function MergeGeometrySegments(@g1 geometry, @g2 geometry) returns geometry
+as external name SQLSpatialTools.[SQLSpatialTools.Functions].MergeGeometrySegments
+go
+
 -- Create aggregates.
 
 create aggregate GeometryEnvelopeAggregate(@geom geometry) returns geometry
