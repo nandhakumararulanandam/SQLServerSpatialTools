@@ -87,5 +87,51 @@ namespace SpatialTools.UnitTest
              * MergeGeometrySegments utility function currently **unavailable** for POLYGON geometry structure
             */
         }
+        public static void SplitGeometrySegment_Test()
+        {
+            SplitGeometrySegment_Valid_LineSegment_Test();
+            SplitGeometrySegment_Invalid_LineSegment_Test();
+            SplitGeometrySegment_MultiLineSegment_Test();
+        }
+
+        public static void SplitGeometrySegment_Valid_LineSegment_Test()
+        {
+            var lineSegment = "LINESTRING(1 1 NULL 4, 2 2 NULL 20)".GetGeom();
+            Functions.SplitGeometrySegment(lineSegment, 6, out var lineSegment3, out var lineSegment4);
+            Assert.IsTrue((bool)lineSegment3.STIsValid());
+            Assert.IsTrue((bool)lineSegment4.STIsValid());
+        }
+
+        public static void SplitGeometrySegment_Invalid_LineSegment_Test()
+        {
+            var lineSegment = "LINESTRING(1 1 NULL 0, 1 5 NULL 0)".GetGeom();
+            try
+            {
+                Functions.SplitGeometrySegment(lineSegment, 2, out var lineSegment1, out var lineSegment2);
+                Assert.Fail("Accepts the invalid measure parameter"); // since parent line segment would be '0'
+            }
+            catch (Exception) { }
+        }
+        public static void SplitGeometrySegment_MultiLineSegment_Test()
+        {
+            int startingPointMValue = 4;
+            int endingPointMValue = 20;
+            int splitPointMValue = 6; //  this should fall between the startingPointMValue and endingPointMValue
+            var lineSegment = SqlGeometry.STMLineFromText(new SqlChars(new SqlString("MULTILINESTRING((1 1 NULL " + startingPointMValue + ", 2 15 NULL " + endingPointMValue + "))")), Functions.DEFAULT_SRID);
+            Functions.SplitGeometrySegment(lineSegment, splitPointMValue, out var lineSegment3, out var lineSegment4);
+            // unavailable for multi line string
+        }
+
+        public static void ReverseLineString_Test()
+        {
+            int startPtX = 1;
+            int startPtY = 1;
+            int endPtX = 5;
+            int endPtY = 5;
+            var lineSegment = SqlGeometry.STLineFromText(new SqlChars(new SqlString("LINESTRING(" + startPtX + " " + startPtY + "   0 0, " + endPtX + " " + endPtY + " 0 0)")), Functions.DEFAULT_SRID);
+            var reversedLineSegment = Functions.ReverseLinearGeometry(lineSegment);
+            Assert.IsTrue((bool)(reversedLineSegment.STStartPoint().STX == endPtX));
+            Assert.IsTrue((bool)(reversedLineSegment.STEndPoint().STY == endPtY));
+        }
     }
 }
