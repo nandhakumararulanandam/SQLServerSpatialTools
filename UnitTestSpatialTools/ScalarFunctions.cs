@@ -50,18 +50,41 @@ namespace SpatialTools.UnitTest
   
         [TestMethod]
         public static void MergeGeometrySegments_Test()
-        { 
+        {
+            MergeGeometrySegments_LineString_Test();
+            MergeGeometrySegments_Polygon_Test();
+        }
+        /**
+         *Method focuses the linestring geometry structure
+         */
+        public static void MergeGeometrySegments_LineString_Test()
+        {
             var geom1 = "LINESTRING(1 1 NULL 0, 1 5 NULL 1)".GetGeom();
             var geom2 = "LINESTRING(1 5 NULL 5, 2 3 NULL 0)".GetGeom();
             var resultantGeom = Functions.MergeGeometrySegments(geom1, geom2);
             var lastPoint = resultantGeom.STPointN(Int32.Parse(resultantGeom.STNumPoints().ToString()));
             Assert.IsTrue((bool)(lastPoint.STStartPoint().STX == 2));   // should be the last point's x value
             Assert.IsTrue((bool)(lastPoint.STStartPoint().STY == 3));   // should be the last point's y value
+        }
+        /**
+         *Method focuses the polygon geometry structure
+         */
+        public static void MergeGeometrySegments_Polygon_Test()
+        {
+            var rand = new Random();
+            int x = rand.Next(1000, 2000);
+            int y = x * 2;
+            string z = "NULL";
+            int m = 3;
+            string sqlstring = "POLYGON ((" + x + " " + x + " " + z + " " + m + ", " + y + " " + x + " " + z + " " + m + ", " + y + " " + y + " " + z + " " + m + ", " + x + " " + x + " " + z + " " + m + "))";
+            var geom1 = SqlGeometry.STPolyFromText(new SqlChars(new SqlString(sqlstring)), Functions.DEFAULT_SRID).MakeValid();
+            x = rand.Next(500, 1500);
+            y = x * 2;
+            sqlstring = "POLYGON ((" + x + " " + x + " " + z + " " + m + ", " + y + " " + x + " " + z + " " + m + ", " + y + " " + y + " " + z + " " + m + ", " + x + " " + x + " " + z + " " + m + "))";
+            var geom2 = SqlGeometry.STPolyFromText(new SqlChars(new SqlString(sqlstring)), Functions.DEFAULT_SRID).MakeValid();
+            var resultantGeom = Functions.MergeGeometrySegments(geom1, geom2);
             /*
-                TODO: Have to implement polygon with various co-ordinates
-                geom1 = "POLYGON((3 3 , 3 6 , 6 6 , 6 3 , 3 3 ))".GetGeom();
-                geom2 = "POLYGON((2 2 , 2 8 , 8 8 , 2 8 , 2 2 ))".GetGeom();
-                resultantGeom = Functions.MergeGeometrySegments(geom1, geom2);
+             * MergeGeometrySegments utility function currently **unavailable** for POLYGON geometry structure
             */
         }
     }
