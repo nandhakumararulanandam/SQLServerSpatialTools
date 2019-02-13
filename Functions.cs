@@ -3,6 +3,7 @@
 using System;
 using Microsoft.SqlServer.Types;
 using System.Data.SqlTypes;
+using System.Collections.Generic;
 
 namespace SQLSpatialTools
 {
@@ -591,6 +592,29 @@ namespace SQLSpatialTools
             b.EndGeometry();
             return b.ConstructedGeometry;
         }
-
+        /**
+         * Method will delegate to the supported geometric figures
+         **/
+        public static SqlBoolean IsConnectedGeomSegments(SqlGeometry g1, SqlGeometry g2, double tolerence)
+        {
+            List<string> supportedTypes = new List<string>() { "LINESTRING" };
+            if (supportedTypes.Contains(g1.STGeometryType().ToString().ToUpper()) && supportedTypes.Contains(g2.STGeometryType().ToString().ToUpper()))
+            {
+                return IsConnectedGeomLineSegments(g1, g2, tolerence);
+            }
+            else
+            {
+                throw new Exception("LINESTRING is currently the only spatial type supported");
+            }
+        }
+        /*
+         * Method will check given sqlgeometric figures are connected by its extreme points
+         * returns: SqlBoolean
+         * */
+        private static SqlBoolean IsConnectedGeomLineSegments(SqlGeometry g1, SqlGeometry g2, double tolerence)
+        {
+            ConnectedGeometrySegementSink temp = new ConnectedGeometrySegementSink(g1, g2, tolerence);
+            return temp.IsConnectedGeomSegments();
+        }
     }
 }

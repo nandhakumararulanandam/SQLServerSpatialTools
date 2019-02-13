@@ -117,6 +117,7 @@
     <Compile Include="KMLProcessor\Utilities.cs" />
     <Compile Include="Projections\GnomonicProjection.cs" />
     <Compile Include="Sinks\ClipGeometrySegmentSink.cs" />
+    <Compile Include="Sinks\ConnectedGeometrySegementSink.cs" />
     <Compile Include="Sinks\GeographyFilters.cs" />
     <Compile Include="Sinks\GeometryFilters.cs" />
     <Compile Include="Sinks\GeometryToPointGeographySink.cs" />

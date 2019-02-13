@@ -133,5 +133,17 @@ namespace SpatialTools.UnitTest
             Assert.IsTrue((bool)(reversedLineSegment.STStartPoint().STX == endPtX));
             Assert.IsTrue((bool)(reversedLineSegment.STEndPoint().STY == endPtY));
         }
+
+        public static void IsConnectedGeomLineSegments_Test()
+        {
+            SqlGeometry g1 = "LINESTRING(0 0 0 0, 1 1 0 0)".GetGeom();
+            SqlGeometry g2 = "LINESTRING(4 4 9 0, 1 1 0 0)".GetGeom();
+            var result = Functions.IsConnectedGeomSegments(g1, g2, 0.5);
+         }
+        public static void Main(string[] a)
+        {
+            IsConnectedGeomLineSegments_Test();
+            Console.ReadLine();
+        }
     }
 }
