@@ -136,10 +136,80 @@ namespace SpatialTools.UnitTest
 
         public static void IsConnectedGeomLineSegments_Test()
         {
-            SqlGeometry g1 = "LINESTRING(0 0 0 0, 1 1 0 0)".GetGeom();
-            SqlGeometry g2 = "LINESTRING(4 4 9 0, 1 1 0 0)".GetGeom();
-            var result = Functions.IsConnectedGeomSegments(g1, g2, 0.5);
-         }
+            // test cases without considering tolerance values
+            SqlGeometry g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            SqlGeometry g2 = "LINESTRING(0 0 0 0, 2 2 0 0)".GetGeom();
+            double tolerance = 0;
+            bool result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(2 2 0 0, 0 0 0 0)".GetGeom();
+            tolerance = 0;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(5.5 5 0 0, 2 2 0 0)".GetGeom();
+            tolerance = 0;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(2 2 9 0, 5.5 5 0 0)".GetGeom();
+            tolerance = 0;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+
+            // test cases with tolerance values considered
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(0.5 0.5 0 0, 2 2 0 0)".GetGeom();
+            tolerance = 0.5;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsFalse(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(0.5 0 0 0, 2 2 0 0)".GetGeom();
+            tolerance = 0.5;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(1.5 1.5 0 0, 2 2 0 0)".GetGeom();
+            tolerance = 0.5;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsFalse(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(0 0.5 0 0, 2 2 0 0)".GetGeom();
+            tolerance = 0.5;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(2 2 0 0, 0.1 0.6 0 0)".GetGeom();
+            tolerance = 0.5;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsFalse(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(2 2 0 0, 0.6 0.1 0 0)".GetGeom();
+            tolerance = 1;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(5 5 0 0, 2 2 0 0)".GetGeom();
+            tolerance = 0.5;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsTrue(result);
+            
+            g1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            g2 = "LINESTRING(2 2 9 0, 6 4.9 0 0)".GetGeom();
+            tolerance = 0.5;
+            result = (bool)Functions.IsConnectedGeomSegments(g1, g2, tolerance);
+            Assert.IsFalse(result);
+        }
         public static void Main(string[] a)
         {
             IsConnectedGeomLineSegments_Test();
