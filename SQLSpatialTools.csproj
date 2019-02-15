@@ -88,6 +88,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Functions\LRS.cs" />
     <Compile Include="KMLProcessor\Constants.cs" />
     <Compile Include="KMLProcessor\Export\ExportContext.cs" />
     <Compile Include="KMLProcessor\Export\KeyholeMarkupLanguageBase.cs" />
@@ -127,6 +128,8 @@
     <Compile Include="Sinks\SplitGeometrySegmentSink.cs" />
     <Compile Include="Sinks\VacuousGeographyToGeometrySink.cs" />
     <Compile Include="Sinks\VacuousGeometryToGeographySink.cs" />
+    <Compile Include="Utility\EnumsAndConstants.cs" />
+    <Compile Include="Utility\SpatialExtensions.cs" />
     <Compile Include="Utility\TestHelpers.cs" />
     <Compile Include="Types\AffineTransform.cs" />
     <Compile Include="Aggregates\GeometryEnvelopeAggregate.cs" />
@@ -144,7 +147,7 @@
     <Compile Include="Projections\TranverseMercatorProjection.cs" />
     <Compile Include="Sinks\DensifyGeographySink.cs" />
     <Compile Include="Sinks\LocateAlongGeometrySink.cs" />
-    <Compile Include="Functions.cs" />
+    <Compile Include="Functions\General.cs" />
     <Compile Include="Sinks\LocateAlongGeographySink.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sinks\Projector.cs" />

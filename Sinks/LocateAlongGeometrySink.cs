@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
-using Microsoft.SqlServer.Types;
 using System;
+using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Function;
 
 namespace SQLSpatialTools
 {
@@ -69,7 +70,7 @@ namespace SQLSpatialTools
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                _foundPoint = Functions.InterpolateBetweenGeom(_lastPoint, thisPoint, _distance);
+                _foundPoint = General.InterpolateBetweenGeom(_lastPoint, thisPoint, _distance);
             }
         }
 

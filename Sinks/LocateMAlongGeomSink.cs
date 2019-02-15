@@ -3,6 +3,7 @@
 using Microsoft.SqlServer.Types;
 using System;
 using System.Data.SqlTypes;
+using SQLSpatialTools.Function;
 
 namespace SQLSpatialTools
 {
@@ -72,7 +73,7 @@ namespace SQLSpatialTools
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                _foundPoint = Functions.InterpolateMBetweenGeom(_lastPoint, thisPoint, _measure);
+                _foundPoint = General.InterpolateMBetweenGeom(_lastPoint, thisPoint, _measure);
             }
         }
 
