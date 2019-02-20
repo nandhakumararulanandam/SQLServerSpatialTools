@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -7,7 +8,7 @@ using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools.Utility
 {
-    internal static class SpatialExtensions
+    public static class SpatialExtensions
     {
         #region "OGC Type Checks"
 
@@ -16,9 +17,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns></returns>
-        internal static bool IsPoint(this SqlGeometry sqlgeometry)
+        public static bool IsPoint(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.Point.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.Point.GetString());
         }
 
         /// <summary>
@@ -26,9 +27,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsLineString(this SqlGeometry sqlgeometry)
+        public static bool IsLineString(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.LineString.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.LineString.GetString());
         }
 
         /// <summary>
@@ -36,9 +37,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsCircularString(this SqlGeometry sqlgeometry)
+        public static bool IsCircularString(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.CircularString.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.CircularString.GetString());
         }
 
         /// <summary>
@@ -46,9 +47,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsCompoundCurve(this SqlGeometry sqlgeometry)
+        public static bool IsCompoundCurve(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.CompoundCurve.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.CompoundCurve.GetString());
         }
 
         /// <summary>
@@ -56,9 +57,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsPolygon(this SqlGeometry sqlgeometry)
+        public static bool IsPolygon(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.Polygon.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.Polygon.GetString());
         }
 
         /// <summary>
@@ -66,9 +67,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsCurvePolygon(this SqlGeometry sqlgeometry)
+        public static bool IsCurvePolygon(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.CurvePolygon.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.CurvePolygon.GetString());
         }
 
         /// <summary>
@@ -76,9 +77,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsGeometryCollection(this SqlGeometry sqlgeometry)
+        public static bool IsGeometryCollection(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.GeometryCollection.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.GeometryCollection.GetString());
         }
 
         /// <summary>
@@ -86,9 +87,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsMultiPoint(this SqlGeometry sqlgeometry)
+        public static bool IsMultiPoint(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.MultiPoint.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.MultiPoint.GetString());
         }
 
         /// <summary>
@@ -96,9 +97,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsMultiLineString(this SqlGeometry sqlgeometry)
+        public static bool IsMultiLineString(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.MultiLineString.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.MultiLineString.GetString());
         }
 
         /// <summary>
@@ -106,9 +107,9 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry"></param>
         /// <returns>true; false</returns>
-        internal static bool IsMultiPolygon(this SqlGeometry sqlgeometry)
+        public static bool IsMultiPolygon(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STGeometryType().Equals(OGCType.MultiPolygon.GetString());
+            return sqlgeometry.STGeometryType().Compare(OGCType.MultiPolygon.GetString());
         }
 
         #endregion
@@ -118,34 +119,49 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlgeometry">Input Geometry</param>
         /// <returns></returns>
-        internal static double GetStartPointMeasure(this SqlGeometry sqlgeometry)
+        public static double GetStartPointMeasure(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STPointN(1).M.IsNull
+            return sqlgeometry.STStartPoint().M.IsNull
                     ? 0
-                    : sqlgeometry.STPointN(1).M.Value;
+                    : sqlgeometry.STStartPoint().M.Value;
         }
 
         /// <summary>
-        /// Get last point measure of Geometry
+        /// Get end point measure of Geometry
         /// </summary>
         /// <param name="sqlgeometry">Input Geometry</param>
         /// <returns></returns>
-        internal static double GetLastPointMeasure(this SqlGeometry sqlgeometry)
+        public static double GetEndPointMeasure(this SqlGeometry sqlgeometry)
         {
-            return sqlgeometry.STPointN((int)sqlgeometry.STNumPoints()).M.IsNull
+            return sqlgeometry.STEndPoint().M.IsNull
                     ? sqlgeometry.STLength().Value
-                    : sqlgeometry.STPointN((int)sqlgeometry.STNumPoints()).M.Value;
+                    : sqlgeometry.STEndPoint().M.Value;
         }
 
         /// <summary>
-        /// 
+        /// Check whether the measure falls withing the start and end measure.
         /// </summary>
         /// <param name="currentMeasure"></param>
         /// <param name="startMeasure"></param>
         /// <param name="endMeasure"></param>
         /// <returns></returns>
-        internal static bool IsWithinRange(this double currentMeasure, double startMeasure, double endMeasure)
+        public static bool IsWithinRange(this double currentMeasure, double startMeasure, double endMeasure)
         {
+            return (currentMeasure < startMeasure && currentMeasure < endMeasure)
+                || (currentMeasure > startMeasure && currentMeasure > endMeasure);
+        }
+
+        /// <summary>
+        /// Check whether the measure falls withing the start and end measure.
+        /// </summary>
+        /// <param name="currentMeasure"></param>
+        /// <param name="startMeasure"></param>
+        /// <param name="endMeasure"></param>
+        /// <returns></returns>
+        public static bool IsWithinRange(this double currentMeasure, SqlGeometry sqlGeometry)
+        {
+            var startMeasure = sqlGeometry.GetStartPointMeasure();
+            var endMeasure = sqlGeometry.GetEndPointMeasure();
             return (currentMeasure < startMeasure && currentMeasure < endMeasure)
                 || (currentMeasure > startMeasure && currentMeasure > endMeasure);
         }
@@ -157,9 +173,9 @@ namespace SQLSpatialTools.Utility
         /// <param name="sqlgeometry1">First Geometry</param>
         /// <param name="sqlgeometry2">Second Geometry</param>
         /// <returns></returns>
-        internal static double? GetOffset(this SqlGeometry sqlgeometry1, SqlGeometry sqlgeometry2)
+        public static double? GetOffset(this SqlGeometry sqlgeometry1, SqlGeometry sqlgeometry2)
         {
-            return (double?)(sqlgeometry1.GetLastPointMeasure() - sqlgeometry2.GetStartPointMeasure());
+            return (double?)(sqlgeometry1.GetEndPointMeasure() - sqlgeometry2.GetStartPointMeasure());
         }
 
         /// <summary>
@@ -169,9 +185,35 @@ namespace SQLSpatialTools.Utility
         /// <param name="startMeasure"></param>
         /// <param name="endMeasure"></param>
         /// <returns></returns>
-        internal static string LinearGeometryRangeExpectionMessage(this double measure, double startMeasure, double endMeasure)
+        public static string LinearGeometryRangeExpectionMessage(this double measure, double startMeasure, double endMeasure)
         {
             return string.Format("{0} is not within the measure range {1} : {2} of the linear geometry", measure, Math.Min(startMeasure, endMeasure).ToString(), Math.Max(startMeasure, endMeasure).ToString());
+        }
+
+        /// <summary>
+        /// Compares sql string for equality.
+        /// </summary>
+        /// <param name="sqlString">SQL string</param>
+        /// <param name="targetString">Target OGC type string to compare</param>
+        /// <returns></returns>
+        public static bool Compare(this SqlString sqlString, string targetString)
+        {
+            if (string.IsNullOrEmpty(targetString))
+                return false;
+
+            string convertString = sqlString.ToString();
+
+            return string.IsNullOrEmpty(convertString) ? false : convertString.ToLowerInvariant().Equals(targetString.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// Throws ArgumentException based on message format and parameters
+        /// </summary>
+        /// <param name="messageFormat">Message format</param>
+        /// <param name="args">Arguments to be appended with format</param>
+        public static void ThrowException(string messageFormat, params string[] args)
+        {
+            throw new ArgumentException(string.Format(messageFormat, args));
         }
 
         #region "Enum Attrib Extension"

@@ -40,7 +40,7 @@ namespace SQLSpatialTools
             if (type != OpenGisGeometryType.LineString)
                 throw new ArgumentException("This operation may only be executed on LineString instances.");
             
-            _target1.BeginGeometry(OpenGisGeometryType.LineString);            
+            _target1.BeginGeometry(OpenGisGeometryType.LineString);
             _target2.BeginGeometry(OpenGisGeometryType.LineString);
         }
 

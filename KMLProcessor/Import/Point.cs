@@ -5,11 +5,14 @@ using Microsoft.SqlServer.Types;
 
 namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 {
-	/// <summary>
-	/// This class holds the information about a Point extracted from the KML file
-	/// </summary>
-	public class Point : Geography
-	{
+#pragma warning disable CS0659 
+    // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    /// <summary>
+    /// This class holds the information about a Point extracted from the KML file
+    /// </summary>
+    public class Point : Geography
+#pragma warning restore CS0659
+    {
 		#region Constructors
 
 		/// <summary>

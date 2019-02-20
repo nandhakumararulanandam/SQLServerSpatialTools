@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{5FCDB549-1B10-4115-9A3F-AA55584FEA23}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UnitTestSpatialTools</RootNamespace>
     <AssemblyName>UnitTestSpatialTools</AssemblyName>
@@ -54,7 +54,10 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ScalarFunctions.cs" />
+    <Compile Include="Extension.cs" />
+    <Compile Include="UnitTest.cs" />
+    <Compile Include="Functions\LRSFunctionTests.cs" />
+    <Compile Include="Functions\GeneralFunctionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

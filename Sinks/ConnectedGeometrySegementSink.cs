@@ -9,7 +9,6 @@ namespace SQLSpatialTools
      */
     public class ConnectedGeometrySegementSink : IGeometrySink110
     {
-        private readonly bool isConnected;
         private readonly SqlGeometry _g1, _g2;
         private readonly double _tolerance;
         public ConnectedGeometrySegementSink(SqlGeometry g1, SqlGeometry g2, double tolerance)
