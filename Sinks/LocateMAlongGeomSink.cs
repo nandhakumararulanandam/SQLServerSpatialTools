@@ -4,6 +4,7 @@ using Microsoft.SqlServer.Types;
 using System;
 using System.Data.SqlTypes;
 using SQLSpatialTools.Function;
+using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 
 namespace SQLSpatialTools
 {
@@ -47,8 +48,7 @@ namespace SQLSpatialTools
         public void BeginFigure(double latitude, double longitude, double? z, double? m)
         {
             // Memorize the point.
-            //_lastPoint = SqlGeometry.Point(latitude, longitude, _srid);
-            _lastPoint = SqlGeometry.STPointFromText(new SqlChars("POINT(" + latitude.ToString() + " " + longitude.ToString() + " " + ((z == null)?"NULL":z.ToString()) + " " + m.ToString() + ")"), _srid);
+            _lastPoint = Ext.GetPoint(latitude, longitude, z, m, _srid);
         }
 
         // This is where the real work is done.
@@ -59,8 +59,7 @@ namespace SQLSpatialTools
             if (_foundPoint != null) return;
 
             // Make a point for our current position.
-            //SqlGeometry thisPoint = SqlGeometry.Point(latitude, longitude, _srid);
-            SqlGeometry thisPoint = SqlGeometry.STPointFromText(new SqlChars("POINT(" + latitude.ToString() + " " + longitude.ToString() + " " + ((z == null) ? "NULL" : z.ToString()) + " " + m.ToString() + ")"), _srid);
+            var thisPoint = Ext.GetPoint(latitude, longitude, z, m, _srid);
 
             // is the found point between this point and the last, or past this point?
             double rest =_measure - (double)m;
@@ -73,7 +72,7 @@ namespace SQLSpatialTools
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                _foundPoint = General.InterpolateMBetweenGeom(_lastPoint, thisPoint, _measure);
+                _foundPoint = LRS.Geometry.InterpolateBetweenGeomWithMeasure(_lastPoint, thisPoint, _measure);
             }
         }
 

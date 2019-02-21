@@ -21,8 +21,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.LineStringCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.LineStringCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
 
             // line string with null z value
@@ -105,8 +105,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.LineStringCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.LineStringCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
         }
 
@@ -131,9 +131,24 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.LineStringCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.LineStringCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
+        }
+
+        [TestMethod]
+        public void InterpolateBetweenGeomWithMeasureTest()
+        {
+            var geom1 = "POINT(0 0 0 0)".GetGeom();
+            var geom2 = "POINT(10 0 0 10)".GetGeom();
+            var returnPoint = "POINT (5 0 NULL 5)".GetGeom();
+            var distance = 5;
+            Logger.LogLine("Input Point 1:{0} Point 2:{1}", geom1, geom2);
+            Logger.Log("Interpolating at a distance of {0}", geom1, geom2, distance);
+            Logger.LogLine("Expected Point: {0}", returnPoint.ToString());
+            var sqlgeom = LRS.Geometry.InterpolateBetweenGeomWithMeasure(geom1, geom2, distance);
+            Logger.Log("Obtained Point: {0}", sqlgeom.ToString());
+            SqlAssert.IsTrue(sqlgeom.STEquals(returnPoint));
         }
 
         [TestMethod]
@@ -154,8 +169,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.SRIDCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.SRIDCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.SRIDCompatible);
+                TestContext.WriteLine(ErrorMessage.SRIDCompatible);
             }
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
@@ -227,14 +242,14 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
-        public void LocateMeasureAlongGeometryTest()
+        public void LocatePointAlongGeometryTest()
         {
             var geom = "LINESTRING (0 0 0 0, 10 0 0 10)".GetGeom();
             Logger.Log("Input Geom : {0}", geom.ToString());
             var returnPoint = "POINT (5 0 NULL 5)".GetGeom();
             var distance = 5;
 
-            var locatedPoint = LRS.Geometry.LocateMeasureAlongGeometry(geom, distance);
+            var locatedPoint = LRS.Geometry.LocatePointAlongGeometry(geom, distance);
             Logger.Log("Located point : {0} at distance of {1} Measure", locatedPoint.ToString(), distance);
 
             SqlAssert.IsTrue(locatedPoint.STEquals(returnPoint));
@@ -253,8 +268,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.LineStringCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.LineStringCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
 
             geom1 = "LINESTRING(10 1 NULL 10, 25 1 NULL 25)".GetGeom();
@@ -267,8 +282,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.LineStringCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.LineStringCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
 
             geom1 = "MULTILINESTRING((11 2, 12 4, 15 5), (5 4, 6 8, 9 11))".GetGeom();
@@ -281,8 +296,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.LineStringCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.LineStringCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
 
             // offset between geoms : 0
@@ -339,7 +354,7 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
-        public void ReverseLineStringTest()
+        public void ReverseLinearGeometryTest()
         {
             var geom = "LINESTRING (1 1 0 0, 5 5 0 0)".GetGeom();
             Logger.Log("Input Geom : {0}", geom.ToString());
@@ -363,8 +378,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, LRS.LineStringCompatibleErrorMessage);
-                TestContext.WriteLine(LRS.LineStringCompatibleErrorMessage);
+                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
 
             // line string with null z value
@@ -381,8 +396,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, "The measure value provided doesn't fall between the two points.");
-                Logger.Log("The measure value provided doesn't fall between the two points.");
+                Assert.AreEqual(e.Message, ErrorMessage.MeasureRange);
+                Logger.Log(ErrorMessage.MeasureRange);
             }
 
             distance = 27;

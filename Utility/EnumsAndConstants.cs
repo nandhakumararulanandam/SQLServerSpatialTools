@@ -46,6 +46,14 @@ namespace SQLSpatialTools.Utility
         public const int DEFAULT_SRID = 4236;
     }
 
+    public class ErrorMessage
+    {
+        public const string LineStringCompatible = "LINESTRING is currently the only spatial type supported";
+        public const string SRIDCompatible = "SRID's of geometries doesn't match";
+        public const string PointCompatible = "Start and End geometry must be a point.";
+        public const string MeasureRange = "Measure not withing range.";
+    }
+
     /// <summary>
     /// This attribute is used to represent a string value
     /// for a value in an enum.

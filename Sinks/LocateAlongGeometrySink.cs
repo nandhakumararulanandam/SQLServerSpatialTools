@@ -70,7 +70,7 @@ namespace SQLSpatialTools
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                _foundPoint = General.InterpolateBetweenGeom(_lastPoint, thisPoint, _distance);
+                _foundPoint = General.Geometry.InterpolateBetweenGeom(_lastPoint, thisPoint, _distance);
             }
         }
 

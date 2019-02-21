@@ -193,7 +193,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		public void MakeValid(IGeographySink110 sink)
 		{
 			// 1. Creates the valid geography for this WKT
-			SqlGeography vg = General.MakeValidGeographyFromText(this.WKT, Constants.DefaultSRID);
+			SqlGeography vg = General.Geography.MakeValidGeographyFromText(this.WKT, Constants.DefaultSRID);
 
 			// 2. Populates the given sink with the valid geography
 			vg.Populate(new FilterSetSridGeographySink(sink));

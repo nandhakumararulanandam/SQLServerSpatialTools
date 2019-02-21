@@ -152,7 +152,7 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
-        /// Check whether the measure falls withing the start and end measure.
+        /// Check whether the measure falls withing the start and end measure of geometry.
         /// </summary>
         /// <param name="currentMeasure"></param>
         /// <param name="startMeasure"></param>
@@ -162,6 +162,21 @@ namespace SQLSpatialTools.Utility
         {
             var startMeasure = sqlGeometry.GetStartPointMeasure();
             var endMeasure = sqlGeometry.GetEndPointMeasure();
+            return (currentMeasure < startMeasure && currentMeasure < endMeasure)
+                || (currentMeasure > startMeasure && currentMeasure > endMeasure);
+        }
+
+        /// <summary>
+        /// Check whether the measure falls between start and end geometry points
+        /// </summary>
+        /// <param name="currentMeasure"></param>
+        /// <param name="startMeasure"></param>
+        /// <param name="endMeasure"></param>
+        /// <returns></returns>
+        public static bool IsWithinRange(this double currentMeasure, SqlGeometry startPoint, SqlGeometry endPoint)
+        {
+            var startMeasure = startPoint.GetStartPointMeasure();
+            var endMeasure = endPoint.GetEndPointMeasure();
             return (currentMeasure < startMeasure && currentMeasure < endMeasure)
                 || (currentMeasure > startMeasure && currentMeasure > endMeasure);
         }
@@ -191,6 +206,34 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Get Sql Chars from WKT
+        /// </summary>
+        /// <param name="format">format of wkt</param>
+        /// <param name="args">argument to appended to format</param>
+        /// <returns></returns>
+        public static SqlChars GetSqlChars(string format, params object[] args)
+        {
+            var geometry = string.Format(format, args);
+            return new SqlChars(geometry);
+        }
+
+        /// <summary>
+        /// Get SqlGeometry Point from WKT
+        /// </summary>
+        /// <param name="x">x Coordinate</param>
+        /// <param name="y">y Coordinate</param>
+        /// <param name="z">z Coordinate</param>
+        /// <param name="m">Measure</param>
+        /// <param name="srid">Spatail Reference Identifier; default is 4236</param>
+        /// <returns>Sql Point Geometry</returns>
+        public static SqlGeometry GetPoint(double x, double y, double? z, double? m, int srid = 4236)
+        {
+            var zCoordinate = z == null ? "NULL" : z.ToString();
+            var geometry = string.Format("POINT({0} {1} {2} {3})", x, y, zCoordinate, m);
+            return SqlGeometry.STPointFromText(new SqlChars(geometry), srid);
+        }
+
+        /// <summary>
         /// Compares sql string for equality.
         /// </summary>
         /// <param name="sqlString">SQL string</param>
@@ -204,6 +247,39 @@ namespace SQLSpatialTools.Utility
             string convertString = sqlString.ToString();
 
             return string.IsNullOrEmpty(convertString) ? false : convertString.ToLowerInvariant().Equals(targetString.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// Compares sql double for double.
+        /// </summary>
+        /// <param name="sqlDouble">SQL double</param>
+        /// <param name="compareValue">Compare Value</param>
+        /// <returns></returns>
+        public static bool Compare(this SqlDouble sqlDouble, double compareValue)
+        {
+            return (double)sqlDouble == compareValue;
+        }
+
+        /// <summary>
+        /// Compares sql bool for bool.
+        /// </summary>
+        /// <param name="sqlBoolean">SQL Boolean</param>
+        /// <param name="compareValue">Compare Value</param>
+        /// <returns></returns>
+        public static bool Compare(this SqlBoolean sqlBool, bool compareValue)
+        {
+            return (bool)sqlBool == compareValue;
+        }
+
+        /// <summary>
+        /// Compares sql int for int.
+        /// </summary>
+        /// <param name="sqlInt32">SQL int 32</param>
+        /// <param name="compareValue">Compare Value</param>
+        /// <returns></returns>
+        public static bool Compare(this SqlInt32 sqlInt, int compareValue)
+        {
+            return (int)sqlInt == compareValue;
         }
 
         /// <summary>
