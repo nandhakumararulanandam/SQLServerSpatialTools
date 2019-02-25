@@ -231,13 +231,15 @@ namespace SQLSpatialTools.Function
                 geomBuilder.SetSrid((int)geometry.STSrid);
                 geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
                 geomBuilder.BeginFigure(geometry.STEndPoint().STX.Value, geometry.STEndPoint().STY.Value, geometry.STEndPoint().Z.Value, geometry.STEndPoint().M.Value);
-                for (int i = (int)geometry.STNumPoints() - 1; i >= 1; i--)
+
+                var iterator = (int)geometry.STNumPoints() - 1;
+                for (; iterator >= 1; iterator--)
                 {
                     geomBuilder.AddLine(
-                        geometry.STPointN(i).STX.Value,
-                        geometry.STPointN(i).STY.Value,
-                        geometry.STPointN(i).Z.Value,
-                        geometry.STPointN(i).M.Value);
+                        geometry.STPointN(iterator).STX.Value,
+                        geometry.STPointN(iterator).STY.Value,
+                        geometry.STPointN(iterator).Z.Value,
+                        geometry.STPointN(iterator).M.Value);
                 }
                 geomBuilder.EndFigure();
                 geomBuilder.EndGeometry();

@@ -44,6 +44,9 @@ namespace SQLSpatialTools.Utility
     public class Constants
     {
         public const int DEFAULT_SRID = 4236;
+
+        // 1 cm tolerance in most SRIDs
+        public const double THRESHOLD = 0.01;
     }
 
     public class ErrorMessage
@@ -52,6 +55,7 @@ namespace SQLSpatialTools.Utility
         public const string SRIDCompatible = "SRID's of geometries doesn't match";
         public const string PointCompatible = "Start and End geometry must be a point.";
         public const string MeasureRange = "Measure not withing range.";
+        public const string WKT3DOnly = "Input WKT should only have three dimensions!";
     }
 
     /// <summary>

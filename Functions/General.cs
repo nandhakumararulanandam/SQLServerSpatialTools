@@ -1,19 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
-using Microsoft.SqlServer.Types;
 using System.Data.SqlTypes;
-using System.Collections.Generic;
+using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Function
 {
-    // This class contains functions that can be registered in SQL Server.
+    /// <summary>
+    /// This class contains functions that can be registered in SQL Server.
+    /// </summary>
     public class General
     {
-        // 1 cm tolerance in most SRIDs
-        public const double THRESHOLD = 0.01;
-
         public class Geometry
         {
             // Selectively filter unwanted artifacts in input object:
@@ -23,13 +21,13 @@ namespace SQLSpatialTools.Function
             //	- polygon rings thinner than provied tolerance (if ring.STArea < ring.STLength * [ringTolerance])
             //	- general behaviour: Returned spatial objects will always to the simplest OGC construction
             //
-            public static SqlGeometry FilterArtifactsGeometry(SqlGeometry g, bool filterEmptyShapes, bool filterPoints, double lineStringTolerance, double ringTolerance)
+            public static SqlGeometry FilterArtifactsGeometry(SqlGeometry geometry, bool filterEmptyShapes, bool filterPoints, double lineStringTolerance, double ringTolerance)
             {
-                if (g == null || g.IsNull)
-                    return g;
+                if (geometry == null || geometry.IsNull)
+                    return geometry;
 
-                SqlGeometryBuilder b = new SqlGeometryBuilder();
-                IGeometrySink110 filter = b;
+                var geomBuilder = new SqlGeometryBuilder();
+                IGeometrySink110 filter = geomBuilder;
 
                 if (filterEmptyShapes)
                     filter = new GeometryEmptyShapeFilter(filter);
@@ -40,26 +38,30 @@ namespace SQLSpatialTools.Function
                 if (filterPoints)
                     filter = new GeometryPointFilter(filter);
 
-                g.Populate(filter);
-                g = b.ConstructedGeometry;
+                geometry.Populate(filter);
+                geometry = geomBuilder.ConstructedGeometry;
 
-                if (g == null || g.IsNull || !g.STIsValid().Value)
-                    return g;
+                if (geometry == null || geometry.IsNull || !geometry.STIsValid().Value)
+                    return geometry;
 
                 // Strip collections with single element
-                while (g.STNumGeometries().Value == 1 && g.InstanceOf("GEOMETRYCOLLECTION").Value)
-                    g = g.STGeometryN(1);
+                while (geometry.STNumGeometries().Value == 1 && geometry.InstanceOf("GEOMETRYCOLLECTION").Value)
+                    geometry = geometry.STGeometryN(1);
 
-                return g;
+                return geometry;
             }
 
+            /// <summary>
+            /// Convert Z co-ordinate of geom from XYZ to XYM
+            /// </summary>
+            /// <param name="wktXYM">Well Know Text with x,y,z representation</param>
+            /// <param name="srid">Spatial Reference Identifier</param>
+            /// <returns></returns>
             public static SqlGeometry GeomFromXYMText(string wktXYM, int srid)
             {
-                ConvertXVZ2XYM res = new ConvertXVZ2XYM();
-
-                SqlGeometry.STGeomFromText(new SqlChars(wktXYM), srid)
-                           .Populate(res);
-
+                var res = new ConvertXYZ2XYM();
+                var geom = wktXYM.GetGeom(srid);
+                geom.Populate(res);
                 return res.ConstructedGeometry;
             }
 
@@ -142,7 +144,7 @@ namespace SQLSpatialTools.Function
                     throw new ArgumentException(ErrorMessage.LineStringCompatible);
 
                 var geomBuilder = new SqlGeometryBuilder();
-                
+
                 geomBuilder.SetSrid((int)geometry.STSrid);
                 geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
                 geomBuilder.BeginFigure(geometry.STEndPoint().STX.Value, geometry.STEndPoint().STY.Value);
@@ -180,7 +182,6 @@ namespace SQLSpatialTools.Function
                 return geometryBuilder.ConstructedGeometry;
             }
         }
-
 
         public class Geography
         {
@@ -251,7 +252,7 @@ namespace SQLSpatialTools.Function
                     currentDistance = start.STDistance(current).Value;
                     if (distance <= currentDistance) endCart = currentCart;
                     else startCart = currentCart;
-                } while (Math.Abs(currentDistance - distance) > THRESHOLD);
+                } while (Math.Abs(currentDistance - distance) > Constants.THRESHOLD);
 
                 return current;
             }
@@ -434,7 +435,7 @@ namespace SQLSpatialTools.Function
             public static SqlGeography MakeValidGeographyFromText(string inputWKT, int srid)
             {
                 return MakeValidGeographyFromGeometry(SqlGeometry.STGeomFromText(new SqlChars(inputWKT), srid));
-            }           
+            }
 
             // Selectively filter unwanted artifacts in input object:
             //	- empty shapes (if [filterEmptyShapes] is true)
