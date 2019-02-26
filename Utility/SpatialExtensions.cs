@@ -23,6 +23,16 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Check if Geography type is Point
+        /// </summary>
+        /// <param name="sqlgeography">SQL Geography</param>
+        /// <returns></returns>
+        public static bool IsPoint(this SqlGeography sqlgeography)
+        {
+            return sqlgeography.STGeometryType().Compare(OGCType.Point.GetString());
+        }
+
+        /// <summary>
         /// Check if Geometry is LineString
         /// </summary>
         /// <param name="sqlgeometry"></param>
@@ -224,9 +234,9 @@ namespace SQLSpatialTools.Utility
         /// <param name="y">y Coordinate</param>
         /// <param name="z">z Coordinate</param>
         /// <param name="m">Measure</param>
-        /// <param name="srid">Spatail Reference Identifier; default is 4236</param>
+        /// <param name="srid">Spatail Reference Identifier; default is 4326</param>
         /// <returns>Sql Point Geometry</returns>
-        public static SqlGeometry GetPoint(double x, double y, double? z, double? m, int srid = 4236)
+        public static SqlGeometry GetPoint(double x, double y, double? z, double? m, int srid = 4326)
         {
             var zCoordinate = z == null ? "NULL" : z.ToString();
             var geometry = string.Format("POINT({0} {1} {2} {3})", x, y, zCoordinate, m);
@@ -250,14 +260,25 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
-        /// Convert geometric string to SqlGeometry object.
+        /// Convert wkt string to SqlGeometry object.
         /// </summary>
         /// <param name="geomString">geometry in string representation</param>
-        /// <param name="srid">spatial reference identifier; default for SQL Server 4236</param>
+        /// <param name="srid">spatial reference identifier; default for SQL Server 4326</param>
         /// <returns>SqlGeometry</returns>
-        public static SqlGeometry GetGeom(this string geomString, int srid = 4236)
+        public static SqlGeometry GetGeom(this string geomString, int srid = 4326)
         {
             return SqlGeometry.STGeomFromText(new SqlChars(geomString), srid);
+        }
+
+        /// <summary>
+        /// Convert wkt string to SqlGeography object.
+        /// </summary>
+        /// <param name="geogString">geography in wkt string representation</param>
+        /// <param name="srid">spatial reference identifier; default for SQL Server 4326</param>
+        /// <returns>SqlGeography</returns>
+        public static SqlGeography GetGeog(this string geogString, int srid = 4326)
+        {
+            return SqlGeography.STGeomFromText(new SqlChars(geogString), srid);
         }
 
         /// <summary>

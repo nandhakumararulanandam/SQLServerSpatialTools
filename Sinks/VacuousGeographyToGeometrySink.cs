@@ -8,11 +8,11 @@ using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools
 {
-	/**
-	 * This class implements a completely trivial conversion from geography to geometry, simply taking each
-	 * point (lat,long) --> (y, x).  The class takes a target geometry sink, as well as the target SRID to
-	 * assign to the results.
-	 */
+    /// <summary>
+    /// This class implements a completely trivial conversion from geography to geometry, simply taking each
+    /// point(lat, long) --> (y, x).  The class takes a target geometry sink, as well as the target SRID to
+    /// assign to the results.
+    /// </summary>
 	public class VacuousGeographyToGeometrySink : IGeographySink110
 	{
 		private readonly IGeometrySink110 _target;

@@ -2,7 +2,7 @@
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SQLSpatialTools.Function;
+using SQLSpatialTools.Functions.LRS;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Tests
@@ -17,7 +17,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom : {0}", geom.ToString());
             try
             {
-                LRS.Geometry.ClipGeometrySegment(geom, 15, 20);
+                Geometry.ClipGeometrySegment(geom, 15, 20);
             }
             catch (ArgumentException e)
             {
@@ -33,7 +33,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
             try
             {
-                LRS.Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+                Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
             }
             catch (ArgumentException e)
             {
@@ -45,7 +45,7 @@ namespace SQLSpatialTools.Tests
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
             try
             {
-                LRS.Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+                Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
             }
             catch (ArgumentException e)
             {
@@ -58,7 +58,7 @@ namespace SQLSpatialTools.Tests
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
 
             var retGeom = "LINESTRING (10 1 NULL 10, 15 1 NULL 15 )".GetGeom();
-            var clippedGeom = LRS.Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            var clippedGeom = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
             Logger.Log("Clipped Geom: {0}", clippedGeom.ToString());
             SqlAssert.IsTrue(retGeom.STIsValid());
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
@@ -68,7 +68,7 @@ namespace SQLSpatialTools.Tests
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
 
             retGeom = "LINESTRING (15 1 NULL 15, 20 1 NULL 20 )".GetGeom();
-            clippedGeom = LRS.Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            clippedGeom = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
             Logger.Log("Clipped Geom: {0}", clippedGeom.ToString());
             SqlAssert.IsTrue(retGeom.STIsValid());
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
@@ -78,29 +78,29 @@ namespace SQLSpatialTools.Tests
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
 
             retGeom = "LINESTRING (20 1 NULL 20, 25 1 NULL 25 )".GetGeom();
-            clippedGeom = LRS.Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            clippedGeom = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
             Logger.Log("Clipped Geom: {0}", clippedGeom.ToString());
             SqlAssert.IsTrue(retGeom.STIsValid());
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
         }
 
         [TestMethod]
-        public void GetGeomSegmentEndMeasureTest()
+        public void GetEndMeasureTest()
         {
             var endMeasureValue = 10.0F;
             var geom = string.Format("LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000 {0})", endMeasureValue).GetGeom();
-            SqlDouble endMeasure = LRS.Geometry.GetGeomSegmentEndMeasure(geom);
+            SqlDouble endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
             endMeasureValue = 100.000999450684F;
             geom = string.Format("MULTILINESTRING((0 0 0 0, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", endMeasureValue ).GetGeom();
-            endMeasure = LRS.Geometry.GetGeomSegmentEndMeasure(geom);
+            endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
             try
             {
                 geom = ("POLYGON((0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000, 0 0 0 0))").GetGeom();
-                endMeasure = LRS.Geometry.GetGeomSegmentEndMeasure(geom);
+                endMeasure = Geometry.GetEndMeasure(geom);
                 Assert.Fail("Method GetGeomSegmentEndMeasureTest should not accept polygon geometric structure");
             }
             catch (ArgumentException e)
@@ -111,22 +111,22 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
-        public void GetGeomSegmentStartMeasureTest()
+        public void GetStartMeasureTest()
         {
             var startMeasureValue = 10.0F;
             var geom = string.Format("LINESTRING(0 0 0 {0}, 1 1 0 0, 3 4 0 0, 5.5 5 1000 0)", startMeasureValue).GetGeom();
-            SqlDouble endMeasure = LRS.Geometry.GetGeomSegmentStartMeasure(geom);
+            SqlDouble endMeasure = Geometry.GetStartMeasure(geom);
             SqlAssert.AreEqual(endMeasure, startMeasureValue);
 
             startMeasureValue = 100.000999450684F;
             geom = string.Format("MULTILINESTRING((0 0 0 {0}, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", startMeasureValue).GetGeom();
-            endMeasure = LRS.Geometry.GetGeomSegmentStartMeasure(geom);
+            endMeasure = Geometry.GetStartMeasure(geom);
             SqlAssert.AreEqual(endMeasure, startMeasureValue);
 
             try
             {
                 geom = ("POLYGON((0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000, 0 0 0 0))").GetGeom();
-                endMeasure = LRS.Geometry.GetGeomSegmentStartMeasure(geom);
+                endMeasure = Geometry.GetStartMeasure(geom);
                 Assert.Fail("Method GetGeomSegmentStartMeasure should not accept polygon geometric structure");
             }
             catch (ArgumentException e)
@@ -137,7 +137,7 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
-        public void InterpolateBetweenGeomWithMeasureTest()
+        public void InterpolateBetweenGeomTest()
         {
             var geom1 = "POINT(0 0 0 0)".GetGeom();
             var geom2 = "POINT(10 0 0 10)".GetGeom();
@@ -146,26 +146,26 @@ namespace SQLSpatialTools.Tests
             Logger.LogLine("Input Point 1:{0} Point 2:{1}", geom1, geom2);
             Logger.Log("Interpolating at a distance of {0}", geom1, geom2, distance);
             Logger.LogLine("Expected Point: {0}", returnPoint.ToString());
-            var sqlgeom = LRS.Geometry.InterpolateBetweenGeomWithMeasure(geom1, geom2, distance);
+            var sqlgeom = Geometry.InterpolateBetweenGeom(geom1, geom2, distance);
             Logger.Log("Obtained Point: {0}", sqlgeom.ToString());
             SqlAssert.IsTrue(sqlgeom.STEquals(returnPoint));
         }
 
         [TestMethod]
-        public void IsSpatiallyConnectedTest()
+        public void IsConnectedTest()
         {
             // test cases without considering tolerance values
             var geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             var geom2 = "LINESTRING(0 0 0 0, 2 2 0 0)".GetGeom();
             var tolerance = Constants.THRESHOLD;
-            var result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            var result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             // Different SRIDs Failure Test
             try
             {
                 geom2 = "LINESTRING(0 0 0 0, 2 2 0 0)".GetGeom(10);
-                LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+                Geometry.IsConnected(geom1, geom2, tolerance);
             }
             catch (ArgumentException e)
             {
@@ -176,80 +176,80 @@ namespace SQLSpatialTools.Tests
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(2 2 0 0, 0 0 0 0)".GetGeom();
             tolerance = 0;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(5.5 5 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(2 2 9 0, 5.5 5 0 0)".GetGeom();
             tolerance = 0;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             // test cases with tolerance values considered
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(0.5 0.5 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0.5;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsFalse(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(0.5 0 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0.5;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(1.5 1.5 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0.5;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsFalse(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(0 0.5 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0.5;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(2 2 0 0, 0.1 0.6 0 0)".GetGeom();
             tolerance = 0.5;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsFalse(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(2 2 0 0, 0.6 0.1 0 0)".GetGeom();
             tolerance = 1;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(5 5 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0.5;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(2 2 9 0, 6 4.9 0 0)".GetGeom();
             tolerance = 0.5;
-            result = LRS.Geometry.IsSpatiallyConnected(geom1, geom2, tolerance);
+            result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsFalse(result);
         }
 
         [TestMethod]
-        public void LocatePointAlongGeometryTest()
+        public void LocatePointAlongGeomTest()
         {
             var geom = "LINESTRING (0 0 0 0, 10 0 0 10)".GetGeom();
             Logger.Log("Input Geom : {0}", geom.ToString());
             var returnPoint = "POINT (5 0 NULL 5)".GetGeom();
             var distance = 5;
 
-            var locatedPoint = LRS.Geometry.LocatePointAlongGeometry(geom, distance);
+            var locatedPoint = Geometry.LocatePointAlongGeom(geom, distance);
             Logger.Log("Located point : {0} at distance of {1} Measure", locatedPoint.ToString(), distance);
 
             SqlAssert.IsTrue(locatedPoint.STEquals(returnPoint));
@@ -264,7 +264,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
             try
             {
-                LRS.Geometry.MergeGeometrySegments(geom1, geom2);
+                Geometry.MergeGeometrySegments(geom1, geom2);
             }
             catch (ArgumentException e)
             {
@@ -278,7 +278,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
             try
             {
-                LRS.Geometry.MergeGeometrySegments(geom1, geom2);
+                Geometry.MergeGeometrySegments(geom1, geom2);
             }
             catch (ArgumentException e)
             {
@@ -292,7 +292,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
             try
             {
-                LRS.Geometry.MergeGeometrySegments(geom1, geom2);
+                Geometry.MergeGeometrySegments(geom1, geom2);
             }
             catch (ArgumentException e)
             {
@@ -307,7 +307,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
 
             var mergedGeom = "LINESTRING (10 1 NULL 10, 25 1 NULL 25, 40 1 NULL 40)".GetGeom();
-            var retGeom = LRS.Geometry.MergeGeometrySegments(geom1, geom2);
+            var retGeom = Geometry.MergeGeometrySegments(geom1, geom2);
             Logger.Log("Merged Geom: {0}", retGeom.ToString());
             SqlAssert.IsTrue(retGeom.STEquals(mergedGeom));
 
@@ -318,7 +318,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
 
             mergedGeom = "LINESTRING (10 1 NULL 10, 25 1 NULL 25, 40 1 NULL 35)".GetGeom();
-            retGeom = LRS.Geometry.MergeGeometrySegments(geom1, geom2);
+            retGeom = Geometry.MergeGeometrySegments(geom1, geom2);
             Logger.Log("Expected Geom: {0}", mergedGeom.ToString());
             Logger.Log("Merged   Geom: {0}", retGeom.ToString());
             SqlAssert.IsTrue(retGeom.STEquals(mergedGeom));
@@ -334,7 +334,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom : {0}", geom.ToString());
 
             Logger.Log("Populating Geom with null Start and End Measure");
-            var populatedGeometry = LRS.Geometry.PopulateGeometryMeasures(geom, null, null);
+            var populatedGeometry = Geometry.PopulateGeometryMeasures(geom, null, null);
             Logger.Log("Populated Geom : {0}", populatedGeometry.ToString());
 
             // if the start, end measure would be null, then this function populates the existing 'M' (measure) value
@@ -345,7 +345,7 @@ namespace SQLSpatialTools.Tests
             double endMeasure = 40;
             // if the start, end measure would be non null, then this function overrides the 'M' value that has been passed
             Logger.Log("Populating Geom with Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
-            populatedGeometry = LRS.Geometry.PopulateGeometryMeasures(geom, startMeasure, endMeasure);
+            populatedGeometry = Geometry.PopulateGeometryMeasures(geom, startMeasure, endMeasure);
             Logger.Log("Populated Geom : {0}", populatedGeometry.ToString());
             Assert.AreEqual(populatedGeometry.GetStartPointMeasure(), startMeasure);
             SqlAssert.AreEqual(populatedGeometry.STPointN(2).M, 20.0F);
@@ -360,7 +360,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom : {0}", geom.ToString());
 
             var endPoint = "POINT (5 5 0 0)".GetGeom();
-            var reversedLineSegment = LRS.Geometry.ReverseLinearGeometry(geom);
+            var reversedLineSegment = Geometry.ReverseLinearGeometry(geom);
             Logger.Log("Reversed Line string : {0}", reversedLineSegment.ToString());
             SqlAssert.IsTrue(reversedLineSegment.STStartPoint().STEquals(endPoint));
         }
@@ -374,7 +374,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Input Geom : {0}", geom.ToString());
             try
             {
-                LRS.Geometry.SplitGeometrySegment(geom, 15, out geomSegment1, out geomSegment2);
+                Geometry.SplitGeometrySegment(geom, 15, out geomSegment1, out geomSegment2);
             }
             catch (ArgumentException e)
             {
@@ -392,7 +392,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Split input geom at a distance of {0} Measure", distance);
             try
             {
-                LRS.Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
+                Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
             }
             catch (ArgumentException e)
             {
@@ -404,7 +404,7 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Split input geom at a distance of {0} Measure", distance);
             try
             {
-                LRS.Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
+                Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
             }
             catch (ArgumentException e)
             {
@@ -415,7 +415,7 @@ namespace SQLSpatialTools.Tests
             distance = 15;
             Logger.Log("Split input geom at a distance of {0} Measure", distance);
 
-            LRS.Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
+            Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
             Logger.Log("Splitted Geom 1 : {0}", geomSegment1);
             Logger.Log("Splitted Geom 2 : {0}", geomSegment2);
 

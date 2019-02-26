@@ -43,7 +43,7 @@ namespace SQLSpatialTools.Utility
 
     public class Constants
     {
-        public const int DEFAULT_SRID = 4236;
+        public const int DEFAULT_SRID = 4326;
 
         // 1 cm tolerance in most SRIDs
         public const double THRESHOLD = 0.01;
@@ -52,10 +52,12 @@ namespace SQLSpatialTools.Utility
     public class ErrorMessage
     {
         public const string LineStringCompatible = "LINESTRING is currently the only spatial type supported";
-        public const string SRIDCompatible = "SRID's of geometries doesn't match";
+        public const string SRIDCompatible = "SRID's of geography\\geometry objects doesn't match";
         public const string PointCompatible = "Start and End geometry must be a point.";
         public const string MeasureRange = "Measure not withing range.";
         public const string WKT3DOnly = "Input WKT should only have three dimensions!";
+        public const string DistanceMustBeBetweenTwoPoints = "The distance value provided exceeds the distance between the two points.";
+        public const string DistanceMustBePositive = "The distance must be positive.";
     }
 
     /// <summary>

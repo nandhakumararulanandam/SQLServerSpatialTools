@@ -1,116 +1,295 @@
 ﻿-- Copyright (c) Microsoft Corporation.  All rights reserved.
-
 -- Install the SQLSpatialTools assembly and all its functions into the current database
+-- Enable CLR if not enabled
+IF NOT EXISTS (
+		SELECT value
+		FROM sys.configurations
+		WHERE name = 'clr enabled'
+			AND value = 1
+		)
+BEGIN
+	EXEC sp_configure @configname = clr_enabled
+		,@configvalue = 1
 
--- Enable CLR
-sp_configure 'clr enabled', 1
-reconfigure
-go
+	RECONFIGURE
+END
 
 -- !!! Insert the path to the SQLSpatialTools assembly here !!!
-create assembly SQLSpatialTools from '' 
-go
-
+CREATE assembly SQLSpatialTools
+FROM 'D:\SQLServerSpatialTools\bin\Debug\SQLSpatialTools.dll'
+GO
 
 -- Create types
-create type Projection external name SQLSpatialTools.[SQLSpatialTools.SqlProjection]
-go
+CREATE type Projection EXTERNAL name SQLSpatialTools.[SQLSpatialTools.SqlProjection]
+GO
 
-create type AffineTransform external name SQLSpatialTools.[SQLSpatialTools.AffineTransform]
-go
-
+CREATE type AffineTransform EXTERNAL name SQLSpatialTools.[SQLSpatialTools.AffineTransform]
+GO
 
 -- Register the functions...
-create function ShiftGeometry(@g geometry, @xShift float, @yShift float) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].ShiftGeometry
-go
+--#region General Geometry Functions
+CREATE FUNCTION FilterArtifactsGeometry (
+	@g geometry
+	,@filterEmptyShapes BIT
+	,@filterPoints BIT
+	,@lineStringTolerance FLOAT(53)
+	,@ringTolerance FLOAT(53)
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].FilterArtifactsGeometry
+GO
 
-create function LocateAlongGeog(@g geography, @distance float) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].LocateAlongGeog
-go
+CREATE FUNCTION GeomFromXYMText (
+	@g NVARCHAR(max)
+	,@targetSrid INT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].GeomFromXYMText
+GO
 
-create function LocateAlongGeom(@g geometry, @distance float) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].LocateAlongGeom
-go
+CREATE FUNCTION InterpolateBetweenGeom (
+	@start geometry
+	,@end geometry
+	,@distance FLOAT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].InterpolateBetweenGeom
+GO
 
-create function LocateMAlongGeom(@g geometry, @distance float) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].LocateMAlongGeom
-go
+CREATE FUNCTION LocateAlongGeom (
+	@g geometry
+	,@distance FLOAT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].LocatePointAlongGeom
+GO
 
-create function InterpolateBetweenGeog(@start geography, @end geography, @distance float) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].InterpolateBetweenGeog
-go
+CREATE FUNCTION MakeValidForGeography (@g geometry)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].MakeValidForGeography
+GO
 
-create function InterpolateBetweenGeom(@start geometry, @end geometry, @distance float) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].InterpolateBetweenGeom
-go
+CREATE FUNCTION ReverseLinestring (@g geometry)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].ReverseLinestring
+GO
 
-create function VacuousGeometryToGeography(@toConvert geometry, @targetSrid int) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].VacuousGeometryToGeography
-go
+CREATE FUNCTION ShiftGeometry (
+	@g geometry
+	,@xShift FLOAT
+	,@yShift FLOAT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].ShiftGeometry
+GO
 
-create function VacuousGeographyToGeometry(@toConvert geography, @targetSrid int) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].VacuousGeographyToGeometry
-go
+CREATE FUNCTION VacuousGeometryToGeography (
+	@toConvert geometry
+	,@targetSrid INT
+	)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].VacuousGeometryToGeography
+GO
 
-create function ConvexHullGeography(@geog geography) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].ConvexHullGeography
-go
+--#endregion
+--#region General Geography Functions
+CREATE FUNCTION ConvexHullGeographyFromText (
+	@inputWKT NVARCHAR(max)
+	,@srid INT
+	)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].ConvexHullGeographyFromText
+GO
 
-create function ConvexHullGeographyFromText(@inputWKT nvarchar(max), @srid int) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].ConvexHullGeographyFromText
-go
+CREATE FUNCTION ConvexHullGeography (@geog GEOGRAPHY)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].ConvexHullGeography
+GO
 
-create function IsValidGeographyFromGeometry(@inputGeometry geometry) returns bit
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].IsValidGeographyFromGeometry
-go
+CREATE FUNCTION DensifyGeography (
+	@geog GEOGRAPHY
+	,@maxAngle FLOAT
+	)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].DensifyGeography
+GO
 
-create function IsValidGeographyFromText(@inputWKT nvarchar(max), @srid int) returns bit
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].IsValidGeographyFromText
-go
+CREATE FUNCTION FilterArtifactsGeography (
+	@geog GEOGRAPHY
+	,@filterEmptyShapes BIT
+	,@filterPoints BIT
+	,@lineStringTolerance FLOAT(53)
+	,@ringTolerance FLOAT(53)
+	)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].FilterArtifactsGeography
+GO
 
-create function MakeValidGeographyFromGeometry(@inputGeometry geometry) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].MakeValidGeographyFromGeometry
-go
+CREATE FUNCTION InterpolateBetweenGeog (
+	@start GEOGRAPHY
+	,@end GEOGRAPHY
+	,@distance FLOAT
+	)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].InterpolateBetweenGeog
+GO
 
-create function MakeValidGeographyFromText(@inputWKT nvarchar(max), @srid int) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].MakeValidGeographyFromText
-go
+CREATE FUNCTION IsValidGeographyFromGeometry (@inputGeometry geometry)
+RETURNS BIT
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].IsValidGeographyFromGeometry
+GO
 
-create function FilterArtifactsGeometry(@g geometry, @filterEmptyShapes bit, @filterPoints bit, @lineStringTolerance float(53), @ringTolerance float(53)) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].FilterArtifactsGeometry
-go
+CREATE FUNCTION IsValidGeographyFromText (
+	@inputWKT NVARCHAR(max)
+	,@srid INT
+	)
+RETURNS BIT
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].IsValidGeographyFromText
+GO
 
-create function FilterArtifactsGeography(@g geography, @filterEmptyShapes bit, @filterPoints bit, @lineStringTolerance float(53), @ringTolerance float(53)) returns geography
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].FilterArtifactsGeography
-go
+CREATE FUNCTION LocateAlongGeog (
+	@g GEOGRAPHY
+	,@distance FLOAT
+	)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].LocatePointAlongGeog
+GO
 
-create function ReverseLinearGeometry(@g geometry) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].ReverseLinearGeometry
-go
+CREATE FUNCTION MakeValidGeographyFromGeometry (@inputGeometry geometry)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].MakeValidGeographyFromGeometry
+GO
 
-create function PopulateGeometryMeasures(@g geometry, @startMeasure float, @endMeasure float) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].PopulateGeometryMeasures
-go
+CREATE FUNCTION MakeValidGeographyFromText (
+	@inputWKT NVARCHAR(max)
+	,@srid INT
+	)
+RETURNS GEOGRAPHY
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].MakeValidGeographyFromText
+GO
 
-create function ClipGeometrySegment(@g geometry, @startMeasure float, @endMeasure float) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].ClipGeometrySegment
-go
+CREATE FUNCTION VacuousGeographyToGeometry (
+	@toConvert GEOGRAPHY
+	,@targetSrid INT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].VacuousGeographyToGeometry
+GO
 
-create function MergeGeometrySegments(@g1 geometry, @g2 geometry) returns geometry
-as external name SQLSpatialTools.[SQLSpatialTools.Functions].MergeGeometrySegments
-go
+--#endregion
+--#region LRS Geometric Functions
+CREATE FUNCTION LRS_ClipGeometrySegment (
+	@g geometry
+	,@startMeasure FLOAT
+	,@endMeasure FLOAT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ClipGeometrySegment
+GO
+
+CREATE FUNCTION LRS_GetEndMeasure (@geomSegment1 geometry)
+RETURNS FLOAT
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].GetEndMeasure
+GO
+
+CREATE FUNCTION LRS_GetStartMeasure (@geomSegment1 geometry)
+RETURNS FLOAT
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].GetStartMeasure
+GO
+
+CREATE FUNCTION LRS_InterpolateBetweenGeom (
+	@start geometry
+	,@end geometry
+	,@measure FLOAT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].InterpolateBetweenGeom
+GO
+
+CREATE FUNCTION LRS_IsConnected (
+	@geomSegment1 geometry
+	,@geomSegment2 geometry
+	,@tolerance FLOAT
+	)
+RETURNS BIT
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].IsConnected
+GO
+
+CREATE FUNCTION LRS_LocatePointAlongGeom (
+	@g geometry
+	,@distance FLOAT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].LocatePointAlongGeom
+GO
+
+CREATE FUNCTION LRS_MergeGeometrySegments (
+	@g1 geometry
+	,@g2 geometry
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].MergeGeometrySegments
+GO
+
+CREATE FUNCTION LRS_PopulateGeometryMeasures (
+	@g geometry
+	,@startMeasure FLOAT
+	,@endMeasure FLOAT
+	)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].PopulateGeometryMeasures
+GO
+
+CREATE FUNCTION LRS_ReverseLinearGeometry (@g geometry)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ReverseLinearGeometry
+GO
+
+CREATE PROCEDURE LRS_SplitGeometrySegment @g geometry
+	,@splitMeasure FLOAT(53)
+	,@geomSegement1 geometry OUTPUT
+	,@geomSegement2 geometry OUTPUT
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].SplitGeometrySegment
+GO
 
 -- Create aggregates.
+CREATE aggregate GeometryEnvelopeAggregate (@geom geometry)
+RETURNS geometry EXTERNAL name SQLSpatialTools.[SQLSpatialTools.GeometryEnvelopeAggregate]
+GO
 
-create aggregate GeometryEnvelopeAggregate(@geom geometry) returns geometry
-external name SQLSpatialTools.[SQLSpatialTools.GeometryEnvelopeAggregate]
-go
+CREATE aggregate GeographyCollectionAggregate (@geog GEOGRAPHY)
+RETURNS GEOGRAPHY EXTERNAL name SQLSpatialTools.[SQLSpatialTools.GeographyCollectionAggregate]
+GO
 
-create aggregate GeographyCollectionAggregate(@geog geography) returns geography
-external name SQLSpatialTools.[SQLSpatialTools.GeographyCollectionAggregate]
-go
-
-create aggregate GeographyUnionAggregate(@geog geography) returns geography
-external name SQLSpatialTools.[SQLSpatialTools.GeographyUnionAggregate]
-go
+CREATE aggregate GeographyUnionAggregate (@geog GEOGRAPHY)
+RETURNS GEOGRAPHY EXTERNAL name SQLSpatialTools.[SQLSpatialTools.GeographyUnionAggregate]
+GO

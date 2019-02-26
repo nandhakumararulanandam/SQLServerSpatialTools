@@ -1,42 +1,78 @@
 ﻿-- Copyright (c) Microsoft Corporation.  All rights reserved.
-
 -- Drop the SQLSpatialTools assembly and all its functions from the current database
-
 -- Drop the aggregates...
-drop aggregate GeometryEnvelopeAggregate
-drop aggregate GeographyCollectionAggregate
-drop aggregate GeographyUnionAggregate
+DROP aggregate GeometryEnvelopeAggregate
+
+DROP aggregate GeographyCollectionAggregate
+
+DROP aggregate GeographyUnionAggregate
 
 -- Drop the functions...
-drop function ShiftGeometry
-drop function LocateAlongGeog
-drop function LocateAlongGeom
-drop function LocateMAlongGeom
-drop function InterpolateBetweenGeog
-drop function InterpolateBetweenGeom
-drop function VacuousGeometryToGeography
-drop function VacuousGeographyToGeometry
+-- General Geometry
+DROP FUNCTION FilterArtifactsGeometry
 
-drop function ConvexHullGeography
-drop function ConvexHullGeographyFromText
-drop function IsValidGeographyFromGeometry
-drop function IsValidGeographyFromText
-drop function MakeValidGeographyFromGeometry
-drop function MakeValidGeographyFromText
+DROP FUNCTION GeomFromXYMText
 
-drop function FilterArtifactsGeometry
-drop function FilterArtifactsGeography
+DROP FUNCTION InterpolateBetweenGeom
 
-drop function ReverseLinearGeometry
-drop function PopulateGeometryMeasures
-drop function ClipGeometrySegment
-drop function MergeGeometrySegments
+DROP FUNCTION LocateAlongGeom
+
+DROP FUNCTION MakeValidForGeography
+
+DROP FUNCTION ReverseLinestring
+
+DROP FUNCTION ShiftGeometry
+
+DROP FUNCTION VacuousGeometryToGeography
+
+-- General Geography
+DROP FUNCTION ConvexHullGeographyFromText
+
+DROP FUNCTION ConvexHullGeography
+
+DROP FUNCTION DensifyGeography
+
+DROP FUNCTION FilterArtifactsGeography
+
+DROP FUNCTION InterpolateBetweenGeog
+
+DROP FUNCTION IsValidGeographyFromGeometry
+
+DROP FUNCTION IsValidGeographyFromText
+
+DROP FUNCTION LocateAlongGeog
+
+DROP FUNCTION MakeValidGeographyFromGeometry
+
+DROP FUNCTION MakeValidGeographyFromText
+
+DROP FUNCTION VacuousGeographyToGeometry
+
+-- LRS Geometry
+DROP FUNCTION LRS_ClipGeometrySegment
+
+DROP FUNCTION LRS_GetEndMeasure
+
+DROP FUNCTION LRS_GetStartMeasure
+
+DROP FUNCTION LRS_InterpolateBetweenGeom
+
+DROP FUNCTION LRS_IsConnected
+
+DROP FUNCTION LRS_LocatePointAlongGeom
+
+DROP FUNCTION LRS_MergeGeometrySegments
+
+DROP FUNCTION LRS_PopulateGeometryMeasures
+
+DROP FUNCTION LRS_ReverseLinearGeometry
+
+DROP PROCEDURE LRS_SplitGeometrySegment
 
 -- Drop the types...
-drop type Projection
-drop type AffineTransform
+DROP type Projection
+
+DROP type AffineTransform
 
 -- Drop the assembly...
-drop assembly SQLSpatialTools
-
-
+DROP assembly SQLSpatialTools
