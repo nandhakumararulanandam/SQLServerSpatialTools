@@ -1,22 +1,36 @@
 ﻿-- Copyright (c) Microsoft Corporation.  All rights reserved.
 -- Install the SQLSpatialTools assembly and all its functions into the current database
--- Enable CLR if not enabled
-IF NOT EXISTS (
-		SELECT value
-		FROM sys.configurations
-		WHERE name = 'clr enabled'
-			AND value = 1
-		)
-BEGIN
-	EXEC sp_configure @configname = clr_enabled
-		,@configvalue = 1
 
-	RECONFIGURE
-END
+EXEC sp_configure 'show advanced option', '1'; 
+RECONFIGURE;
+Go
+
+sp_configure 'clr enabled', 1  ;
+GO  
+RECONFIGURE  ;
+GO
+
+EXEC sp_configure 'clr strict security',  '0'
+RECONFIGURE WITH OVERRIDE;
+GO
+
+-- Enable CLR if not enabled
+--IF NOT EXISTS (
+--		SELECT value
+--		FROM sys.configurations
+--		WHERE name = 'clr enabled'
+--			AND value = 1
+--		)
+--BEGIN
+--	EXEC sp_configure @configname = clr_enabled
+--		,@configvalue = 1
+
+--	RECONFIGURE
+--END
 
 -- !!! Insert the path to the SQLSpatialTools assembly here !!!
 CREATE assembly SQLSpatialTools
-FROM 'D:\SQLServerSpatialTools\bin\Debug\SQLSpatialTools.dll'
+FROM 'D:\Spatial\bin\Debug\SQLSpatialTools.dll'
 GO
 
 -- Create types
