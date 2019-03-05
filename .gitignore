@@ -4,6 +4,7 @@ obj/
 .vs/
 *.psess
 *.vspx
+*.suo
 packages/
 Backup/
 output/
