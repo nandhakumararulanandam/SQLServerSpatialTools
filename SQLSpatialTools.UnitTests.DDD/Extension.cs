@@ -1,39 +1,39 @@
 ﻿using System;
 using System.Data.SqlTypes;
 using System.Text;
-using MS = Microsoft.VisualStudio.TestTools.UnitTesting;
+using MST = Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SQLSpatialTools.Tests
+namespace SQLSpatialTools.UnitTests.DDD
 {
     public static class SqlAssert
     {
         public static void IsTrue(SqlBoolean sqlBoolean)
         {
-            MS.Assert.IsTrue((bool)sqlBoolean);
+            MST.Assert.IsTrue((bool)sqlBoolean);
         }
 
         public static void IsFalse(SqlBoolean sqlBoolean)
         {
-            MS.Assert.IsFalse((bool)sqlBoolean);
+            MST.Assert.IsFalse((bool)sqlBoolean);
         }
 
-        public static void AreEqual(SqlDouble sqlDouble,  double targetValue)
+        public static void AreEqual(SqlDouble sqlDouble, double targetValue)
         {
-            MS.Assert.AreEqual(Math.Round((double)sqlDouble,4), Math.Round(targetValue, 4));
+            MST.Assert.AreEqual(Math.Round((double)sqlDouble, 4), Math.Round(targetValue, 4));
         }
 
         public static void Contains(string inputMessage, string searchString)
         {
             if (!inputMessage.Contains(searchString))
-                MS.Assert.Fail(string.Format("Not expected exception, \"{0}\" not found in the message", searchString));
+                MST.Assert.Fail(string.Format("Not expected exception, \"{0}\" not found in the message", searchString));
         }
     }
 
     public class TestLogger
     {
-        private readonly MS.TestContext testContext;
+        private readonly MST.TestContext testContext;
 
-        public TestLogger(MS.TestContext testContext)
+        public TestLogger(MST.TestContext testContext)
         {
             this.testContext = testContext;
         }

@@ -1,0 +1,19 @@
+﻿## Comments
+## ClipGeometrySegmentTest
+
+## [InputGeom] nvarchar(1000) NOT NULL
+## [StartMeasure] float NOT NULL
+## [EndMeasure] float NOT NULL
+## [ExpectedGeom] nvarchar(1000) NOT NULL
+
+## Each line represents one test data to be inserted in DB
+## Parameter Seperater ||
+## Should follow the same order of parameter; white space at the start and end of each param will be truncated
+## [InputGeom]								||[StartMeasure]	||[EndMeasure]	||[ExpectedGeom]
+LINESTRING (10 1 NULL 10, 25 1 NULL 25)		||15				||20			||LINESTRING (15 1 NULL 15, 20 1 NULL 20)
+LINESTRING (10 1 NULL 10, 25 1 NULL 25)		||12				||15			||LINESTRING (12 1 NULL 12, 15 1 NULL 15)
+LINESTRING (10 1 NULL 10, 25 1 NULL 25)		||10				||14			||LINESTRING (10 1 NULL 10, 14 1 NULL 14)
+LINESTRING (10 1 NULL 10, 25 1 NULL 25)		||11				||15			||LINESTRING (11 1 NULL 11, 15 1 NULL 15)
+LINESTRING (10 1 NULL 10, 25 1 NULL 25)		||13				||17			||LINESTRING (13 1 NULL 13, 17 1 NULL 17)
+LINESTRING (10 1 NULL 10, 25 1 NULL 25)		||14				||16			||LINESTRING (14 1 NULL 14, 16 1 NULL 16)
+LINESTRING (10 1 NULL 10, 25 1 NULL 25)		||17				||19			||LINESTRING (17 1 NULL 17, 19 1 NULL 19)
