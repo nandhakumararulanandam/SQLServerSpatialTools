@@ -1,0 +1,13 @@
+﻿## Comments
+## SplitGeometrySegmentTest
+
+## [InputGeom] nvarchar(1000) NOT NULL
+## [Measure] float NOT NULL
+## [ExpectedGoem1] nvarchar(1000) NOT NULL
+## [ExpectedGeom2] nvarchar(1000) NOT NULL
+
+## Each line represents one test data to be inserted in DB
+## Parameter Seperater ||
+## Should follow the same order of parameter; white space at the start and end of each param will be truncated
+## [InputGeom]										||[Measure]		||[ExpectedGoem1]							||[ExpectedGoem2]
+LINESTRING (10 1 NULL 10, 25 1 NULL 25 )			||15			||LINESTRING (10 1 NULL 10, 15 1 NULL 15 )	||LINESTRING (15 1 NULL 15, 25 1 NULL 25 )

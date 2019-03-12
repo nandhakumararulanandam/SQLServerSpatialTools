@@ -1,0 +1,15 @@
+﻿## Comments
+## LocatePointAlongGeom Test
+
+## [InputGeom1] nvarchar(1000) NOT NULL
+## [Measure] float NOT NULL
+## [ExpectedGeom] bit NOT NULL
+
+## Each line represents one test data to be inserted in DB
+## Parameter Seperater ||
+## Should follow the same order of parameter; white space at the start and end of each param will be truncated
+## [InputGeom]										||[Measure]			||[ExpectedPoint]
+LINESTRING (0 0 0 0, 10 0 0 10)						||5					||Point(5 0 NULL 5)
+LINESTRING (0 0 0 0, 20 0 0 15)						||12				||POINT (16 0 NULL 12)
+LINESTRING (0 0 0 0, 15 0 0 20)						||15				||POINT (11.25 0 NULL 15)
+LINESTRING (0 0 0 0, 10 0 0 40)						||7					||POINT (1.75 0 NULL 7)

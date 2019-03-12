@@ -1,0 +1,12 @@
+﻿## Comments
+## ReverseLinearGeometryTest
+
+## [InputGeom] nvarchar(1000) NOT NULL
+## [ExpectedGeom] nvarchar(1000) NOT NULL
+
+## Each line represents one test data to be inserted in DB
+## Parameter Seperater ||
+## Should follow the same order of parameter; white space at the start and end of each param will be truncated
+## [InputGeom]										||[ExpectedGeom]
+LINESTRING (1 1 0 0, 5 5 0 0)						||LINESTRING(5 5 0 0, 1 1 0 0)
+LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)	||LINESTRING (5.5 5 0 0, 3 4 0 0, 1 1 0 0, 0 0 0 0)

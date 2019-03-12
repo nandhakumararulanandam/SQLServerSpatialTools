@@ -3,12 +3,13 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.LRS;
+using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Tests
 {
     [TestClass]
-    public class LRSFunctionTests : UnitTest
+    public class LRSFunctionTests : BaseUnitTest
     {
         [TestMethod]
         public void ClipGeometrySegmentTest()
@@ -256,7 +257,7 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
-        public void MergeGeometrySegmentTest()
+        public void MergeGeometrySegmentsTest()
         {
             var geom1 = "MULTILINESTRING((100 100, 200 200), (3 4, 7 8, 10 10))".GetGeom();
             var geom2 = "MULTILINESTRING((11 2, 12 4, 15 5), (5 4, 6 8, 9 11))".GetGeom();

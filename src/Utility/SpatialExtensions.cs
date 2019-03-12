@@ -271,6 +271,33 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Compares measure values of each point in a LineString
+        /// </summary>
+        /// <param name="sqlGeometry">Input Line Segment</param>
+        /// <param name="targetGeometry">Target Line Segement</param>
+        /// <returns></returns>
+        public static bool STEqualsMeasure(this SqlGeometry sqlGeometry, SqlGeometry targetGeometry)
+        {
+            if (!(sqlGeometry.IsLineString()|| targetGeometry.IsLineString()))
+                return false;
+            if (sqlGeometry.STIsEmpty() || targetGeometry.STIsEmpty())
+                return false;
+
+            var inputNumPoints = sqlGeometry.STNumPoints();
+            var targetNumPoints = targetGeometry.STNumPoints();
+
+            if (inputNumPoints != targetNumPoints)
+                return false;
+
+            for (var pointIterator = 1; pointIterator <= inputNumPoints; pointIterator++)
+            {
+                if (sqlGeometry.STPointN(pointIterator).M != targetGeometry.STPointN(pointIterator).M)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Convert wkt string to SqlGeography object.
         /// </summary>
         /// <param name="geogString">geography in wkt string representation</param>

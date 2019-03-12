@@ -1,8 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SQLSpatialTools.Tests
+namespace SQLSpatialTools.UnitTests.Extension
 {
-    public class UnitTest
+    public class BaseUnitTest
     {
         public TestLogger Logger;
         [TestInitialize]

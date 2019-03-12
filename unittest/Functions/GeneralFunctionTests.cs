@@ -2,6 +2,7 @@
 using Microsoft.SqlServer.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.General;
+using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Tests
@@ -9,7 +10,7 @@ namespace SQLSpatialTools.Tests
     public class GeneralFunctionTests
     {
         [TestClass]
-        public class GeometryTests : UnitTest
+        public class GeometryTests : BaseUnitTest
         {
             [TestMethod]
             public void FilterArtifactsGeometryTest()
@@ -181,7 +182,7 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestClass]
-        public class GeographyTests : UnitTest
+        public class GeographyTests : BaseUnitTest
         {
             [TestMethod]
             public void ConvexHullGeographyFromTextTest()

@@ -26,7 +26,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\output\unittest-ddd\</OutputPath>
+    <IntermediateOutputPath>..\output\intermediate\unittest-ddd</IntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -35,7 +36,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\output\unittest-ddd\</OutputPath>
+    <IntermediateOutputPath>..\output\intermediate\unittest-ddd</IntermediateOutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -66,12 +68,36 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DDD\DataManipulator.cs" />
+    <Compile Include="DDD\LRSDataSet.cs" />
     <Compile Include="DDD\LRSFunctionTests.cs" />
-    <Compile Include="Extension.cs" />
-    <Compile Include="UnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Dataset\LRS\LocatePointAlongGeom.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\MergeGeometrySegments.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\SplitGeometrySegment.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\ReverseLinearGeometry.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\PopulateGeometryMeasures.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\IsConnected.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\InterpolateBetweenGeom.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\GetStartMeasure.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Dataset\LRS\GetEndMeasure.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -84,6 +110,10 @@
     <ProjectReference Include="..\src\SQLSpatialTools.csproj">
       <Project>{09428c16-7dae-4c28-a853-e4f04dd0bedd}</Project>
       <Name>SQLSpatialTools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\unittest-extension\SQLSpatialTools.UnitTests.Extension.csproj">
+      <Project>{98EFE72E-E303-4BDE-B86F-5F704DB3F5BE}</Project>
+      <Name>SQLSpatialTools.UnitTests.Extension</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -105,6 +135,7 @@
   <Import Project="..\packages\MSTest.TestAdapter.1.4.0\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.1.4.0\build\net45\MSTest.TestAdapter.targets')" />
   <PropertyGroup>
     <PostBuildEvent>
+    rd "$(ProjectDir)obj" /S /Q
     if not exist "$(TargetDir)x86" md "$(TargetDir)x86"
     xcopy /s /y "$(SolutionDir)packages\Microsoft.SqlServer.Compact.4.0.8876.1\NativeBinaries\x86\*.*" "$(TargetDir)x86"
     if not exist "$(TargetDir)amd64" md "$(TargetDir)amd64"

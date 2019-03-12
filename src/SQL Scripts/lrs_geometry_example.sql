@@ -38,7 +38,7 @@ SET @geom1 = geometry::STGeomFromText('LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5
 SET @geom2 = geometry::STGeomFromText('LINESTRING(5 5 0 0, 2 2 0 0)', @srid);
 SET @tolerance = 0.5;
 
-SELECT 'Interpolate Points' AS 'FunctionInfo'
+SELECT 'Is Spatially Connected' AS 'FunctionInfo'
 	,[dbo].[LRS_IsConnected](@geom1, @geom2, @tolerance) AS 'IsConnected';
 
 -- 6. Locate Point Along the Geometry Segment
