@@ -355,6 +355,38 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
+        public void ResetMeasureTest()
+        {   // line string with null z value
+            var geom = "LINESTRING (0 0 NULL 10, 10 0 NULL 20)".GetGeom();
+            Logger.LogLine("Input Geom : {0}", geom.ToString());
+            var expectedGeom = "LINESTRING (0 0 NULL, 10 0 NULL)".GetGeom();
+
+            var measureResettedGeom = Geometry.ResetMeasure(geom);
+            Logger.Log("Expected Geom: {0}", expectedGeom);
+            Logger.Log("Resetted Geom: {0}", measureResettedGeom);
+
+            SqlAssert.AreEqual(geom.GetStartPointMeasure(), 10);
+            SqlAssert.AreEqual(geom.GetEndPointMeasure(), 20);
+            SqlAssert.IsTrue(measureResettedGeom.STEquals(expectedGeom));
+            SqlAssert.IsTrue(measureResettedGeom.STStartPoint().M.IsNull);
+            SqlAssert.IsTrue(measureResettedGeom.STEndPoint().M.IsNull);
+
+            geom = "LINESTRING (11.235 25.987 NULL 116.124, 16.78 30.897 NULL 206.35)".GetGeom();
+            Logger.LogLine("Input Geom : {0}", geom.ToString());
+            expectedGeom = "LINESTRING (11.235 25.987, 16.78 30.897)".GetGeom();
+
+            measureResettedGeom = Geometry.ResetMeasure(geom);
+            Logger.Log("Expected Geom: {0}", expectedGeom);
+            Logger.Log("Resetted Geom: {0}", measureResettedGeom);
+
+            SqlAssert.AreEqual(geom.GetStartPointMeasure(), 116.124);
+            SqlAssert.AreEqual(geom.GetEndPointMeasure(), 206.35);
+            SqlAssert.IsTrue(measureResettedGeom.STEquals(expectedGeom));
+            SqlAssert.IsTrue(measureResettedGeom.STStartPoint().M.IsNull);
+            SqlAssert.IsTrue(measureResettedGeom.STEndPoint().M.IsNull);
+        }
+
+        [TestMethod]
         public void ReverseLinearGeometryTest()
         {
             var geom = "LINESTRING (1 1 0 0, 5 5 0 0)".GetGeom();

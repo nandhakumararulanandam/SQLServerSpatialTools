@@ -162,6 +162,22 @@ namespace SQLSpatialTools.Functions.LRS
             geometry.Populate(geomSink);
             return geomBuilder.ConstructedGeometry;
         }
+        /// <summary>
+        /// Resets Geometry Measure values.
+        /// </summary>
+        /// <param name="geometry">Input Geometry</param>
+        /// <returns></returns>
+        public static SqlGeometry ResetMeasure(SqlGeometry geometry)
+        {
+            if (!geometry.IsLineString())
+                throw new ArgumentException(ErrorMessage.LineStringCompatible);
+
+            var geomBuilder = new SqlGeometryBuilder();
+            var geomSink = new ResetMGemetrySink(geomBuilder);
+            
+                geometry.Populate(geomSink);
+            return geomBuilder.ConstructedGeometry;
+        }
 
         /// <summary>
         /// Merge two geometry segments to one geometry.

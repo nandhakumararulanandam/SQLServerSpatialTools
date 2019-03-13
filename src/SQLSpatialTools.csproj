@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Functions\LRS.cs" />
+    <Compile Include="Sinks\ResetMGeometrySink.cs" />
     <Compile Include="KMLProcessor\Constants.cs" />
     <Compile Include="KMLProcessor\Export\ExportContext.cs" />
     <Compile Include="KMLProcessor\Export\KeyholeMarkupLanguageBase.cs" />
