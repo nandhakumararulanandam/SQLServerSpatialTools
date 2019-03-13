@@ -30,7 +30,7 @@ GO
 
 -- !!! Insert the path to the SQLSpatialTools assembly here !!!
 CREATE assembly SQLSpatialTools
-FROM 'D:\Spatial\bin\Debug\SQLSpatialTools.dll'
+FROM 'DLLPath'
 GO
 
 -- Create types

@@ -69,6 +69,6 @@
   </Target>
   <Import Project="..\packages\MSTest.TestAdapter.1.4.0\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.1.4.0\build\net45\MSTest.TestAdapter.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>rd "$(ProjectDir)obj" /S /Q</PostBuildEvent>
+    <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q</PostBuildEvent>
   </PropertyGroup>
 </Project>

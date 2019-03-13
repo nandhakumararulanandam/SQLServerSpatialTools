@@ -205,9 +205,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.SqlServer.Types.14.0.1016.290\lib\net40\Microsoft.SqlServer.Types.dll')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.SqlServer.Types.14.0.1016.290\lib\net40\Microsoft.SqlServer.Types.dll'))" />
   </Target>
-  
   <PropertyGroup>
-    <PostBuildEvent>rd "$(ProjectDir)obj" /S /Q</PostBuildEvent>
+    <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q
+powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'DLLPath', '$(TargetPath)' -join \"`r`n\"))</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
