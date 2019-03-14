@@ -271,7 +271,7 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
-        /// Compares measure values of each point in a LineString
+        /// Compares measure values of each point in a LineString; if the two geom segments are equal.
         /// </summary>
         /// <param name="sqlGeometry">Input Line Segment</param>
         /// <param name="targetGeometry">Target Line Segement</param>
@@ -283,6 +283,10 @@ namespace SQLSpatialTools.Utility
             if (sqlGeometry.STIsEmpty() || targetGeometry.STIsEmpty())
                 return false;
 
+            // check if two geoms are equal
+            if (!sqlGeometry.STEquals(targetGeometry))
+                return false;
+
             var inputNumPoints = sqlGeometry.STNumPoints();
             var targetNumPoints = targetGeometry.STNumPoints();
 
@@ -291,7 +295,19 @@ namespace SQLSpatialTools.Utility
 
             for (var pointIterator = 1; pointIterator <= inputNumPoints; pointIterator++)
             {
-                if (sqlGeometry.STPointN(pointIterator).M != targetGeometry.STPointN(pointIterator).M)
+                var sourcePoint = sqlGeometry.STPointN(pointIterator);
+                var targetPoint = targetGeometry.STPointN(pointIterator);
+
+                // when both source and target point has null measure; then they are equal.
+                if (!sourcePoint.HasM && !targetPoint.HasM)
+                    continue;
+
+                // when source has measure and target doesn't have measure then they are not equal
+                // vice a versa
+                if ((sourcePoint.HasM && !targetPoint.HasM) || (!sourcePoint.HasM && targetPoint.HasM))
+                    return false;
+
+                if (sourcePoint.M != targetPoint.M)
                     return false;
             }
             return true;

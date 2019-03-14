@@ -80,6 +80,9 @@
     <None Include="Dataset\LRS\MergeGeometrySegments.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Dataset\LRS\ResetMeasure.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Dataset\LRS\SplitGeometrySegment.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

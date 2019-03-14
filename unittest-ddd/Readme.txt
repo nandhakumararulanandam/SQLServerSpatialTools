@@ -20,7 +20,7 @@ It also publishes the obtained results and error info (on execution failures) to
 To add a new function to this framework;
 
 1. First update the DB schema file for your new function
-File : Dataset\CreateDBSchema.sql
+To change DB schema refer this file( File : Dataset\CreateDBSchema.sql)
 
 Note: Append the file from end;
 

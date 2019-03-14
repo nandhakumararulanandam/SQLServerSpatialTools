@@ -121,6 +121,19 @@ GO
 ALTER TABLE [LRS_PopulateGeometryMeasuresData] ADD CONSTRAINT [PK_PopulateGeometryMeasuresData] PRIMARY KEY ([Id]);
 GO
 
+-- ResetMeasureTest
+CREATE TABLE [LRS_ResetMeasureData] (
+  [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom] nvarchar(1000) NOT NULL
+, [ExpectedGeom] nvarchar(1000) NOT NULL
+, [ObtainedGeom] nvarchar(1000)
+, [Result] nvarchar(50)
+, [Error] nvarchar(1000)
+);
+GO
+ALTER TABLE [LRS_ResetMeasureData] ADD CONSTRAINT [PK_ResetMeasureData] PRIMARY KEY ([Id]);
+GO
+
 
 -- ReverseLinearGeometry
 CREATE TABLE [LRS_ReverseLinearGeometryData] (

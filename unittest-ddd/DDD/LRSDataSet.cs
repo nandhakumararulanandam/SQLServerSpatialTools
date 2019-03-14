@@ -140,6 +140,23 @@
             public string ObtainedGeom { get; set; }
         }
 
+        public class ResetMeasureData : BaseDataSet
+        {
+            public const short ParamCount = 2;
+            public const string TableName = "LRS_ResetMeasureData";
+            public const string DataFile = "Dataset\\LRS\\ResetMeasure.data";
+            public static readonly string SelectQuery = string.Format("SELECT [Id], [InputGeom], [ExpectedGeom] FROM [{0}];", TableName);
+            public static readonly string InsertQuery = string.Format("INSERT INTO [{0}] ([InputGeom], [ExpectedGeom]) VALUES (N'[0]', N'[1]');", TableName);
+            public override string ResultUpdateQuery => string.Format(UpdateResultQuery, TableName, Result, Id);
+            public override string ErrorUpdateQuery => string.Format(UpdateErrorQuery, TableName, Error, Id);
+            public string GetTargetUpdateQuery(string fieldName, object fieldValue) { return GetTargetUpdateQuery(TableName, fieldName, fieldValue); }
+
+            public string InputGeom { get; set; }
+            public string ExpectedGeom { get; set; }
+            public string ObtainedGeom { get; set; }
+        }
+
+
         public class ReverseLinearGeometryData : BaseDataSet
         {
             public const short ParamCount = 2;

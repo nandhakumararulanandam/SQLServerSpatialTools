@@ -380,6 +380,48 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         [TestMethod]
+        public void ResetMeasureTest()
+        {
+            Logger.LogLine("Reset Measure Tests");
+            var dataSet = dbConnection.Query<LRSDataSet.ResetMeasureData>(LRSDataSet.ResetMeasureData.SelectQuery);
+            int testIterator = 1, testSuccessCount = 1;
+            foreach (var test in dataSet)
+            {
+                Logger.LogLine("Executing test {0}", testIterator);
+                try
+                {
+                    var inputGeomSegment = test.InputGeom.GetGeom();
+                    var expectedGeomSegment = test.ExpectedGeom.GetGeom();
+                    Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
+                    Logger.Log("Expected Geom : {0}", expectedGeomSegment.ToString());
+
+                    var obtainedGeomSegment = Geometry.ResetMeasure(inputGeomSegment);
+                    test.ObtainedGeom = obtainedGeomSegment.ToString();
+                    test.ExpectedGeom = expectedGeomSegment.ToString();
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
+                    Logger.Log("Obtained Geom : {0}", test.ObtainedGeom);
+
+                    test.Result = obtainedGeomSegment.STEqualsMeasure(expectedGeomSegment).GetResult();
+                }
+                catch (Exception ex)
+                {
+                    test.Result = "Failed";
+                    test.Error = ex.Message;
+                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
+                    Logger.LogError(ex);
+                }
+                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+                Logger.Log("Test Result : {0}", test.Result);
+                if (test.Result.Equals("Passed")) testSuccessCount++;
+                testIterator++;
+            }
+            if (testIterator == 1)
+                Logger.Log("No test cases found");
+
+            SqlAssert.AreEqual(testIterator, testSuccessCount);
+        }
+
+        [TestMethod]
         public void ReverseLinearGeometryTest()
         {
             Logger.LogLine("ReverseLinearGeometry Tests");
