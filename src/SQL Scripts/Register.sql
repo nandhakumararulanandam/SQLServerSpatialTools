@@ -281,6 +281,12 @@ AS
 EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].PopulateGeometryMeasures
 GO
 
+CREATE FUNCTION LRS_ResetMeasure(@g geometry)
+RETURNS geometry
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ResetMeasure
+GO
+
 CREATE FUNCTION LRS_ReverseLinearGeometry (@g geometry)
 RETURNS geometry
 AS

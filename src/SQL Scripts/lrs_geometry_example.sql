@@ -66,7 +66,15 @@ SELECT 'Populate Geometric Measures' AS 'FunctionInfo'
 	,[dbo].[LRS_PopulateGeometryMeasures](@geom, @startMeasure, @endMeasure) AS 'Geometry'
 	,[dbo].[LRS_PopulateGeometryMeasures](@geom, @startMeasure, @endMeasure).ToString() AS 'Geometry in String';
 
--- 9. Reverse Line String
+-- 9. Reset Measure
+SET @geom = geometry::STGeomFromText('LINESTRING (1 1 0 10, 5 5 0 25)', @srid);
+
+SELECT 'Reset Measure' AS 'FunctionInfo'
+	,[dbo].[LRS_ResetMeasure](@geom) AS 'Geometry'
+	,@geom.ToString() AS 'Input Line'
+	,[dbo].[LRS_ResetMeasure](@geom).ToString() AS 'Geometry in String'
+
+-- 10. Reverse Line String
 SET @geom = geometry::STGeomFromText('LINESTRING (1 1 0 0, 5 5 0 0)', @srid);
 
 SELECT 'Reverse Linear Geometry' AS 'FunctionInfo'
@@ -74,7 +82,7 @@ SELECT 'Reverse Linear Geometry' AS 'FunctionInfo'
 	,@geom.ToString() AS 'Input Line'
 	,[dbo].[LRS_ReverseLinearGeometry](@geom).ToString() AS 'Geometry in String'
 
--- 10. Split Geometry Segment
+-- 11. Split Geometry Segment
 SET @geom = geometry::STGeomFromText('LINESTRING (10 1 NULL 10, 25 1 NULL 25 )', @srid);
 SET @measure = 15;
 EXECUTE [dbo].[LRS_SplitGeometrySegment] 
