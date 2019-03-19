@@ -65,6 +65,8 @@ DROP FUNCTION LRS_MergeGeometrySegments
 
 DROP FUNCTION LRS_PopulateGeometryMeasures
 
+DROP FUNCTION LRS_ResetMeasure;
+
 DROP FUNCTION LRS_ReverseLinearGeometry
 
 DROP PROCEDURE LRS_SplitGeometrySegment

@@ -157,8 +157,13 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         public static bool IsWithinRange(this double currentMeasure, double startMeasure, double endMeasure)
         {
-            return (currentMeasure < startMeasure && currentMeasure < endMeasure)
-                || (currentMeasure > startMeasure && currentMeasure > endMeasure);
+            return (
+                // if line segment measure is increasing start ----> end
+                (currentMeasure >= startMeasure && currentMeasure <= endMeasure) 
+                ||
+                // if line segment measure is increasing start <---- end
+                (currentMeasure >= endMeasure && currentMeasure <= startMeasure)
+                );
         }
 
         /// <summary>
@@ -172,8 +177,7 @@ namespace SQLSpatialTools.Utility
         {
             var startMeasure = sqlGeometry.GetStartPointMeasure();
             var endMeasure = sqlGeometry.GetEndPointMeasure();
-            return (currentMeasure < startMeasure && currentMeasure < endMeasure)
-                || (currentMeasure > startMeasure && currentMeasure > endMeasure);
+            return IsWithinRange(currentMeasure, startMeasure, endMeasure);
         }
 
         /// <summary>
@@ -187,8 +191,7 @@ namespace SQLSpatialTools.Utility
         {
             var startMeasure = startPoint.GetStartPointMeasure();
             var endMeasure = endPoint.GetEndPointMeasure();
-            return (currentMeasure < startMeasure && currentMeasure < endMeasure)
-                || (currentMeasure > startMeasure && currentMeasure > endMeasure);
+            return IsWithinRange(currentMeasure, startMeasure, endMeasure);
         }
 
         /// <summary>
@@ -270,6 +273,27 @@ namespace SQLSpatialTools.Utility
             return SqlGeometry.STGeomFromText(new SqlChars(geomString), srid);
         }
 
+        public static DimensionalInfo STGetDimension(this SqlGeometry sqlGeometry)
+        {
+            if (sqlGeometry.STNumPoints() > 0)
+            {
+                var firstPoint = sqlGeometry.STPointN(1);
+                if (firstPoint.Z.IsNull && firstPoint.M.IsNull)
+                    return DimensionalInfo._2D;
+
+                if (firstPoint.Z.IsNull && !firstPoint.M.IsNull)
+                    return DimensionalInfo._2DM;
+
+                if (!firstPoint.Z.IsNull && firstPoint.M.IsNull)
+                    return DimensionalInfo._3D;
+
+                if (!firstPoint.Z.IsNull && !firstPoint.M.IsNull)
+                    return DimensionalInfo._3DM;
+            }
+
+            return DimensionalInfo.None;
+        }
+
         /// <summary>
         /// Compares measure values of each point in a LineString; if the two geom segments are equal.
         /// </summary>
@@ -278,7 +302,7 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         public static bool STEqualsMeasure(this SqlGeometry sqlGeometry, SqlGeometry targetGeometry)
         {
-            if (!(sqlGeometry.IsLineString()|| targetGeometry.IsLineString()))
+            if (!(sqlGeometry.IsLineString() || targetGeometry.IsLineString()))
                 return false;
             if (sqlGeometry.STIsEmpty() || targetGeometry.STIsEmpty())
                 return false;
@@ -378,6 +402,23 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         public static string GetString(this OGCType value)
         {
+            return GetStringAttributeValue<OGCType>(value);
+        }
+
+        /// <summary>
+        /// Will get the string value for a given enums value, this will
+        /// only work if you assign the StringValue attribute to
+        /// the items in your enum.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string GetString(this DimensionalInfo value)
+        {
+            return GetStringAttributeValue<DimensionalInfo>(value);
+        }
+
+        private static string GetStringAttributeValue<T>(this T value)
+        {
             // Get the type
             Type type = value.GetType();
 
@@ -390,6 +431,34 @@ namespace SQLSpatialTools.Utility
 
             // Return the first if there was a match.
             return attribs.Length > 0 ? attribs[0].StringValue : null;
+        }
+
+        /// <summary>
+        /// Validate and convert to lrs dimension
+        /// </summary>
+        /// <param name="sqlGeometry">Input SQL Geometry</param>
+        internal static void ValidateLRSDimensions(ref SqlGeometry sqlGeometry)
+        {
+            var dimension = sqlGeometry.STGetDimension();
+
+            switch (dimension)
+            {
+                case DimensionalInfo._3DM:
+                case DimensionalInfo._2DM:
+                    return;
+                // if dimension is of x, y and z
+                // need to convert third z co-ordinate to M for LRS
+                case DimensionalInfo._3D:
+                    {
+                        var sqlBuilder = new ConvertXYZ2XYM();
+                        sqlGeometry.Populate(sqlBuilder);
+                        sqlGeometry = sqlBuilder.ConstructedGeometry;
+                        return;
+                    }
+                default:
+                    ThrowException("Cannot operate on 2 Dimensional co-ordinates without measure values");
+                    break;
+            }
         }
 
         #endregion

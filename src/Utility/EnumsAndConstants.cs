@@ -41,6 +41,19 @@ namespace SQLSpatialTools.Utility
         MultiPolygon
     }
 
+    public enum DimensionalInfo
+    {
+        None,
+        [StringValue("2 Dimensional point, with x and y")]
+        _2D,
+        [StringValue("2 Dimensional point, with x, y and measure")]
+        _2DM,
+        [StringValue("3 Dimensional point, with x, y and z")]
+        _3D,
+        [StringValue("3 Dimensional point, with x, y, z with measure")]
+        _3DM
+    }
+
     public class Constants
     {
         public const int DEFAULT_SRID = 4326;

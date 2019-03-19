@@ -28,11 +28,13 @@ namespace SQLSpatialTools.Functions.LRS
             if (!geometry.IsLineString())
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
 
-            if (startMeasure.IsWithinRange(geometry))
+            Ext.ValidateLRSDimensions(ref geometry);
+
+            if (!startMeasure.IsWithinRange(geometry))
                 Ext.ThrowException("Start measure {0}", startMeasure.LinearGeometryRangeExpectionMessage(startMeasure, endMeasure));
 
-            if (endMeasure.IsWithinRange(geometry))
-                Ext.ThrowException("End measure {0}", endMeasure.LinearGeometryRangeExpectionMessage(startMeasure, endMeasure));
+            if (!endMeasure.IsWithinRange(geometry))
+                Ext.ThrowException("End measure {0}", endMeasure.LinearGeometryRangeExpectionMessage(startMeasure, endMeasure));            
 
             var geometryBuilder = new SqlGeometryBuilder();
             var geomSink = new ClipGeometrySegmentSink2(startMeasure, endMeasure, geometryBuilder);
@@ -50,6 +52,8 @@ namespace SQLSpatialTools.Functions.LRS
             if (!(geometry.IsLineString() || geometry.IsMultiLineString()))
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
 
+            Ext.ValidateLRSDimensions(ref geometry);
+
             return geometry.GetEndPointMeasure();
         }
 
@@ -62,6 +66,8 @@ namespace SQLSpatialTools.Functions.LRS
         {
             if (!(geometry.IsLineString() || geometry.IsMultiLineString()))
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
+
+            Ext.ValidateLRSDimensions(ref geometry);
 
             return geometry.GetStartPointMeasure();
         }
@@ -81,13 +87,16 @@ namespace SQLSpatialTools.Functions.LRS
             if (!startPoint.IsPoint() || !endPoint.IsPoint())
                 throw new ArgumentException(ErrorMessage.PointCompatible);
 
+            Ext.ValidateLRSDimensions(ref startPoint);
+            Ext.ValidateLRSDimensions(ref endPoint);
+
             // The SRIDs also have to match
             int srid = startPoint.STSrid.Value;
             // if SRID's of geometry1 and geometry doesn't match return false
             if (!endPoint.STSrid.Compare(srid))
                 throw new ArgumentException(ErrorMessage.SRIDCompatible);
 
-            if (measure.IsWithinRange(startPoint, endPoint))
+            if (!measure.IsWithinRange(startPoint, endPoint))
                 throw new ArgumentException(ErrorMessage.MeasureRange);
 
             // Since we're working on a Cartesian plane, this is now pretty simple.
@@ -116,6 +125,9 @@ namespace SQLSpatialTools.Functions.LRS
             // if SRID's of geometry1 and geometry doesn't match return false
             if (!geometry1.STSrid.Equals(geometry2.STSrid))
                 throw new ArgumentException(ErrorMessage.SRIDCompatible);
+
+            Ext.ValidateLRSDimensions(ref geometry1);
+            Ext.ValidateLRSDimensions(ref geometry2);
 
             // Geometry 1 points
             var geometry1StartPoint = geometry1.STStartPoint();
@@ -157,6 +169,8 @@ namespace SQLSpatialTools.Functions.LRS
             if (!geometry.IsLineString())
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
 
+            Ext.ValidateLRSDimensions(ref geometry);
+
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new LocateMAlongGeometrySink(distance, geomBuilder);
             geometry.Populate(geomSink);
@@ -172,10 +186,12 @@ namespace SQLSpatialTools.Functions.LRS
             if (!geometry.IsLineString())
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
 
+            Ext.ValidateLRSDimensions(ref geometry);
+
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new ResetMGemetrySink(geomBuilder);
-            
-                geometry.Populate(geomSink);
+
+            geometry.Populate(geomSink);
             return geomBuilder.ConstructedGeometry;
         }
 
@@ -190,6 +206,9 @@ namespace SQLSpatialTools.Functions.LRS
         {
             if (!geometry1.IsLineString() || !geometry2.IsLineString())
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
+
+            Ext.ValidateLRSDimensions(ref geometry1);
+            Ext.ValidateLRSDimensions(ref geometry2);
 
             var mOffset = geometry1.GetOffset(geometry2);
             var geomBuilder = new SqlGeometryBuilder();
@@ -216,6 +235,8 @@ namespace SQLSpatialTools.Functions.LRS
             if (!geometry.IsLineString())
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
 
+            Ext.ValidateLRSDimensions(ref geometry);
+
             var localStartMeasure = startMeasure ?? geometry.GetStartPointMeasure();
             var localEndMeasure = endMeasure ?? geometry.GetEndPointMeasure();
             var length = geometry.STLength().Value;
@@ -236,6 +257,8 @@ namespace SQLSpatialTools.Functions.LRS
         {
             if (!geometry.IsLineString())
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
+
+            Ext.ValidateLRSDimensions(ref geometry);
 
             var geomBuilder = new SqlGeometryBuilder();
 
@@ -269,6 +292,8 @@ namespace SQLSpatialTools.Functions.LRS
         {
             if (!geometry.IsLineString())
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
+
+            Ext.ValidateLRSDimensions(ref geometry);
 
             var splitPoint = LocatePointAlongGeom(geometry, splitMeasure);
             var geometryBuilder1 = new SqlGeometryBuilder();

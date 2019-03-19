@@ -10,5 +10,5 @@
 ## Parameter Seperater ||
 ## Should follow the same order of parameter; white space at the start and end of each param will be truncated
 ## [InputGeom]														||[StartMeasure	||[EndMeasure]		||[ExpectedGeom]
-LINESTRING (10 1 10 100, 15 1 10 NULL, 20 1 10 NULL, 25 1 10 250 )	||NULL			||NULL				||LINESTRING (10 1 10 100, 15 1 10 NULL, 20 1 10 NULL, 25 1 10 250 )
+LINESTRING (10 1 10 100, 15 1 10 NULL, 20 1 10 NULL, 25 1 10 250 )	||NULL			||NULL				||LINESTRING (10 1 NULL 100, 15 1 NULL 150, 20 1 NULL 200, 25 1 NULL 250 )
 LINESTRING (10 1 10 100, 15 1 10 NULL, 20 1 10 NULL, 25 1 10 250 )	||2			||10				||LINESTRING (10 1 NULL 2, 15 1 NULL 4.6666666666666661, 20 1 NULL 7.333333333333333, 25 1 NULL 10)
