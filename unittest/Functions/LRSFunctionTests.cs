@@ -106,8 +106,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
-                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
+                Assert.AreEqual(e.Message, ErrorMessage.LineOrMultiLineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineOrMultiLineStringCompatible);
             }
         }
 
@@ -132,8 +132,8 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
-                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
+                Assert.AreEqual(e.Message, ErrorMessage.LineOrMultiLineStringCompatible);
+                TestContext.WriteLine(ErrorMessage.LineOrMultiLineStringCompatible);
             }
         }
 
@@ -259,8 +259,8 @@ namespace SQLSpatialTools.Tests
         [TestMethod]
         public void MergeGeometrySegmentsTest()
         {
-            var geom1 = "MULTILINESTRING((100 100, 200 200), (3 4, 7 8, 10 10))".GetGeom();
-            var geom2 = "MULTILINESTRING((11 2, 12 4, 15 5), (5 4, 6 8, 9 11))".GetGeom();
+            var geom1 = "MULTILINESTRING((100 100 0, 200 200 100), (3 4 0, 7 8 4, 10 10 6))".GetGeom();
+            var geom2 = "MULTILINESTRING((11 2 0, 12 4 2, 15 5 4), (5 4 4, 6 8 6, 9 11 8))".GetGeom();
             Logger.Log("Input Geom 1: {0}", geom1.ToString());
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
             try
@@ -274,7 +274,7 @@ namespace SQLSpatialTools.Tests
             }
 
             geom1 = "LINESTRING(10 1 NULL 10, 25 1 NULL 25)".GetGeom();
-            geom2 = "MULTILINESTRING((11 2, 12 4, 15 5), (5 4, 6 8, 9 11))".GetGeom();
+            geom2 = "MULTILINESTRING((11 2 0, 12 4 2, 15 5 4), (5 4 4, 6 8 6, 9 11 8))".GetGeom();
             Logger.LogLine("Input Geom 1: {0}", geom1.ToString());
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
             try
@@ -287,7 +287,7 @@ namespace SQLSpatialTools.Tests
                 TestContext.WriteLine(ErrorMessage.LineStringCompatible);
             }
 
-            geom1 = "MULTILINESTRING((11 2, 12 4, 15 5), (5 4, 6 8, 9 11))".GetGeom();
+            geom1 = "MULTILINESTRING((11 2 0, 12 4 2, 15 5 4), (5 4 4, 6 8 6, 9 11 8))".GetGeom();
             geom2 = "LINESTRING(10 1 NULL 10, 25 1 NULL 25)".GetGeom();
             Logger.LogLine("Input Geom 1: {0}", geom1.ToString());
             Logger.Log("Input Geom 2: {0}", geom2.ToString());

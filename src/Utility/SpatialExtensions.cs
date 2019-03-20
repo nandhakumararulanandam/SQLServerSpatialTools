@@ -215,7 +215,7 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         public static string LinearGeometryRangeExpectionMessage(this double measure, double startMeasure, double endMeasure)
         {
-            return string.Format("{0} is not within the measure range {1} : {2} of the linear geometry", measure, Math.Min(startMeasure, endMeasure).ToString(), Math.Max(startMeasure, endMeasure).ToString());
+            return string.Format(ErrorMessage.LinearGeometryMeasureMustBeInRange, measure, Math.Min(startMeasure, endMeasure).ToString(), Math.Max(startMeasure, endMeasure).ToString());
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace SQLSpatialTools.Utility
         public static SqlGeometry GetPoint(double x, double y, double? z, double? m, int srid = 4326)
         {
             var zCoordinate = z == null ? "NULL" : z.ToString();
-            var geometry = string.Format("POINT({0} {1} {2} {3})", x, y, zCoordinate, m);
+            var geometry = string.Format(SqlStringFormat.Point, x, y, zCoordinate, m);
             return SqlGeometry.STPointFromText(new SqlChars(geometry), srid);
         }
 
@@ -459,6 +459,121 @@ namespace SQLSpatialTools.Utility
                     ThrowException("Cannot operate on 2 Dimensional co-ordinates without measure values");
                     break;
             }
+        }
+
+        /// <summary>
+        /// Throw if input geometry is not a line string.
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfNotLine(params SqlGeometry[] sqlGeometry)
+        {
+            var isLineString = true;
+
+            foreach(var geom in sqlGeometry)
+            {
+                isLineString = geom.IsLineString();
+                if (!isLineString)
+                    break;
+            }
+           
+            if(!isLineString)
+                throw new ArgumentException(ErrorMessage.LineStringCompatible);
+        }
+
+        /// <summary>
+        /// Throw if input geometry is not a line string or multiline string.
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfNotLineOrMultiLine(params SqlGeometry[] sqlGeometry)
+        {
+            var isLineString = true;
+
+            foreach (var geom in sqlGeometry)
+            {
+                isLineString = geom.IsLineString() || geom.IsMultiLineString();
+                if (!isLineString)
+                    break;
+            }
+
+            if (!isLineString)
+                throw new ArgumentException(ErrorMessage.LineOrMultiLineStringCompatible);
+        }
+
+        /// <summary>
+        /// Throw if input geometry is not a Point.
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfNotPoint(params SqlGeometry[] sqlGeometry)
+        {
+            var isPoint = true;
+
+            foreach (var geom in sqlGeometry)
+            {
+                isPoint = geom.IsPoint();
+                if (!isPoint)
+                    break;
+            }
+
+            if (!isPoint)
+                throw new ArgumentException(ErrorMessage.PointCompatible);
+        }
+
+        /// <summary>
+        /// Throw if SRIDs of two geometries doesn't match.
+        /// </summary>
+        /// <param name="sourceGeometry">Source Sql Geometry</param>
+        /// <param name="targetGeometry">Target Sql Geometry</param>
+        internal static void ThrowIfSRIDsDoesNotMatch(SqlGeometry sourceGeometry, SqlGeometry targetGeometry)
+        {
+            if (!sourceGeometry.STSrid.Equals(targetGeometry.STSrid))
+                throw new ArgumentException(ErrorMessage.SRIDCompatible);
+        }
+
+        /// <summary>
+        /// Throw if measure is not withing the range of two geometries.
+        /// </summary>
+        /// <param name="measure">Measure</param>
+        /// <param name="startPoint">Start Point Sql Geometry</param>
+        /// <param name="endPoint">End Point Sql Geometry</param>
+        internal static void ThrowIfMeasureIsNotInRange(double measure, SqlGeometry startPoint, SqlGeometry endPoint)
+        {
+            if (!measure.IsWithinRange(startPoint, endPoint))
+                throw new ArgumentException(ErrorMessage.MeasureRange);
+        }
+
+        /// <summary>
+        /// Throw if measure is not withing the range of two geometries.
+        /// </summary>
+        /// <param name="measure">Measure</param>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfMeasureIsNotInRange(double measure, SqlGeometry sqlGeometry)
+        {
+            if (!measure.IsWithinRange(sqlGeometry))
+                throw new ArgumentException(ErrorMessage.MeasureRange);
+        }
+
+        /// <summary>
+        /// Throw if start measure is not withing the range of two geometries.
+        /// </summary>
+        /// <param name="startMeasure">Start Measure</param>
+        /// <param name="endMeasure">End Measure</param>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfStartMeasureIsNotInRange(double startMeasure, double endMeasure, SqlGeometry sqlGeometry)
+        {
+            if (!startMeasure.IsWithinRange(sqlGeometry))
+                ThrowException("Start measure {0}", startMeasure.LinearGeometryRangeExpectionMessage(startMeasure, endMeasure));
+        }
+
+        /// <summary>
+        /// Throw if end measure is not withing the range of two geometries.
+        /// </summary>
+        /// <param name="startMeasure">Start Measure</param>
+        /// <param name="endMeasure">End Measure</param>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfEndMeasureIsNotInRange(double startMeasure, double endMeasure, SqlGeometry sqlGeometry)
+        {
+            if (!endMeasure.IsWithinRange(sqlGeometry))
+                ThrowException("End measure {0}", startMeasure.LinearGeometryRangeExpectionMessage(startMeasure, endMeasure));
         }
 
         #endregion

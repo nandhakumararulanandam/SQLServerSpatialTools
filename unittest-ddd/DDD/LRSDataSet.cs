@@ -1,4 +1,6 @@
-﻿namespace SQLSpatialTools.UnitTests.DDD
+﻿using System;
+
+namespace SQLSpatialTools.UnitTests.DDD
 {
     public class LRSDataSet
     {
@@ -203,6 +205,12 @@
             public int Id { get; set; }
             public string Result { get; set; }
             public string Error { get; set; }
+            public string ElapsedTime { get; private set; }
+
+            internal void SetElapsedTime(TimeSpan elapsed)
+            {
+                ElapsedTime = elapsed.ToString();
+            }
 
             protected string GetTargetUpdateQuery(string tableName, string fieldName, object fieldValue)
             {

@@ -9,6 +9,7 @@ CREATE TABLE [LRS_ClipGeometrySegmentData] (
 , [ExpectedGeom] nvarchar(1000) NOT NULL
 , [ObtainedGeom] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -23,6 +24,7 @@ CREATE TABLE [LRS_GetEndMeasureData] (
 , [ExpectedEndMeasure] float NOT NULL
 , [ObtainedEndMeasure] float
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -37,6 +39,7 @@ CREATE TABLE [LRS_GetStartMeasureData] (
 , [ExpectedStartMeasure] float NOT NULL
 , [ObtainedStartMeasure] float
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -53,6 +56,7 @@ CREATE TABLE [LRS_InterpolateBetweenGeomData] (
 , [ExpectedPoint] nvarchar(1000) NOT NULL
 , [ObtainedPoint] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -69,6 +73,7 @@ CREATE TABLE [LRS_IsConnectedData] (
 , [Expected] bit NOT NULL
 , [Obtained] bit
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -84,6 +89,7 @@ CREATE TABLE [LRS_LocatePointAlongGeomData] (
 , [ExpectedPoint] nvarchar(1000) NOT NULL
 , [ObtainedPoint] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -99,6 +105,7 @@ CREATE TABLE [LRS_MergeGeometrySegmentsData] (
 , [ExpectedGeom] nvarchar(1000) NOT NULL
 , [ObtainedGeom] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -115,6 +122,7 @@ CREATE TABLE [LRS_PopulateGeometryMeasuresData] (
 , [ExpectedGeom] nvarchar(1000) NOT NULL
 , [ObtainedGeom] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -128,6 +136,7 @@ CREATE TABLE [LRS_ResetMeasureData] (
 , [ExpectedGeom] nvarchar(1000) NOT NULL
 , [ObtainedGeom] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -142,6 +151,7 @@ CREATE TABLE [LRS_ReverseLinearGeometryData] (
 , [ExpectedGeom] nvarchar(1000) NOT NULL
 , [ObtainedGeom] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO
@@ -159,6 +169,7 @@ CREATE TABLE [LRS_SplitGeometrySegmentData] (
 , [ObtainedGeom1] nvarchar(1000)
 , [ObtainedGeom2] nvarchar(1000)
 , [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
 );
 GO

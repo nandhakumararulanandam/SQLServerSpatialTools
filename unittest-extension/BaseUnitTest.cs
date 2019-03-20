@@ -1,14 +1,18 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics;
 
 namespace SQLSpatialTools.UnitTests.Extension
 {
     public class BaseUnitTest
     {
         public TestLogger Logger;
+        public Stopwatch Timer;
+
         [TestInitialize]
         public void Initialize()
         {
             Logger = new TestLogger(TestContext);
+            Timer = new Stopwatch();            
         }
 
         /// <summary>

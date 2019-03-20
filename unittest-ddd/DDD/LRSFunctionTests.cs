@@ -54,7 +54,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
                     Logger.Log("Expected Geom : {0}", expectedGeomSegment.ToString());
 
+                    Timer.Restart();
                     var obtainedGeomSegment = Geometry.ClipGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedGeom = obtainedGeomSegment.ToString();
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
                     Logger.Log("Obtained Geom : {0}", test.ObtainedGeom);
@@ -94,7 +99,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
                     Logger.Log("Expected End Measure : {0}", test.ExpectedEndMeasure);
 
+                    Timer.Restart();
                     test.ObtainedEndMeasure = (double)Geometry.GetEndMeasure(inputGeomSegment);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedEndMeasure), test.ObtainedEndMeasure));
                     Logger.Log("Obtained End Measure : {0}", test.ObtainedEndMeasure);
 
@@ -133,7 +143,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
                     Logger.Log("Expected Start Measure : {0}", test.ExpectedStartMeasure);
 
+                    Timer.Restart();
                     test.ObtainedStartMeasure = (double)Geometry.GetStartMeasure(inputGeomSegment);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedStartMeasure), test.ObtainedStartMeasure));
                     Logger.Log("Obtained Start Measure : {0}", test.ObtainedStartMeasure);
 
@@ -176,7 +191,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     var expectedPoint = test.ExpectedPoint.GetGeom();
                     Logger.LogLine("Expected Result: {0}", test.ExpectedPoint);
 
+                    Timer.Restart();
                     var obtainedGeom = Geometry.InterpolateBetweenGeom(geom1, geom2, test.Measure);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedPoint = obtainedGeom.ToString();
 
                     Logger.Log("Obtained Point: {0}", test.ObtainedPoint);
@@ -221,7 +241,11 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("IsConnected with a tolerance of {0}", geom1, geom2, test.Tolerance);
                     Logger.LogLine("Expected Result: {0}", test.Expected);
 
+                    Timer.Restart();
                     test.Obtained = (bool)Geometry.IsConnected(geom1, geom2, test.Tolerance);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
 
                     Logger.Log("Obtained Point: {0}", test.Obtained);
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.Obtained), test.Obtained));
@@ -265,7 +289,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.LogLine("Expected Result: {0}", test.ExpectedPoint);
 
                     var expectedGeom = test.ExpectedPoint.GetGeom();
+                    Timer.Restart();
                     var obtainedGeom = Geometry.LocatePointAlongGeom(geom, test.Measure);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedPoint = obtainedGeom.ToString();
                     Logger.Log("Obtained Point: {0}", test.ObtainedPoint);
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedPoint), test.ObtainedPoint));
@@ -310,7 +339,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("Input geom 2:{0}", geom2);
                     Logger.LogLine("Expected Result: {0}", test.ExpectedGeom);
 
+                    Timer.Restart();
                     var obtainedGeom = Geometry.MergeGeometrySegments(geom1, geom2);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedGeom = obtainedGeom.ToString();
                     Logger.Log("Obtained Point: {0}", test.ObtainedGeom);
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
@@ -353,7 +387,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.LogLine("Input geom: {0}", geom);
                     Logger.LogLine("Expected Result: {0}", test.ExpectedGeom);
 
+                    Timer.Restart();
                     var obtainedGeom = Geometry.PopulateGeometryMeasures(geom, test.StartMeasure, test.EndMeasure);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedGeom = obtainedGeom.ToString();
                     Logger.Log("Obtained Geom: {0}", test.ObtainedGeom);
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
@@ -395,7 +434,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
                     Logger.Log("Expected Geom : {0}", expectedGeomSegment.ToString());
 
+                    Timer.Restart();
                     var obtainedGeomSegment = Geometry.ResetMeasure(inputGeomSegment);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedGeom = obtainedGeomSegment.ToString();
                     test.ExpectedGeom = expectedGeomSegment.ToString();
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
@@ -438,7 +482,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.LogLine("Input geom: {0}", geom);
                     Logger.LogLine("Expected Result: {0}", test.ExpectedGeom);
 
+                    Timer.Restart();
                     var obtainedGeom = Geometry.ReverseLinearGeometry(geom);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedGeom = obtainedGeom.ToString();
                     Logger.Log("Obtained Geom: {0}", test.ObtainedGeom);
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
@@ -483,7 +532,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("Expected Split Geom Segment 1: {0}", test.ExpectedGeom1);
                     Logger.Log("Expected Split Geom Segment 2: {0}", test.ExpectedGeom2);
 
+                    Timer.Restart();
                     Geometry.SplitGeometrySegment(geom, test.Measure, out SqlGeometry obtainedGeom1, out SqlGeometry obtainedGeom2);
+                    Timer.Stop();
+                    test.SetElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+
                     test.ObtainedGeom1 = obtainedGeom1.ToString();
                     test.ObtainedGeom2 = obtainedGeom2.ToString();
                     Logger.LogLine("Obtained Geom 1: {0}", test.ObtainedGeom1);
