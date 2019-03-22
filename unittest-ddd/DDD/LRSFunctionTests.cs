@@ -16,6 +16,7 @@ namespace SQLSpatialTools.UnitTests.DDD
     {
         private static SqlCeConnection dbConnection;
         private static DataManipulator dataManipulator;
+        private static OracleConnector oracleConnector;
         private static string connectionString;
         private const string DatabaseFile = "SpatialTestData.sdf";
         private const string SchemaFile = "Dataset\\CreateDBSchema.sql";
@@ -33,6 +34,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             dataManipulator.CreateDB();
             dbConnection.Open();
             dataManipulator.LoadDataSet();
+            oracleConnector = OracleConnector.GetInstance();
         }
 
         [TestMethod]
@@ -347,9 +349,26 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     test.ObtainedGeom = obtainedGeom.ToString();
                     Logger.Log("Obtained Point: {0}", test.ObtainedGeom);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom.TrimNullValue()));
 
-                    test.Result = obtainedGeom.STEquals(expectedGeom).GetResult();
+                    if (!obtainedGeom.STIsValid())
+                    {
+                        test.Result = "Failed";
+                        test.Error = "Obtained geom is invalid; hence cannot compare";
+                    }
+                    else
+                    {
+                        test.Result = obtainedGeom.STEquals(expectedGeom).GetResult();
+                    }
+                    var oracleError = string.Empty;
+                    Timer.Restart();
+                    test.OracleResult = oracleConnector.DoMergeGeomTest(test.InputGeom1, test.InputGeom2, ref oracleError);
+                    Timer.Stop();
+                    test.SetOracleElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult), test.OracleResult));
+                    if(!string.IsNullOrWhiteSpace(oracleError))
+                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+
                 }
                 catch (Exception ex)
                 {

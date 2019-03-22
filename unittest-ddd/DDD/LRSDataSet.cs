@@ -206,10 +206,18 @@ namespace SQLSpatialTools.UnitTests.DDD
             public string Result { get; set; }
             public string Error { get; set; }
             public string ElapsedTime { get; private set; }
+            public string OracleResult { get; set; }
+            public string OracleElapsedTime { get; private set; }
+            public string OracleError { get; set; }
 
             internal void SetElapsedTime(TimeSpan elapsed)
             {
                 ElapsedTime = elapsed.ToString();
+            }
+
+            internal void SetOracleElapsedTime(TimeSpan elapsed)
+            {
+                OracleElapsedTime = elapsed.ToString();
             }
 
             protected string GetTargetUpdateQuery(string tableName, string fieldName, object fieldValue)

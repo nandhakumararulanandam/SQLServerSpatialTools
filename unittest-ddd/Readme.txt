@@ -14,6 +14,10 @@ As a developer; one can take advantage of this framework to datadrive new functi
 This project also creates the dataset in SQL compact DB file; which can be exported for each test run.
 It also publishes the obtained results and error info (on execution failures) to appropriate table columns.
 
+22-Mar-2019 
+------------
+Added initial to compare the test results against Oracle DB.
+
 ********************
 ***   Dev Notes  ***
 ********************

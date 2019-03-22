@@ -2,6 +2,7 @@
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using MST = Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SQLSpatialTools.UnitTests.Extension
@@ -37,6 +38,19 @@ namespace SQLSpatialTools.UnitTests.Extension
         public static string GetResult(this SqlBoolean result)
         {
             return GetResult((bool)result);
+        }
+    }
+
+    public static class TestExtension
+    {
+        /// <summary>
+        /// Trim null values in the input geometry WKT.
+        /// </summary>
+        /// <param name="inputGeom">input geometry in WKT</param>
+        /// <returns>Null trimmed geom text</returns>
+        public static string TrimNullValue(this string inputGeom)
+        {
+            return Regex.Replace(inputGeom, @"\s*null\s*", " ", RegexOptions.IgnoreCase);
         }
     }
 
