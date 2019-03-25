@@ -243,6 +243,28 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
+        public void IsValidPoint()
+        {
+            var geom = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
+            SqlAssert.IsFalse(Geometry.IsValidPoint(geom));
+
+            geom = "POINT(0 0 NULL 0)".GetGeom();
+            SqlAssert.IsTrue(Geometry.IsValidPoint(geom));
+
+            geom = "POINT(0 0 0 0)".GetGeom();
+            SqlAssert.IsTrue(Geometry.IsValidPoint(geom));
+
+            geom = "POINT(0 0 1)".GetGeom();
+            SqlAssert.IsTrue(Geometry.IsValidPoint(geom));
+
+            geom = "POINT(0 0 0)".GetGeom();
+            SqlAssert.IsTrue(Geometry.IsValidPoint(geom));
+
+            geom = "POINT(0 0)".GetGeom();
+            SqlAssert.IsFalse(Geometry.IsValidPoint(geom));
+        }
+
+        [TestMethod]
         public void LocatePointAlongGeomTest()
         {
             var geom = "LINESTRING (0 0 0 0, 10 0 0 10)".GetGeom();

@@ -449,16 +449,24 @@ namespace SQLSpatialTools.Utility
                 // if dimension is of x, y and z
                 // need to convert third z co-ordinate to M for LRS
                 case DimensionalInfo._3D:
-                    {
-                        var sqlBuilder = new ConvertXYZ2XYM();
-                        sqlGeometry.Populate(sqlBuilder);
-                        sqlGeometry = sqlBuilder.ConstructedGeometry;
-                        return;
-                    }
+                    sqlGeometry = sqlGeometry.ConvertTo2DM();
+                    break;
                 default:
                     ThrowException("Cannot operate on 2 Dimensional co-ordinates without measure values");
                     break;
             }
+        }
+
+        /// <summary>
+        /// Convert Sql geometry with x,y,z to x,y,m
+        /// </summary>
+        /// <param name="sqlGeometry">Sql Geometry</param>
+        /// <returns></returns>
+        internal static SqlGeometry ConvertTo2DM(this SqlGeometry sqlGeometry)
+        {
+            var sqlBuilder = new ConvertXYZ2XYM();
+            sqlGeometry.Populate(sqlBuilder);
+            return sqlBuilder.ConstructedGeometry;
         }
 
         /// <summary>

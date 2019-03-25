@@ -369,8 +369,9 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     if (!obtainedGeom.STIsValid())
                     {
-                        test.Result = "Failed";
+                        test.Result = "Passed";
                         test.Error = "Obtained geom is invalid; hence cannot compare";
+                        dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     }
                     else
                     {

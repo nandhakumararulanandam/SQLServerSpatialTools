@@ -59,6 +59,8 @@ DROP FUNCTION LRS_InterpolateBetweenGeom
 
 DROP FUNCTION LRS_IsConnected
 
+DROP FUNCTION LRS_IsValidPoint
+
 DROP FUNCTION LRS_LocatePointAlongGeom
 
 DROP FUNCTION LRS_MergeGeometrySegments

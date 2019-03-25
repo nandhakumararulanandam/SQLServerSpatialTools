@@ -14,21 +14,7 @@ EXEC sp_configure 'clr strict security',  '0'
 RECONFIGURE WITH OVERRIDE;
 GO
 
--- Enable CLR if not enabled
---IF NOT EXISTS (
---		SELECT value
---		FROM sys.configurations
---		WHERE name = 'clr enabled'
---			AND value = 1
---		)
---BEGIN
---	EXEC sp_configure @configname = clr_enabled
---		,@configvalue = 1
-
---	RECONFIGURE
---END
-
--- !!! Insert the path to the SQLSpatialTools assembly here !!!
+-- !!! DLL Path will be replace based upon system environment !!!
 CREATE assembly SQLSpatialTools
 FROM 'DLLPath'
 GO
@@ -244,13 +230,21 @@ EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].Interpola
 GO
 
 CREATE FUNCTION LRS_IsConnected (
-	@geomSegment1 geometry
-	,@geomSegment2 geometry
+	@g1 geometry
+	,@g2 geometry
 	,@tolerance FLOAT
 	)
 RETURNS BIT
 AS
 EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].IsConnected
+GO
+
+CREATE FUNCTION LRS_IsValidPoint (
+	@g geometry
+	)
+RETURNS BIT
+AS
+EXTERNAL name SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].IsValidPoint
 GO
 
 CREATE FUNCTION LRS_LocatePointAlongGeom (

@@ -135,6 +135,29 @@ namespace SQLSpatialTools.Functions.LRS
         }
 
         /// <summary>
+        /// Checks if an LRS point is valid.
+        /// </summary>
+        /// <param name="geometry">Sql Geometry.</param>
+        /// <returns></returns>
+        public static SqlBoolean IsValidPoint(SqlGeometry geometry)
+        {
+            if (geometry.IsNull || geometry.STIsEmpty() || !geometry.STIsValid() || !geometry.IsPoint())
+                return false;
+
+            // check if the point has measure value
+            if (!geometry.M.IsNull)
+                return true;
+
+            // if m is null; the check if frame from x,y,z where z is m
+            if (geometry.STGetDimension() == DimensionalInfo._3D)
+            {
+                geometry = geometry.ConvertTo2DM();
+                return !geometry.M.IsNull;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Locate the Geometry Point along the specified measure on the Geometry.
         /// This function just hooks up and runs a pipeline using the sink.
         /// </summary>
