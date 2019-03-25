@@ -11,6 +11,9 @@ CREATE TABLE [LRS_ClipGeometrySegmentData] (
 , [Result] nvarchar(50)
 , [ElapsedTime] nvarchar(100)
 , [Error] nvarchar(1000)
+, [OracleResult] nvarchar(1000)
+, [OracleElapsedTime] nvarchar(100)
+, [OracleError] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_ClipGeometrySegmentData] ADD CONSTRAINT [PK_ClipGeometrySegmentTest] PRIMARY KEY ([Id]);

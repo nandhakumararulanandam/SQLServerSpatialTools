@@ -67,6 +67,22 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.Log("Obtained Geom : {0}", test.ObtainedGeom);
 
                     test.Result = obtainedGeomSegment.STEquals(expectedGeomSegment).GetResult();
+
+                    
+
+                    #region Run against Oracle
+
+                    var oracleError = string.Empty;
+                    Timer.Restart();
+                    test.OracleResult = oracleConnector.DoClipGeometrySegment(test.InputGeom, test.StartMeasure,  test.EndMeasure, ref oracleError);
+                    Timer.Stop();
+                    test.SetOracleElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult), test.OracleResult));
+                    if (!string.IsNullOrWhiteSpace(oracleError))
+                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+
+                    #endregion
                 }
                 catch (Exception ex)
                 {
@@ -360,15 +376,20 @@ namespace SQLSpatialTools.UnitTests.DDD
                     {
                         test.Result = obtainedGeom.STEquals(expectedGeom).GetResult();
                     }
+
+                    #region Run against Oracle
+
                     var oracleError = string.Empty;
                     Timer.Restart();
                     test.OracleResult = oracleConnector.DoMergeGeomTest(test.InputGeom1, test.InputGeom2, ref oracleError);
                     Timer.Stop();
                     test.SetOracleElapsedTime(Timer.Elapsed);
+                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
                     dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult), test.OracleResult));
                     if(!string.IsNullOrWhiteSpace(oracleError))
                         dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
 
+                    #endregion
                 }
                 catch (Exception ex)
                 {

@@ -138,6 +138,28 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
+        /// Return WKT of clipped geom segment.
+        /// </summary>
+        /// <param name="inputGeom"></param>
+        /// <param name="startMeasure"></param>
+        /// <param name="endMeasure"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        internal string DoClipGeometrySegment(string inputGeom, double startMeasure, double endMeasure, ref string error)
+        {
+            var query = string.Format(OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(inputGeom), startMeasure, endMeasure);
+            OracleCommand oracleCommand = new OracleCommand
+            {
+                Connection = oracleConnection,
+                CommandText = query
+            };
+
+            var result = ExecuteScalar<string>(query, ref error);
+
+            return TrimDecimalPoints(result);
+        }
+
+        /// <summary>
         /// Converts the input wkt in 4d(x,y,z,m), 3d(x,y,m) 2d(x,y) to x,y,m values.
         /// </summary>
         /// <param name="lineString"></param>
@@ -204,6 +226,11 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                   + "SDO_LRS.CONCATENATE_GEOM_SEGMENTS("
                                                   + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'),"
                                                   + "SDO_UTIL.FROM_WKTGEOMETRY('{1}'), {2})) from dual";
+
+        public const string ClipGeomSegmentQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                 + "SDO_LRS.CLIP_GEOM_SEGMENT("
+                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2})"
+                                                 + ") from dual";
 
         public const double Tolerance = 0.5;
 
