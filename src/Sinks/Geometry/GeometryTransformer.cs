@@ -8,33 +8,33 @@ namespace SQLSpatialTools
 {
 	public sealed class GeometryTransformer : IGeometrySink110
 	{
-		readonly IGeometrySink110 _sink;
-		readonly AffineTransform _transform;
+		readonly IGeometrySink110 sink;
+		readonly AffineTransform transform;
 
 		public GeometryTransformer(IGeometrySink110 sink, AffineTransform transform)
 		{
-			_sink = sink;
-			_transform = transform;
+			this.sink = sink;
+			this.transform = transform;
 		}
 
 		public void SetSrid(int srid)
 		{
-			_sink.SetSrid(srid);
+			sink.SetSrid(srid);
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
-			_sink.BeginGeometry(type);
+			sink.BeginGeometry(type);
 		}
 
 		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			_sink.BeginFigure(_transform.GetX(x, y), _transform.GetY(x, y), z, m);
+			sink.BeginFigure(transform.GetX(x, y), transform.GetY(x, y), z, m);
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
 		{
-			_sink.AddLine(_transform.GetX(x, y), _transform.GetY(x, y), z, m);
+			sink.AddLine(transform.GetX(x, y), transform.GetY(x, y), z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -44,12 +44,12 @@ namespace SQLSpatialTools
 
         public void EndFigure()
 		{
-			_sink.EndFigure();
+			sink.EndFigure();
 		}
 
 		public void EndGeometry()
 		{
-			_sink.EndGeometry();
+			sink.EndGeometry();
 		}
 	}
 }

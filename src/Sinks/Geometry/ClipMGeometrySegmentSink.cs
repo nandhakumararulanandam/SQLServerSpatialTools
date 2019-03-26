@@ -5,83 +5,10 @@ using System;
 
 namespace SQLSpatialTools
 {
-    /**
-     * This class implements a geometry sink that finds a point along a geography linestring instance and pipes
-     * it to another sink.
-     */
-    class ClipGeometrySegmentSink : IGeometrySink110
-    {
-        SqlGeometry _startPoint;
-        SqlGeometry _endPoint;
-        int _srid;                     // The _srid we are working in.
-        SqlGeometryBuilder _target;    // Where we place our result.
-
-        // We target another builder, to which we will send a point representing the point we find.
-        // We also take a distance, which is the point along the input linestring we will travel.
-        // Note that we only operate on LineString instances: anything else will throw an exception.
-        public ClipGeometrySegmentSink(SqlGeometry startPoint, SqlGeometry endPoint, SqlGeometryBuilder target)
-        {
-            _target = target;
-            _startPoint = startPoint;
-            _endPoint = endPoint;
-        }
-
-        // Save the SRID for later
-        public void SetSrid(int srid)
-        {
-            _srid = srid;
-            _target.SetSrid(_srid);
-        }
-
-        // Start the geometry.  Throw if it isn't a LineString.
-        public void BeginGeometry(OpenGisGeometryType type)
-        {
-            if (type != OpenGisGeometryType.LineString)
-                throw new ArgumentException("This operation may only be executed on LineString instances.");
-            _target.BeginGeometry(OpenGisGeometryType.LineString);
-        }
-
-        // Start the figure.  Note that since we only operate on LineStrings, this should only be executed
-        // once.
-        public void BeginFigure(double latitude, double longitude, double? z, double? m)
-        {
-            // Memorize the starting point.
-             _target.BeginFigure(_startPoint.STX.Value, _startPoint.STY.Value, null, _startPoint.M.Value);
-        }
-
-        // This is where the real work is done.
-        public void AddLine(double latitude, double longitude, double? z, double? m)
-        {
-            // If current measure is betweem start measure and end measure, we should add segment to the result linestring
-            if (m > _startPoint.M.Value && m < _endPoint.M.Value)
-            {
-                _target.AddLine(latitude, longitude, z, m);
-            }
-                
-        }
-
-        public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
-        {
-            throw new Exception("AddCircularArc is not implemented yet in this class");
-        }
-
-        // This is a NOP.
-        public void EndFigure()
-        {
-            _target.AddLine(_endPoint.STX.Value, _endPoint.STY.Value, null, _endPoint.M.Value);
-            _target.EndFigure();
-        }
-
-        // When we end, we'll make all of our output calls to our target.
-        // Here's also where we catch whether we've run off the end of our LineString.
-        public void EndGeometry()
-        {
-            _target.EndGeometry();
-        }
-
-    }
-
-    class ClipGeometrySegmentSink2 : IGeometrySink110
+    /// <summary>
+    /// This class implements a geometry sink that clips a line segment based on measure.
+    /// </summary>
+    class ClipMGeometrySegmentSink : IGeometrySink110
     {
         // Where we place our result
         readonly SqlGeometryBuilder target;
@@ -105,7 +32,7 @@ namespace SQLSpatialTools
         /// <param name="startMeasure"></param>
         /// <param name="endMeasure"></param>
         /// <param name="target"></param>
-        public ClipGeometrySegmentSink2(double startMeasure, double endMeasure, SqlGeometryBuilder target)
+        public ClipMGeometrySegmentSink(double startMeasure, double endMeasure, SqlGeometryBuilder target)
         {
             this.target = target;
             this.startMeasure = startMeasure;
@@ -168,7 +95,7 @@ namespace SQLSpatialTools
                     double f = (startEndMeasure - lastM) / ((double)m - lastM);  // The fraction of the way from start to end.
                     double newX = (lastX * (1 - f)) + (x * f);
                     double newY = (lastY * (1 - f)) + (y * f);
-                     target.BeginFigure(newX, newY, null, startEndMeasure);
+                    target.BeginFigure(newX, newY, null, startEndMeasure);
                     started = true;
                     if (startMeasure == endMeasure)
                         return;
@@ -204,7 +131,7 @@ namespace SQLSpatialTools
                         startEndMeasure = Math.Max(startMeasure, endMeasure);
                     else
                         startEndMeasure = Math.Min(startMeasure, endMeasure);
-                    if((startEndMeasure < m && startEndMeasure > lastM) || (startEndMeasure > m && startEndMeasure < lastM))
+                    if ((startEndMeasure < m && startEndMeasure > lastM) || (startEndMeasure > m && startEndMeasure < lastM))
                     {
                         double f = (startEndMeasure - lastM) / ((double)m - lastM);  // The fraction of the way from start to end.
                         double newX = (lastX * (1 - f)) + (x * f);

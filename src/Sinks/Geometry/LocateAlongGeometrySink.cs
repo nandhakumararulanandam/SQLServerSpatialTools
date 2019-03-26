@@ -6,32 +6,32 @@ using SQLSpatialTools.Functions.General;
 
 namespace SQLSpatialTools
 {
-    /**
-     * This class implements a geometry sink that finds a point along a geography linestring instance and pipes
-     * it to another sink.
-     */
+    /// <summary>
+    /// This class implements a geometry sink that finds a point along a geometry linestring instance and pipes
+    /// it to another sink.
+    /// </summary>
     class LocateAlongGeometrySink : IGeometrySink110
     {
     
-        double _distance;              // The running count of how much further we have to go.
-        SqlGeometry _lastPoint;        // The last point in the LineString we have passed.
-        SqlGeometry _foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
-        int _srid;                     // The _srid we are working in.
-        SqlGeometryBuilder _target;    // Where we place our result.
+        double distance;              // The running count of how much further we have to go.
+        SqlGeometry lastPoint;        // The last point in the LineString we have passed.
+        SqlGeometry foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
+        int srid;                     // The _srid we are working in.
+        SqlGeometryBuilder target;   // Where we place our result.
 
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a distance, which is the point along the input linestring we will travel.
         // Note that we only operate on LineString instances: anything else will throw an exception.
         public LocateAlongGeometrySink(double distance, SqlGeometryBuilder target)
         {
-            _target = target;
-            _distance = distance;
+            this.target = target;
+            this.distance = distance;
         }
 
         // Save the SRID for later
         public void SetSrid(int srid)
         {
-            _srid = srid;
+            this.srid = srid;
         }
 
         // Start the geometry.  Throw if it isn't a LineString.
@@ -43,34 +43,34 @@ namespace SQLSpatialTools
 
         // Start the figure.  Note that since we only operate on LineStrings, this should only be executed
         // once.
-        public void BeginFigure(double latitude, double longitude, double? z, double? m)
+        public void BeginFigure(double x, double y, double? z, double? m)
         {
             // Memorize the point.
-            _lastPoint = SqlGeometry.Point(latitude, longitude, _srid);
+            lastPoint = SqlGeometry.Point(x, y, srid);
         }
 
         // This is where the real work is done.
-        public void AddLine(double latitude, double longitude, double? z, double? m)
+        public void AddLine(double x, double y, double? z, double? m)
         {
             // If we've already found a point, then we're done.  We just need to keep ignoring these
             // pesky calls.
-            if (_foundPoint != null) return;
+            if (foundPoint != null) return;
 
             // Make a point for our current position.
-            SqlGeometry thisPoint = SqlGeometry.Point(latitude, longitude, _srid);
+            SqlGeometry thisPoint = SqlGeometry.Point(x, y, srid);
 
             // is the found point between this point and the last, or past this point?
-            double length = thisPoint.STDistance(_lastPoint).Value;
-            if (length < _distance)
+            double length = thisPoint.STDistance(lastPoint).Value;
+            if (length < distance)
             {
                 // it's past this point---just step along the line
-                _distance -= length;
-                _lastPoint = thisPoint;
+                distance -= length;
+                lastPoint = thisPoint;
             }
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                _foundPoint = Geometry.InterpolateBetweenGeom(_lastPoint, thisPoint, _distance);
+                foundPoint = Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, distance);
             }
         }
 
@@ -88,15 +88,15 @@ namespace SQLSpatialTools
         // Here's also where we catch whether we've run off the end of our LineString.
         public void EndGeometry()
         {
-            if (_foundPoint != null)
+            if (foundPoint != null)
             {
                 // We could use a simple point constructor, but by targetting another sink we can use this
                 // class in a pipeline.
-                _target.SetSrid(_srid);
-                _target.BeginGeometry(OpenGisGeometryType.Point);
-                _target.BeginFigure(_foundPoint.STX.Value, _foundPoint.STY.Value);
-                _target.EndFigure();
-                _target.EndGeometry();
+                target.SetSrid(srid);
+                target.BeginGeometry(OpenGisGeometryType.Point);
+                target.BeginFigure(foundPoint.STX.Value, foundPoint.STY.Value);
+                target.EndFigure();
+                target.EndGeometry();
             }
             else
             {

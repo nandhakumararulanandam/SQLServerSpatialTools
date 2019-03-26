@@ -31,7 +31,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ThrowIfEndMeasureIsNotInRange(startMeasure, endMeasure, geometry);
 
             var geometryBuilder = new SqlGeometryBuilder();
-            var geomSink = new ClipGeometrySegmentSink2(startMeasure, endMeasure, geometryBuilder);
+            var geomSink = new ClipMGeometrySegmentSink(startMeasure, endMeasure, geometryBuilder);
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
         }

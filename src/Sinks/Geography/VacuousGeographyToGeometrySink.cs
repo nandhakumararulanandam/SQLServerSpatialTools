@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools
@@ -15,18 +12,18 @@ namespace SQLSpatialTools
     /// </summary>
 	public class VacuousGeographyToGeometrySink : IGeographySink110
 	{
-		private readonly IGeometrySink110 _target;
-		private readonly int _targetSrid;
+		private readonly IGeometrySink110 target;
+		private readonly int targetSrid;
 
 		public VacuousGeographyToGeometrySink(int targetSrid, IGeometrySink110 target)
 		{
-			_target = target;
-			_targetSrid = targetSrid;
+			this.target = target;
+			this.targetSrid = targetSrid;
 		}
 
 		public void AddLine(double latitude, double longitude, double? z, double? m)
 		{
-			_target.AddLine(longitude, latitude, z, m);
+			target.AddLine(longitude, latitude, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -36,28 +33,28 @@ namespace SQLSpatialTools
 
         public void BeginFigure(double latitude, double longitude, double? z, double? m)
 		{
-			_target.BeginFigure(longitude, latitude, z, m);
+			target.BeginFigure(longitude, latitude, z, m);
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
 			// Convert geography to geometry types...
-			_target.BeginGeometry((OpenGisGeometryType) type);
+			target.BeginGeometry((OpenGisGeometryType) type);
 		}
 
 		public void EndFigure()
 		{
-			_target.EndFigure();
+			target.EndFigure();
 		}
 
 		public void EndGeography()
 		{
-			_target.EndGeometry();
+			target.EndGeometry();
 		}
 
 		public void SetSrid(int srid)
 		{
-			_target.SetSrid(_targetSrid);
+			target.SetSrid(targetSrid);
 		}
 	}
 }

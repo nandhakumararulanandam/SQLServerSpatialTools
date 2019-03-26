@@ -18,24 +18,22 @@ namespace SQLSpatialTools
         public static readonly double MinAngle = 0.000001;
 
         // Maximum angular difference in degrees between two consecutive points in the "densified" line.
-        private readonly double _angle;
+        private readonly double angle;
 
         // Previous point added.
-        private Vector3 _startPoint;
+        private Vector3 startPoint;
 
-        private readonly IGeographySink110 _sink;
+        private readonly IGeographySink110 sink;
 
         // Constructor.
 		public DensifyGeographySink(IGeographySink110 sink, double angle)
         {
-            if (sink == null)
-                throw new ArgumentNullException("sink");
-            _sink = sink;
+            this.sink = sink ?? throw new ArgumentNullException("sink");
 
             if (angle < MinAngle)
-                _angle = MinAngle;
+                this.angle = MinAngle;
             else
-                 _angle = angle;
+                 this.angle = angle;
         }
 
         #region IGeographySink Members
@@ -45,7 +43,7 @@ namespace SQLSpatialTools
             // Transforming from geodetic coordinates to a unit vector.
 			Vector3 endPoint = Util.SphericalDegToCartesian(latitude, longitude);
 
-            double angle = endPoint.Angle(_startPoint);
+            double angle = endPoint.Angle(startPoint);
             if (angle > MinAngle)
             {
                 // _startPoint and endPoint are the unit vectors that correspond to the input
@@ -55,11 +53,11 @@ namespace SQLSpatialTools
                 // xy plane, and converted back to geodetic coordinates.
 
                 // Construct the local z and y axes.
-                Vector3 zAxis = (_startPoint + endPoint).CrossProduct(_startPoint - endPoint).Unitize();
-                Vector3 yAxis = (_startPoint).CrossProduct(zAxis);
+                Vector3 zAxis = (startPoint + endPoint).CrossProduct(startPoint - endPoint).Unitize();
+                Vector3 yAxis = (startPoint).CrossProduct(zAxis);
 
                 // Calculating how many points we need.
-                int count = Convert.ToInt32(Math.Ceiling(angle / Util.ToRadians(_angle)));
+                int count = Convert.ToInt32(Math.Ceiling(angle / Util.ToRadians(this.angle)));
 
                 // Scaling the angle so that points are equaly placed.
                 double exactAngle = angle / count;
@@ -73,10 +71,10 @@ namespace SQLSpatialTools
 
                 for (int i = 0; i < count - 1; i++)
                 {
-                    Vector3 newPoint = (_startPoint * x + yAxis * y).Unitize();
+                    Vector3 newPoint = (startPoint * x + yAxis * y).Unitize();
 
                     // Adding the point.
-                    _sink.AddLine(Util.LatitudeDeg(newPoint), Util.LongitudeDeg(newPoint), null, null);
+                    sink.AddLine(Util.LatitudeDeg(newPoint), Util.LongitudeDeg(newPoint), null, null);
 
                     // Rotating to get next point.
                     double r = x * cosine - y * sine;
@@ -84,10 +82,10 @@ namespace SQLSpatialTools
                     x = r;
                 }
             }
-            _sink.AddLine(latitude, longitude, z, m);
+            sink.AddLine(latitude, longitude, z, m);
 
             // Remembering last point we added.
-            _startPoint = endPoint;
+            startPoint = endPoint;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -98,28 +96,28 @@ namespace SQLSpatialTools
         public void BeginFigure(double latitude, double longitude, double? z, double? m)
         {
             // Starting the figure, remembering the vector that corresponds to the first point.
-			_startPoint = Util.SphericalDegToCartesian(latitude, longitude);
-            _sink.BeginFigure(latitude, longitude, z, m);
+			startPoint = Util.SphericalDegToCartesian(latitude, longitude);
+            sink.BeginFigure(latitude, longitude, z, m);
         }
 
         public void BeginGeography(OpenGisGeographyType type)
         {
-            _sink.BeginGeography(type);
+            sink.BeginGeography(type);
         }
 
         public void EndFigure()
         {
-            _sink.EndFigure();
+            sink.EndFigure();
         }
 
         public void EndGeography()
         {
-            _sink.EndGeography();
+            sink.EndGeography();
         }
 
         public void SetSrid(int srid)
         {
-            _sink.SetSrid(srid);
+            sink.SetSrid(srid);
         }
 
         #endregion

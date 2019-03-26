@@ -6,44 +6,44 @@ using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools
 {
-	//
-	// Sink which extracts points from a geometry instance and forwards them to a geography sink
-	//
-	public sealed class GeometryToPointGeographySink : IGeometrySink110
+    /// <summary>
+    /// Sink which extracts points from a geometry instance and forwards them to a geography sink.
+    /// </summary>
+    public sealed class GeometryToPointGeographySink : IGeometrySink110
 	{
-		private readonly IGeographySink110 _sink;
-		private int _count;
+		private readonly IGeographySink110 sink;
+		private int count;
 
 		public GeometryToPointGeographySink(IGeographySink110 sink)
 		{
-			_sink = sink;
-			_count = 0;
+			this.sink = sink;
+			count = 0;
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
-			if (_count == 0)
+			if (count == 0)
 			{
-				_sink.BeginGeography(OpenGisGeographyType.MultiPoint);
+				sink.BeginGeography(OpenGisGeographyType.MultiPoint);
 			}
-			_count++;
+			count++;
 		}
 
 		public void EndGeometry()
 		{
-			_count--;
-			if (_count == 0)
+			count--;
+			if (count == 0)
 			{
-				_sink.EndGeography();
+				sink.EndGeography();
 			}
 		}
 
 		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			_sink.BeginGeography(OpenGisGeographyType.Point);
-			_sink.BeginFigure(y, x, z, m);
-			_sink.EndFigure();
-			_sink.EndGeography();
+			sink.BeginGeography(OpenGisGeographyType.Point);
+			sink.BeginFigure(y, x, z, m);
+			sink.EndFigure();
+			sink.EndGeography();
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
@@ -63,7 +63,7 @@ namespace SQLSpatialTools
 
 		public void SetSrid(int srid)
 		{
-			_sink.SetSrid(srid);
+			sink.SetSrid(srid);
 		}
 	}
 }

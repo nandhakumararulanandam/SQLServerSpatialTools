@@ -10,11 +10,11 @@ namespace SQLSpatialTools
     /// </summary>
     class ResetMGemetrySink : IGeometrySink110
     {
-        SqlGeometryBuilder _target;    // Where we place our result.
+        SqlGeometryBuilder target;    // Where we place our result.
 
         public ResetMGemetrySink(SqlGeometryBuilder target)
         {
-            _target = target;
+            this.target = target;
         }
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace SQLSpatialTools
         /// <param name="srid">Spatial Reference Identifier</param>
         public void SetSrid(int srid)
         {
-            _target.SetSrid(srid);
+            target.SetSrid(srid);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace SQLSpatialTools
             if (type != OpenGisGeometryType.LineString)
                 throw new ArgumentException("This operation may only be executed on LineString instances.");
 
-            _target.BeginGeometry(type);
+            target.BeginGeometry(type);
         }
 
         /// <summary>
@@ -48,12 +48,12 @@ namespace SQLSpatialTools
         /// <param name="m"></param>
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            _target.BeginFigure(x, y, z, null);
+            target.BeginFigure(x, y, z, null);
         }
 
         public void AddLine(double x, double y, double? z, double? m)
         {
-            _target.AddLine(x, y, z, null);
+            target.AddLine(x, y, z, null);
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -63,12 +63,12 @@ namespace SQLSpatialTools
 
         public void EndFigure()
         {
-            _target.EndFigure();
+            target.EndFigure();
         }
 
         public void EndGeometry()
         {
-            _target.EndGeometry();
+            target.EndGeometry();
         }
     }
 }

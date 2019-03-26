@@ -6,39 +6,40 @@ using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools
 {
+    /// <summary>
+    /// This class projects a geography segment based on specified project to a geometry segment.
+    /// </summary>
 	public sealed class Projector : IGeographySink110
 	{
-		private readonly SqlProjection _projection;
-		private readonly IGeometrySink110 _sink;
+		private readonly SqlProjection projection;
+		private readonly IGeometrySink110 sink;
 
 		public Projector(SqlProjection projection, IGeometrySink110 sink)
 		{
-			_projection = projection;
-			_sink = sink;
+			this.projection = projection;
+			this.sink = sink;
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
-			_sink.BeginGeometry((OpenGisGeometryType)type);
+			sink.BeginGeometry((OpenGisGeometryType)type);
 		}
 
 		public void EndGeography()
 		{
-			_sink.EndGeometry();
+			sink.EndGeometry();
 		}
 
 		public void BeginFigure(double latitude, double longitude, Nullable<double> z, Nullable<double> m)
 		{
-			double x, y;
-			_projection.ProjectPoint(latitude, longitude, out x, out y);
-			_sink.BeginFigure(x, y, z, m);
+            projection.ProjectPoint(latitude, longitude, out double x, out double y);
+            sink.BeginFigure(x, y, z, m);
 		}
 
 		public void AddLine(double latitude, double longitude, Nullable<double> z, Nullable<double> m)
 		{
-			double x, y;
-			_projection.ProjectPoint(latitude, longitude, out x, out y);
-			_sink.AddLine(x, y, z, m);
+            projection.ProjectPoint(latitude, longitude, out double x, out double y);
+            sink.AddLine(x, y, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -48,12 +49,12 @@ namespace SQLSpatialTools
 
         public void EndFigure()
 		{
-			_sink.EndFigure();
+			sink.EndFigure();
 		}
 
 		public void SetSrid(int srid)
 		{
-			_sink.SetSrid(srid);
+			sink.SetSrid(srid);
 		}
 	}
 }

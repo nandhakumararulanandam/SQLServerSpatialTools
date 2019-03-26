@@ -9,17 +9,17 @@ namespace SQLSpatialTools
 {
 	struct Vertex
 	{
-		double x;
-		double y;
+        readonly double x;
+        readonly double y;
 		double? z;
 		double? m;
 
-		public Vertex(double x_, double y_, double? z_, double? m_)
+		public Vertex(double x, double y, double? z, double? m)
 		{
-			x = x_;
-			y = y_;
-			z = z_;
-			m = m_;
+			this.x = x;
+			this.y = y;
+			this.z = z;
+			this.m = m;
 		}
 
 		public void BeginFigure(IGeometrySink110 sink) { sink.BeginFigure(x, y, z, m); }
@@ -66,16 +66,16 @@ namespace SQLSpatialTools
 				m_sink.EndGeometry();
 		}
 
-		public void BeginFigure(double latitude, double longitude, double? z, double? m)
+		public void BeginFigure(double x, double y, double? z, double? m)
 		{
 			while (m_types.Count > 0)
 				m_sink.BeginGeometry(m_types.Dequeue());
-			m_sink.BeginFigure(latitude, longitude, z, m);
+			m_sink.BeginFigure(x, y, z, m);
 		}
 
-		public void AddLine(double latitude, double longitude, double? z, double? m)
+		public void AddLine(double x, double y, double? z, double? m)
 		{
-			m_sink.AddLine(latitude, longitude, z, m);
+			m_sink.AddLine(x, y, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)

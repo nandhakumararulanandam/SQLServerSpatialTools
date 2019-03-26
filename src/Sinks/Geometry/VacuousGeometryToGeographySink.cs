@@ -15,18 +15,18 @@ namespace SQLSpatialTools
     /// </summary>
     public class VacuousGeometryToGeographySink : IGeometrySink110
 	{
-		private readonly IGeographySink110 _target;
-		private readonly int _targetSrid;
+		private readonly IGeographySink110 target;
+		private readonly int targetSrid;
 
 		public VacuousGeometryToGeographySink(int targetSrid, IGeographySink110 target)
 		{
-			_target = target;
-			_targetSrid = targetSrid;
+			this.target = target;
+			this.targetSrid = targetSrid;
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
 		{
-			_target.AddLine(y, x, z, m);
+			target.AddLine(y, x, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -36,28 +36,28 @@ namespace SQLSpatialTools
 
         public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			_target.BeginFigure(y, x, z, m);
+			target.BeginFigure(y, x, z, m);
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
 			// Convert geography to geometry types...
-			_target.BeginGeography((OpenGisGeographyType) type);
+			target.BeginGeography((OpenGisGeographyType) type);
 		}
 
 		public void EndFigure()
 		{
-			_target.EndFigure();
+			target.EndFigure();
 		}
 
 		public void EndGeometry()
 		{
-			_target.EndGeography();
+			target.EndGeography();
 		}
 
 		public void SetSrid(int srid)
 		{
-			_target.SetSrid(_targetSrid);
+			target.SetSrid(targetSrid);
 		}
 	}
 }
