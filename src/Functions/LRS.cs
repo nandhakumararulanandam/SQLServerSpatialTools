@@ -214,8 +214,12 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ThrowIfNotLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
-            var localStartMeasure = startMeasure ?? geometry.GetStartPointMeasure();
-            var localEndMeasure = endMeasure ?? geometry.GetEndPointMeasure();
+            // As per requirement; 
+            // the default value of start point is 0 when null is specified
+            // the default value of end point is cartographic length of the segment when null is specified
+            var localStartMeasure = startMeasure ?? 0;
+            var localEndMeasure = endMeasure ?? (double)geometry.STLength();
+
             var length = geometry.STLength().Value;
 
             var geomBuilder = new SqlGeometryBuilder();
