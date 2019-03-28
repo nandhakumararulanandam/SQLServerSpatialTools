@@ -206,7 +206,8 @@ namespace SQLSpatialTools.UnitTests.DDD
             public string Result { get; set; }
             public string Error { get; set; }
             public string ElapsedTime { get; private set; }
-            public string OracleResult { get; set; }
+            public string OracleResult1 { get; set; }
+            public string OracleResult2 { get; set; }
             public string OracleElapsedTime { get; private set; }
             public string OracleError { get; set; }
 
@@ -235,6 +236,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                     return (bool)fieldValue ? "1" : "0";
                 return string.Format("N'{0}'", fieldValue.ToString());
             }
+        }
+
+        public class SplitGeomResult
+        {
+            public string Output_1 { get; set; }
+            public string Output_2 { get; set; }
         }
     }
 }

@@ -360,9 +360,11 @@ namespace SQLSpatialTools.Tests
             var populatedGeometry = Geometry.PopulateGeometryMeasures(geom, null, null);
             Logger.Log("Populated Geom : {0}", populatedGeometry.ToString());
 
-            // if the start, end measure would be null, then this function populates the existing 'M' (measure) value
-            SqlAssert.AreEqual(populatedGeometry.GetStartPointMeasure(), 100.0F);
-            SqlAssert.AreEqual(populatedGeometry.GetEndPointMeasure(), 250.0F);
+            // As per requirement; 
+            // the default value of start point is 0 when null is specified
+            // the default value of end point is cartographic length of the segment when null is specified
+            SqlAssert.AreEqual(populatedGeometry.GetStartPointMeasure(), 0.0F);
+            SqlAssert.AreEqual(populatedGeometry.GetEndPointMeasure(), 15.0F);
 
             double startMeasure = 10;
             double endMeasure = 40;
