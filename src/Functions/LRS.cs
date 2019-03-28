@@ -124,11 +124,11 @@ namespace SQLSpatialTools.Functions.LRS
 
             // If the points doesn't coincide, check for the distance and whether it falls with the tolerance range
             // Comparing geom1 start point distance against geom2 start and end points
-            if (geometry1StartPoint.STDistance(geometry2StartPoint) <= tolerence || geometry1StartPoint.STDistance(geometry2EndPoint) <= tolerence)
+            if (geometry1StartPoint.IsXYWithinRange(geometry2StartPoint, tolerence) || geometry1StartPoint.IsXYWithinRange(geometry2EndPoint, tolerence))
                 return true;
 
             // Comparing geom1 start point distance against geom2 start and end points
-            if (geometry1EndPoint.STDistance(geometry2StartPoint) <= tolerence || geometry1EndPoint.STDistance(geometry2EndPoint) <= tolerence)
+            if (geometry1EndPoint.IsXYWithinRange(geometry2StartPoint, tolerence) || geometry1EndPoint.IsXYWithinRange(geometry2EndPoint, tolerence))
                 return true;
 
             return false;

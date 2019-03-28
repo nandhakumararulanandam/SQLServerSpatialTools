@@ -195,6 +195,19 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Checks whether difference of X and Y point between source and point to compare is within tolerable range
+        /// </summary>
+        /// <param name="sourcePoint"></param>
+        /// <param name="pointToCompare"></param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
+        public static bool IsXYWithinRange(this SqlGeometry sourcePoint, SqlGeometry pointToCompare, double tolerance = 0.0F)
+        {
+            return Math.Abs(sourcePoint.STX.Value - pointToCompare.STX.Value) <= tolerance &&
+                   Math.Abs(sourcePoint.STY.Value - pointToCompare.STY.Value) <= tolerance;
+        }
+
+        /// <summary>
         /// Get offset measure between the two geometry.
         /// Subtracts end measure of first geomtry against the first measure of second geometry.
         /// </summary>
@@ -432,6 +445,8 @@ namespace SQLSpatialTools.Utility
             // Return the first if there was a match.
             return attribs.Length > 0 ? attribs[0].StringValue : null;
         }
+        
+        #endregion
 
         /// <summary>
         /// Validate and convert to lrs dimension
@@ -469,6 +484,8 @@ namespace SQLSpatialTools.Utility
             return sqlBuilder.ConstructedGeometry;
         }
 
+        #region Exception Handlings
+
         /// <summary>
         /// Throw if input geometry is not a line string.
         /// </summary>
@@ -477,14 +494,14 @@ namespace SQLSpatialTools.Utility
         {
             var isLineString = true;
 
-            foreach(var geom in sqlGeometry)
+            foreach (var geom in sqlGeometry)
             {
                 isLineString = geom.IsLineString();
                 if (!isLineString)
                     break;
             }
-           
-            if(!isLineString)
+
+            if (!isLineString)
                 throw new ArgumentException(ErrorMessage.LineStringCompatible);
         }
 
@@ -585,5 +602,6 @@ namespace SQLSpatialTools.Utility
         }
 
         #endregion
+
     }
 }

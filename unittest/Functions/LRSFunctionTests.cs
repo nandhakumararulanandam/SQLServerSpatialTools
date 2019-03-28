@@ -197,7 +197,7 @@ namespace SQLSpatialTools.Tests
             geom2 = "LINESTRING(0.5 0.5 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0.5;
             result = Geometry.IsConnected(geom1, geom2, tolerance);
-            SqlAssert.IsFalse(result);
+            SqlAssert.IsTrue(result);
 
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(0.5 0 0 0, 2 2 0 0)".GetGeom();
@@ -239,7 +239,7 @@ namespace SQLSpatialTools.Tests
             geom2 = "LINESTRING(2 2 9 0, 6 4.9 0 0)".GetGeom();
             tolerance = 0.5;
             result = Geometry.IsConnected(geom1, geom2, tolerance);
-            SqlAssert.IsFalse(result);
+            SqlAssert.IsTrue(result);
         }
 
         [TestMethod]
