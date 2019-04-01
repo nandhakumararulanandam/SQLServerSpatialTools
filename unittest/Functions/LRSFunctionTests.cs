@@ -83,6 +83,14 @@ namespace SQLSpatialTools.Tests
             Logger.Log("Clipped Geom: {0}", clippedGeom.ToString());
             SqlAssert.IsTrue(retGeom.STIsValid());
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
+
+            startMeasure = 5; endMeasure = 10;
+            geom = "LINESTRING(2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 0, 8 10 22, 5 14  27)".GetGeom();
+            retGeom = "LINESTRING (5 4 NULL 5, 8 4 NULL 8, 10 4 NULL 10)".GetGeom();
+            clippedGeom = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            Logger.Log("Clipped Geom: {0}", clippedGeom.ToString());
+            SqlAssert.IsTrue(retGeom.STIsValid());
+            SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
         }
 
         [TestMethod]

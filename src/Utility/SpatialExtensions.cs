@@ -155,11 +155,26 @@ namespace SQLSpatialTools.Utility
         /// <param name="startMeasure"></param>
         /// <param name="endMeasure"></param>
         /// <returns></returns>
+        public static bool IsWithinRange(this double? currentMeasure, double startMeasure, double endMeasure)
+        {
+            if (currentMeasure == null)
+                return false;
+
+            return IsWithinRange((double)currentMeasure, startMeasure, endMeasure);
+        }
+
+        /// <summary>
+        /// Check whether the measure falls withing the start and end measure.
+        /// </summary>
+        /// <param name="currentMeasure"></param>
+        /// <param name="startMeasure"></param>
+        /// <param name="endMeasure"></param>
+        /// <returns></returns>
         public static bool IsWithinRange(this double currentMeasure, double startMeasure, double endMeasure)
         {
             return (
                 // if line segment measure is increasing start ----> end
-                (currentMeasure >= startMeasure && currentMeasure <= endMeasure) 
+                (currentMeasure >= startMeasure && currentMeasure <= endMeasure)
                 ||
                 // if line segment measure is increasing start <---- end
                 (currentMeasure >= endMeasure && currentMeasure <= startMeasure)
@@ -191,7 +206,7 @@ namespace SQLSpatialTools.Utility
         {
             var startMeasure = startPoint.GetStartPointMeasure();
             var endMeasure = endPoint.GetEndPointMeasure();
-            return IsWithinRange(currentMeasure, startMeasure, endMeasure);
+            return IsWithinRange((double)currentMeasure, startMeasure, endMeasure);
         }
 
         /// <summary>

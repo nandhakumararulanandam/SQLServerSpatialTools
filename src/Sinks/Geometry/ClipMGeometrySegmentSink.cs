@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Utility;
 using System;
 
 namespace SQLSpatialTools
@@ -80,7 +81,7 @@ namespace SQLSpatialTools
             double startEndMeasure;//To unify code for ascending and descending measures
 
             // If current measure is between start measure and end measure, we should add segment to the result linestring
-            if ((m >= startMeasure && m <= endMeasure) || (m <= startMeasure && m >= endMeasure))
+            if (m.IsWithinRange(startMeasure, endMeasure))
             {
                 if (started)
                 {
@@ -114,7 +115,8 @@ namespace SQLSpatialTools
                         startEndMeasure = Math.Min(startMeasure, endMeasure);
                     else
                         startEndMeasure = Math.Max(startMeasure, endMeasure);
-                    if ((startEndMeasure < m && startEndMeasure > lastM) || (startEndMeasure > m && startEndMeasure < lastM))
+
+                    if (startEndMeasure.IsWithinRange((double)m , lastM))
                     {
                         double f = (startEndMeasure - lastM) / ((double)m - lastM);  // The fraction of the way from start to end.
                         double newX = (lastX * (1 - f)) + (x * f);
@@ -141,6 +143,11 @@ namespace SQLSpatialTools
                     }
                 }
             }
+
+            // re-assign the current co-ordinates to match for next iteration.
+            lastM = (double)m;
+            lastX = x;
+            lastY = y;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
