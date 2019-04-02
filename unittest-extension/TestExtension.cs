@@ -43,6 +43,8 @@ namespace SQLSpatialTools.UnitTests.Extension
 
     public static class TestExtension
     {
+        public const string DecimalPointMatch = @"\.0([\s\,\)])";
+
         /// <summary>
         /// Trim null values in the input geometry WKT.
         /// </summary>
@@ -51,6 +53,39 @@ namespace SQLSpatialTools.UnitTests.Extension
         public static string TrimNullValue(this string inputGeom)
         {
             return Regex.Replace(inputGeom, @"\s*null\s*", " ", RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
+        /// Compare the two results aftering converting to lower and triming space.
+        /// </summary>
+        /// <param name="firstResult"></param>
+        /// <param name="secondResult"></param>
+        /// <returns></returns>
+        public static bool Compare(this string firstResult, string secondResult)
+        {
+            firstResult = Regex.Replace(firstResult.ToLower(), @"\s+", string.Empty);
+            secondResult = Regex.Replace(secondResult.ToLower(), @"\s+", string.Empty);
+            return firstResult.Equals(secondResult);
+        }
+
+        /// <summary>
+        /// Trims the decimal points in input WKT geometry.
+        /// </summary>
+        /// <param name="inputGeomWKT"></param>
+        /// <returns></returns>
+        public static string TrimDecimalPoints(this string inputGeomWKT)
+        {
+            return Regex.Replace(inputGeomWKT, DecimalPointMatch, "$1");
+        }
+
+        /// <summary>
+        /// Escape single quotation in input query.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public static string EscapeQueryString(this string query)
+        {
+            return query.Replace("'", "''");
         }
     }
 

@@ -45,7 +45,6 @@ namespace SQLSpatialTools.UnitTests.DDD
             geomTypeRegex = new Regex(OracleLRSQuery.GeomTypeMatch, RegexOptions.Compiled);
             dimensionGroupRegex = new Regex(OracleLRSQuery.DimensionGroup, RegexOptions.Compiled);
             dimensionRegex = new Regex(OracleLRSQuery.DimensionMatch, RegexOptions.Compiled);
-            decimalPointMatch = new Regex(OracleLRSQuery.DecimalPointMatch, RegexOptions.Compiled);
 
             oracleConnection = new OracleConnection { ConnectionString = connStr };
 
@@ -102,10 +101,10 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="query"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        T ExecuteScalar<T>(string query, ref string error)
+        T ExecuteScalar<T>(string query, out string error)
         {
             T result = default(T);
-
+            error = string.Empty;
             try
             {
                 Open();
@@ -160,11 +159,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="inputGeom2">Line Segment 2 in WKT</param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoMergeGeomTest(string inputGeom1, string inputGeom2, double tolerance, ref string error)
+        internal void DoMergeGeomTest(LRSDataSet.MergeGeometrySegmentsData testObj)
         {
-            var query = string.Format(OracleLRSQuery.MergeGeomSegmentQuery, ConvertTo3DCoordinates(inputGeom1), ConvertTo3DCoordinates(inputGeom2), tolerance);
-            var result = ExecuteScalar<string>(query, ref error);
-            return TrimDecimalPoints(result);
+            var query = string.Format(OracleLRSQuery.MergeGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom1), ConvertTo3DCoordinates(testObj.InputGeom2), testObj.Tolerance);
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
         }
 
         /// <summary>
@@ -175,11 +176,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="endMeasure"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoClipGeometrySegment(string inputGeom, double startMeasure, double endMeasure, ref string error)
+        internal void DoClipGeometrySegment(LRSDataSet.ClipGeometrySegmentData testObj)
         {
-            var query = string.Format(OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(inputGeom), startMeasure, endMeasure);
-            var result = ExecuteScalar<string>(query, ref error);
-            return TrimDecimalPoints(result);
+            var query = string.Format(OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure);
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
         }
 
         /// <summary>
@@ -188,10 +191,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="inputGeom"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoGetEndMeasure(string inputGeom, ref string error)
+        internal void DoGetEndMeasure(LRSDataSet.GetEndMeasureData testObj)
         {
-            var query = string.Format(OracleLRSQuery.GetEndMeasureQuery, ConvertTo3DCoordinates(inputGeom));
-            return string.Format("{0}", ExecuteScalar<double>(query, ref error));
+            var query = string.Format(OracleLRSQuery.GetEndMeasureQuery, ConvertTo3DCoordinates(testObj.InputGeom));
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
         }
 
         /// <summary>
@@ -200,10 +206,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="inputGeom"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoGetStartMeasure(string inputGeom, ref string error)
+        internal void DoGetStartMeasure(LRSDataSet.GetStartMeasureData testObj)
         {
-            var query = string.Format(OracleLRSQuery.GetStartMeasureQuery, ConvertTo3DCoordinates(inputGeom));
-            return string.Format("{0}", ExecuteScalar<double>(query, ref error));
+            var query = string.Format(OracleLRSQuery.GetStartMeasureQuery, ConvertTo3DCoordinates(testObj.InputGeom));
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
         }
 
         /// <summary>
@@ -213,10 +222,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="inputGeom2">Line Segment 2 in WKT</param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoIsConnectedGeomSegmentTest(string inputGeom1, string inputGeom2, double tolerance, ref string error)
+        internal void DoIsConnectedGeomSegmentTest(LRSDataSet.IsConnectedData testObj)
         {
-            var query = string.Format(OracleLRSQuery.GetIsConnectedGeomSegmentQuery, ConvertTo3DCoordinates(inputGeom1), ConvertTo3DCoordinates(inputGeom2), tolerance);
-            return string.Format("{0}", ExecuteScalar<bool>(query, ref error));
+            var query = string.Format(OracleLRSQuery.GetIsConnectedGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom1), ConvertTo3DCoordinates(testObj.InputGeom2), testObj.Tolerance);
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
         }
 
         /// <summary>
@@ -226,11 +238,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="endMeasure"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoLocatePointAlongGeomTest(string inputGeom, double Measure, ref string error)
+        internal void DoLocatePointAlongGeomTest(LRSDataSet.LocatePointAlongGeomData testObj)
         {
-            var query = string.Format(OracleLRSQuery.GetLocatePointAlongGeomQuery, ConvertTo3DCoordinates(inputGeom), Measure);
-            var result = ExecuteScalar<string>(query, ref error);
-            return TrimDecimalPoints(result);
+            var query = string.Format(OracleLRSQuery.GetLocatePointAlongGeomQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.Measure);
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
         }
 
         /// <summary>
@@ -241,24 +255,28 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="endMeasure"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoPopulateMeasuresTest(string inputGeom, double? startMeasure, double? endMeasure, ref string error)
+        internal void DoPopulateMeasuresTest(LRSDataSet.PopulateGeometryMeasuresData testObj)
         {
             var optionBuilder = new StringBuilder();
 
-            if (startMeasure != null)
-                optionBuilder.AppendFormat(", {0}", startMeasure);
+            if (testObj.StartMeasure != null)
+                optionBuilder.AppendFormat(", {0}", testObj.StartMeasure);
 
-            if (endMeasure != null)
-                optionBuilder.AppendFormat(", {0}", endMeasure);
+            if (testObj.StartMeasure != null)
+                optionBuilder.AppendFormat(", {0}", testObj.StartMeasure);
 
-            var query = string.Format(OracleLRSQuery.GetPopulateMeasureNonQuery, ConvertTo3DCoordinates(inputGeom), optionBuilder.ToString());
+            var errorInfo = string.Empty;
+            var query1 = string.Format(OracleLRSQuery.GetPopulateMeasureNonQuery, ConvertTo3DCoordinates(testObj.InputGeom), optionBuilder.ToString());
             // first execute to store the result in temp table.
-            ExecuteNonQuery(query, ref error);
+            ExecuteNonQuery(query1, ref errorInfo);
 
             // retrieve the result from temp table.
-            var result = ExecuteScalar<string>(OracleLRSQuery.GetOneResultFromTempTable, ref error);
+            var query2 = string.Format(OracleLRSQuery.GetOneResultFromTempTable);
+            var result = ExecuteScalar<string>(query2, out errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = string.Format("{0}\n{1}", query1, query2);
+            testObj.OracleResult1 = result;
 
-            return TrimDecimalPoints(result);
         }
 
         /// <summary>
@@ -267,11 +285,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="inputGeom"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal string DoReverseLinearGeomTest(string inputGeom, ref string error)
+        internal void DoReverseLinearGeomTest(LRSDataSet.ReverseLinearGeometryData testObj)
         {
-            var query = string.Format(OracleLRSQuery.GetReverseLinearGeomQuery, ConvertTo3DCoordinates(inputGeom));
-            var result = ExecuteScalar<string>(query, ref error);
-            return TrimDecimalPoints(result);
+            var query = string.Format(OracleLRSQuery.GetReverseLinearGeomQuery, ConvertTo3DCoordinates(testObj.InputGeom));
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
         }
 
         /// <summary>
@@ -281,20 +301,25 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="Measure"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        internal LRSDataSet.SplitGeomResult DoSplitGeometrySegmentTest(string inputGeom, double? Measure, ref string error)
+        internal void DoSplitGeometrySegmentTest(LRSDataSet.SplitGeometrySegmentData testObj)
         {
             var optionBuilder = new StringBuilder();
 
-            var query = string.Format(OracleLRSQuery.GetSplitGeometrySegmentQuery, ConvertTo3DCoordinates(inputGeom), Measure);
+            var errorInfo = string.Empty;
+            var query1 = string.Format(OracleLRSQuery.GetSplitGeometrySegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.Measure);
             // first execute to store the result in temp table.
-            ExecuteNonQuery(query, ref error);
+            ExecuteNonQuery(query1, ref errorInfo);
+
 
             // retrieve the result from temp table.
-            var result = ExecuteScalar<LRSDataSet.SplitGeomResult>(OracleLRSQuery.GetTwoResultFromTempTable, ref error);
+            var query2 = string.Format(OracleLRSQuery.GetTwoResultFromTempTable);
+            // retrieve the result from temp table.
+            var result = ExecuteScalar<LRSDataSet.SplitGeomResult>(query2, out errorInfo);
 
-            result.Output_1 = TrimDecimalPoints(result.Output_1);
-            result.Output_2 = TrimDecimalPoints(result.Output_2);
-            return result;
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = string.Format("{0}\n{1}", query1, query2);
+            testObj.OracleResult1 = result.Output_1;
+            testObj.OracleResult2 = result.Output_2;
         }
 
         #endregion LRS Test Functions
@@ -361,16 +386,6 @@ namespace SQLSpatialTools.UnitTests.DDD
             return convertedStr.ToString();
         }
 
-        /// <summary>
-        /// Trims the decimal points in input WKT geometry.
-        /// </summary>
-        /// <param name="inputGeomWKT"></param>
-        /// <returns></returns>
-        string TrimDecimalPoints(string inputGeomWKT)
-        {
-            return Regex.Replace(inputGeomWKT, OracleLRSQuery.DecimalPointMatch, string.Empty);
-        }
-
         #endregion Utility Functions
     }
 
@@ -403,7 +418,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'),"
                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{1}'), {2}) from dual";
 
-        public const string GetLocatePointAlongGeomQuery= "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+        public const string GetLocatePointAlongGeomQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
                                                  + "SDO_LRS.LOCATE_PT("
                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'),{1})"
                                                  + ")from dual";
@@ -455,21 +470,21 @@ namespace SQLSpatialTools.UnitTests.DDD
 
 
         public const string CreateTempTableQuery = "CREATE TABLE Temp_Data ("
-                                                 +     " Output_ID NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY"
-                                                 +     " ,Output_1 VARCHAR2(1000) NOT NULL"
-                                                 +     " ,Output_2 VARCHAR2(1000)"
-                                                 +     " )";
+                                                 + " Output_ID NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY"
+                                                 + " ,Output_1 VARCHAR2(1000) NOT NULL"
+                                                 + " ,Output_2 VARCHAR2(1000)"
+                                                 + " )";
 
-         public const string CreateTempTableIndexQuery = "CREATE UNIQUE INDEX UN_PK ON Temp_Data (Output_ID)";
+        public const string CreateTempTableIndexQuery = "CREATE UNIQUE INDEX UN_PK ON Temp_Data (Output_ID)";
 
-         public const string CreateTempTablePKQuery = "ALTER TABLE Temp_Data ADD (CONSTRAINT UN_PK PRIMARY KEY (Output_ID) USING INDEX UN_PK ENABLE VALIDATE)";
+        public const string CreateTempTablePKQuery = "ALTER TABLE Temp_Data ADD (CONSTRAINT UN_PK PRIMARY KEY (Output_ID) USING INDEX UN_PK ENABLE VALIDATE)";
 
-         public const string GetOneResultFromTempTable = "SELECT OUTPUT_1"
-                                                   + " FROM TEMP_DATA"
-                                                   + " WHERE OUTPUT_ID IN ("
-                                                   +     " SELECT MAX(OUTPUT_ID)"
-                                                   +     " FROM TEMP_DATA"
-                                                   +     " )";
+        public const string GetOneResultFromTempTable = "SELECT OUTPUT_1"
+                                                  + " FROM TEMP_DATA"
+                                                  + " WHERE OUTPUT_ID IN ("
+                                                  + " SELECT MAX(OUTPUT_ID)"
+                                                  + " FROM TEMP_DATA"
+                                                  + " )";
 
         public const string GetTwoResultFromTempTable = "SELECT OUTPUT_1, OUTPUT_2"
                                                    + " FROM TEMP_DATA"
@@ -480,7 +495,6 @@ namespace SQLSpatialTools.UnitTests.DDD
 
         #endregion Oracle Queries
 
-        public const string DecimalPointMatch = @"\.0";
         public const string GeomTypeMatch = @"(?<type>\w+)\s*?(?<content>\(.*\))";
         public const string DimensionGroup = @"\((?<group>.*?)\)";
         public const string DimensionMatch = @"((?<x>[\d\.]+)\s+(?<y>[\d\.]+)\s+(?<z>([\d\.]+)|(null)|(NULL))\s+(?<m>([\d\.]+)|(null)|(NULL)))"

@@ -35,5 +35,14 @@ namespace SQLSpatialTools.UnitTests.DDD
             Logger.LogLine("Input    : {0}", segment);
             Logger.Log("Output : {0}", obj.ConvertTo3DCoordinates(segment));
         }
+
+        [TestMethod]
+        public void TrimDecimalPointsTest()
+        {
+            var input = "1335.0 45)";
+            var expected = "1335 45)";
+            var result= input.TrimDecimalPoints();
+            Assert.AreEqual(expected, result);
+        }
     }
 }

@@ -6,13 +6,15 @@ namespace SQLSpatialTools.UnitTests.Extension
     public class BaseUnitTest
     {
         public TestLogger Logger;
-        public Stopwatch Timer;
+        public Stopwatch MSSQLTimer;
+        public Stopwatch OracleTimer;
 
         [TestInitialize]
         public void Initialize()
         {
             Logger = new TestLogger(TestContext);
-            Timer = new Stopwatch();            
+            MSSQLTimer = new Stopwatch();
+            OracleTimer = new Stopwatch();
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SqlServerCe;
 using System.IO;
 using Dapper;
@@ -49,49 +48,38 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
-                    var expectedGeomSegment = test.ExpectedGeom.GetGeom();
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
                     Logger.Log("Start Measure : {0}", test.StartMeasure);
                     Logger.Log("End Measure : {0}", test.EndMeasure);
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
-                    Logger.Log("Expected Geom : {0}", expectedGeomSegment.ToString());
+                    Logger.Log("Expected Geom : {0}", test.ExpectedResult1);
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    var obtainedGeomSegment = Geometry.ClipGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
-
-                    test.ObtainedGeom = obtainedGeomSegment.ToString();
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
-                    Logger.Log("Obtained Geom : {0}", test.ObtainedGeom);
-
-                    test.Result = obtainedGeomSegment.STEquals(expectedGeomSegment).GetResult();
+                    test.ObtainedResult1 = Geometry.ClipGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure).ToString().TrimNullValue();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
 
                     #region Run against Oracle
 
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoClipGeometrySegment(test.InputGeom, test.StartMeasure,  test.EndMeasure, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoClipGeometrySegment(test);
+                    OracleTimer.Stop();
 
                     #endregion
+
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+
+                // Update test results in DB
+                UpdateTestResults(test, LRSDataSet.ClipGeometrySegmentData.TableName);
+
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -105,7 +93,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void GetEndMeasureTest()
         {
-            Logger.LogLine("GetEndMeasure Tests");
+            Logger.LogLine("Clip Geometry Segments Tests");
             var dataSet = dbConnection.Query<LRSDataSet.GetEndMeasureData>(LRSDataSet.GetEndMeasureData.SelectQuery);
             int testIterator = 1, testSuccessCount = 1;
             foreach (var test in dataSet)
@@ -114,44 +102,36 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
+                    test.ExpectedResult1 = test.ExpectedResult1;
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
-                    Logger.Log("Expected End Measure : {0}", test.ExpectedEndMeasure);
+                    Logger.Log("Expected Geom : {0}", test.ExpectedResult1);
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedEndMeasure = (double)Geometry.GetEndMeasure(inputGeomSegment);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
-
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedEndMeasure), test.ObtainedEndMeasure));
-                    Logger.Log("Obtained End Measure : {0}", test.ObtainedEndMeasure);
-
-                    test.Result = (test.ObtainedEndMeasure == test.ExpectedEndMeasure).GetResult();
+                    test.ObtainedResult1 = Geometry.GetEndMeasure(inputGeomSegment).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
 
                     #region Run against Oracle
 
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoGetEndMeasure(test.InputGeom, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoGetEndMeasure(test);
+                    OracleTimer.Stop();
 
                     #endregion
+
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+
+                // Update test results in DB
+                UpdateTestResults(test, LRSDataSet.GetEndMeasureData.TableName);
+
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -165,7 +145,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void GetStartMeasureTest()
         {
-            Logger.LogLine("GetStartMeasure Tests");
+            Logger.LogLine("Clip Geometry Segments Tests");
             var dataSet = dbConnection.Query<LRSDataSet.GetStartMeasureData>(LRSDataSet.GetStartMeasureData.SelectQuery);
             int testIterator = 1, testSuccessCount = 1;
             foreach (var test in dataSet)
@@ -174,43 +154,36 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
+                    test.ExpectedResult1 = test.ExpectedResult1;
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
-                    Logger.Log("Expected Start Measure : {0}", test.ExpectedStartMeasure);
+                    Logger.Log("Expected Geom : {0}", test.ExpectedResult1);
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedStartMeasure = (double)Geometry.GetStartMeasure(inputGeomSegment);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+                    test.ObtainedResult1 = Geometry.GetStartMeasure(inputGeomSegment).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
 
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedStartMeasure), test.ObtainedStartMeasure));
-                    Logger.Log("Obtained Start Measure : {0}", test.ObtainedStartMeasure);
-
-                    test.Result = (test.ObtainedStartMeasure == test.ExpectedStartMeasure).GetResult();
                     #region Run against Oracle
 
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoGetStartMeasure(test.InputGeom, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoGetStartMeasure(test);
+                    OracleTimer.Stop();
 
                     #endregion
+
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+
+                // Update test results in DB
+                UpdateTestResults(test, LRSDataSet.GetStartMeasureData.TableName);
+
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -232,37 +205,28 @@ namespace SQLSpatialTools.UnitTests.DDD
                 Logger.LogLine("Executing test {0}", testIterator);
                 try
                 {
-                    var geom1 = test.InputGeom1.GetGeom();
-                    var geom2 = test.InputGeom2.GetGeom();
+                    var inputGeomSegment1 = test.InputGeom1.GetGeom();
+                    var inputGeomSegment2 = test.InputGeom2.GetGeom();
+                    test.ExpectedResult1 = test.ExpectedResult1;
+                    Logger.LogLine("Input geom 1:{0} geom 2:{1}", inputGeomSegment1.ToString(), inputGeomSegment2.ToString());
+                    Logger.Log("Interpolate with a distance of {0}", inputGeomSegment1.ToString(), inputGeomSegment2.ToString(), test.Measure);
+                    Logger.LogLine("Expected Result: {0}", test.ExpectedResult1);
 
-                    Logger.LogLine("Input geom 1:{0} geom 2:{1}", geom1, geom2);
-                    Logger.Log("Interpolate with a distance of {0}", geom1, geom2, test.Measure);
-                    var expectedPoint = test.ExpectedPoint.GetGeom();
-                    Logger.LogLine("Expected Result: {0}", test.ExpectedPoint);
-
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    var obtainedGeom = Geometry.InterpolateBetweenGeom(geom1, geom2, test.Measure);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
-
-                    test.ObtainedPoint = obtainedGeom.ToString();
-
-                    Logger.Log("Obtained Point: {0}", test.ObtainedPoint);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedPoint), test.ObtainedPoint));
-
-                    test.Result = (obtainedGeom.STEquals(expectedPoint)).GetResult();
+                    test.ObtainedResult1 = Geometry.InterpolateBetweenGeom(inputGeomSegment1, inputGeomSegment2, test.Measure).ToString();
+                    MSSQLTimer.Stop();
+                    test.SetElapsedTime(MSSQLTimer.Elapsed);
+                    Logger.Log("Obtained Point: {0}", test.ObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
 
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+                UpdateSqlServerTestResults(test, LRSDataSet.InterpolateBetweenGeomData.TableName);
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -284,36 +248,25 @@ namespace SQLSpatialTools.UnitTests.DDD
                 Logger.LogLine("Executing test {0}", testIterator);
                 try
                 {
-                    var geom1 = test.InputGeom1.GetGeom();
-                    var geom2 = test.InputGeom2.GetGeom();
+                    var inputGeomSegment1 = test.InputGeom1.GetGeom();
+                    var inputGeomSegment2 = test.InputGeom2.GetGeom();
+                    test.ExpectedResult1 = test.ExpectedResult1;
+                    Logger.LogLine("Input geom 1:{0} geom 2:{1}", inputGeomSegment1.ToString(), inputGeomSegment2.ToString());
+                    Logger.Log("IsConnected with a tolerance of {0}", inputGeomSegment1.ToString(), inputGeomSegment2.ToString(), test.Tolerance);
+                    Logger.LogLine("Expected Result: {0}", test.ExpectedResult1);
 
-                    Logger.LogLine("Input geom 1:{0} geom 2:{1}", geom1, geom2);
-                    Logger.Log("IsConnected with a tolerance of {0}", geom1, geom2, test.Tolerance);
-                    Logger.LogLine("Expected Result: {0}", test.Expected);
-
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.Obtained = (bool)Geometry.IsConnected(geom1, geom2, test.Tolerance);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+                    test.ObtainedResult1 = Geometry.IsConnected(inputGeomSegment1, inputGeomSegment2, test.Tolerance).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Point: {0}", test.ObtainedResult1);
 
-                    Logger.Log("Obtained Point: {0}", test.Obtained);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.Obtained), test.Obtained));
-
-                    test.Result = (test.Obtained == test.Expected).GetResult();
                     #region Run against Oracle
 
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoIsConnectedGeomSegmentTest(test.InputGeom1, test.InputGeom2, test.Tolerance, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoIsConnectedGeomSegmentTest(test);
+                    OracleTimer.Stop();
 
                     #endregion
                 }
@@ -321,11 +274,9 @@ namespace SQLSpatialTools.UnitTests.DDD
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
-
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+                UpdateTestResults(test, LRSDataSet.GetStartMeasureData.TableName);
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -347,50 +298,31 @@ namespace SQLSpatialTools.UnitTests.DDD
                 Logger.LogLine("Executing test {0}", testIterator);
                 try
                 {
-                    var geom = test.InputGeom.GetGeom();
-
-                    Logger.LogLine("Input geom :{0}", geom);
+                    var inputGeomSegment1 = test.InputGeom.GetGeom();
+                    Logger.LogLine("Input geom :{0}", inputGeomSegment1.ToString());
                     Logger.Log("Location point along Geom at a measure of {0}", test.Measure);
-                    Logger.LogLine("Expected Result: {0}", test.ExpectedPoint);
+                    Logger.LogLine("Expected Result: {0}", test.ExpectedResult1);
 
-                    var expectedGeom = test.ExpectedPoint.GetGeom();
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    var obtainedGeom = Geometry.LocatePointAlongGeom(geom, test.Measure);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+                    test.ObtainedResult1 = Geometry.LocatePointAlongGeom(inputGeomSegment1, test.Measure).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
 
-                    test.ObtainedPoint = obtainedGeom.ToString();
-                    Logger.Log("Obtained Point: {0}", test.ObtainedPoint);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedPoint), test.ObtainedPoint));
-
-                    test.Result = obtainedGeom.STEquals(expectedGeom).GetResult();
-
-                    #region Run against Oracle
-
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoLocatePointAlongGeomTest(test.InputGeom, test.Measure, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoLocatePointAlongGeomTest(test);
+                    Logger.Log("Oracle Result: {0}", test.OracleResult1);
+                    OracleTimer.Stop();
 
-                    #endregion
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
-
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+                UpdateTestResults(test, LRSDataSet.LocatePointAlongGeomData.TableName);
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -414,59 +346,38 @@ namespace SQLSpatialTools.UnitTests.DDD
                 {
                     var geom1 = test.InputGeom1.GetGeom();
                     var geom2 = test.InputGeom2.GetGeom();
-                    var expectedGeom = test.ExpectedGeom.GetGeom();
+                    var expectedGeom = test.ExpectedResult1.GetGeom();
 
                     Logger.LogLine("Input geom 1:{0}", geom1);
                     Logger.Log("Input geom 2:{0}", geom2);
-                    Logger.LogLine("Expected Result: {0}", test.ExpectedGeom);
+                    Logger.LogLine("Expected Result: {0}", expectedGeom);
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    var obtainedGeom = Geometry.MergeGeometrySegments(geom1, geom2);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
-
-                    test.ObtainedGeom = obtainedGeom.ToString();
-                    Logger.Log("Obtained Point: {0}", test.ObtainedGeom);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom.TrimNullValue()));
-
-                    if (!obtainedGeom.STIsValid())
-                    {
-                        test.Result = "Passed";
-                        test.Error = "Obtained geom is invalid; hence cannot compare";
-                        dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
-                    }
-                    else
-                    {
-                        test.Result = obtainedGeom.STEquals(expectedGeom).GetResult();
-                    }
+                    test.ObtainedResult1 = Geometry.MergeGeometrySegments(geom1, geom2).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result : {0}", test.ObtainedResult1);
 
                     #region Run against Oracle
 
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoMergeGeomTest(test.InputGeom1, test.InputGeom2, 0.5, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if(!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoMergeGeomTest(test);
+                    OracleTimer.Stop();
 
                     #endregion
+
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
 
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
-                Logger.Log("Test Result : {0}", test.Result);
+                // Update results to database
+                UpdateTestResults(test, LRSDataSet.MergeGeometrySegmentsData.TableName);
+
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
             }
@@ -488,48 +399,28 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
-                    var expectedGeom = test.ExpectedGeom.GetGeom();
-
                     Logger.LogLine("Input geom: {0}", geom);
-                    Logger.LogLine("Expected Result: {0}", test.ExpectedGeom);
+                    Logger.LogLine("Expected Result: {0}", test.ExpectedResult1);
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    var obtainedGeom = Geometry.PopulateGeometryMeasures(geom, test.StartMeasure, test.EndMeasure);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+                    test.ObtainedResult1 = Geometry.PopulateGeometryMeasures(geom, test.StartMeasure, test.EndMeasure).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
 
-                    test.ObtainedGeom = obtainedGeom.ToString();
-                    Logger.Log("Obtained Geom: {0}", test.ObtainedGeom);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom.TrimNullValue()));
-
-                    test.Result = obtainedGeom.STEqualsMeasure(expectedGeom).GetResult();
-
-                    #region Run against Oracle
-
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoPopulateMeasuresTest(test.InputGeom, test.StartMeasure, test.EndMeasure, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
-
-                    #endregion
+                    oracleConnector.DoPopulateMeasuresTest(test);
+                    OracleTimer.Stop();
+                    Logger.Log("Oracle Result: {0}", test.OracleResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
-
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+                UpdateTestResults(test, LRSDataSet.GetStartMeasureData.TableName);
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -552,33 +443,25 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
-                    var expectedGeomSegment = test.ExpectedGeom.GetGeom();
+                    var expectedGeomSegment = test.ExpectedResult1.GetGeom();
                     Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
                     Logger.Log("Expected Geom : {0}", expectedGeomSegment.ToString());
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    var obtainedGeomSegment = Geometry.ResetMeasure(inputGeomSegment);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
-
-                    test.ObtainedGeom = obtainedGeomSegment.ToString();
-                    test.ExpectedGeom = expectedGeomSegment.ToString();
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
-                    Logger.Log("Obtained Geom : {0}", test.ObtainedGeom);
-
-                    test.Result = obtainedGeomSegment.STEqualsMeasure(expectedGeomSegment).GetResult();
-                    // we just empty out measures; so comparison with Oracle will be just a overhead.
+                    test.ObtainedResult1 = Geometry.ResetMeasure(inputGeomSegment).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+
+                UpdateSqlServerTestResults(test, LRSDataSet.ResetMeasureData.TableName);
+
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -601,49 +484,33 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
-                    var expectedGeom = test.ExpectedGeom.GetGeom();
+                    var expectedGeom = test.ExpectedResult1.GetGeom();
 
                     Logger.LogLine("Input geom: {0}", geom);
-                    Logger.LogLine("Expected Result: {0}", test.ExpectedGeom);
+                    Logger.LogLine("Expected Result: {0}", test.ExpectedResult1);
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
-                    var obtainedGeom = Geometry.ReverseLinearGeometry(geom);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+                    test.ObtainedResult1 = Geometry.ReverseLinearGeometry(geom).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
 
-                    test.ObtainedGeom = obtainedGeom.ToString();
-                    Logger.Log("Obtained Geom: {0}", test.ObtainedGeom);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom), test.ObtainedGeom));
-
-                    test.Result = obtainedGeom.STEquals(expectedGeom).GetResult();
-
-                    #region Run against Oracle
-
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    test.OracleResult1 = oracleConnector.DoReverseLinearGeomTest(test.InputGeom, ref oracleError);
-                    Timer.Stop();
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoReverseLinearGeomTest(test);
+                    OracleTimer.Stop();
 
-                    #endregion
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
 
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
-                Logger.Log("Test Result : {0}", test.Result);
+                // Update results to database
+                UpdateTestResults(test, LRSDataSet.ReverseLinearGeometryData.TableName);
+
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
             }
@@ -665,45 +532,29 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
-                    var expectedGeom1 = test.ExpectedGeom1.GetGeom();
-                    var expectedGeom2 = test.ExpectedGeom2.GetGeom();
+                    var expectedGeom1 = test.ExpectedResult1.GetGeom();
+                    var expectedGeom2 = test.ExpectedResult2.GetGeom();
 
                     Logger.LogLine("Splitting Input geom: {0} at a measure of : {1}", geom, test.Measure);
-                    Logger.Log("Expected Split Geom Segment 1: {0}", test.ExpectedGeom1);
-                    Logger.Log("Expected Split Geom Segment 2: {0}", test.ExpectedGeom2);
+                    Logger.Log("Expected Split Geom Segment 1: {0}", expectedGeom1);
+                    Logger.Log("Expected Split Geom Segment 2: {0}", expectedGeom2);
 
-                    Timer.Restart();
+                    MSSQLTimer.Restart();
                     // OSS Function Execution
                     Geometry.SplitGeometrySegment(geom, test.Measure, out SqlGeometry obtainedGeom1, out SqlGeometry obtainedGeom2);
-                    Timer.Stop();
-                    test.SetElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ElapsedTime), test.ElapsedTime));
+                    MSSQLTimer.Stop();
 
-                    test.ObtainedGeom1 = obtainedGeom1.ToString().TrimNullValue();
-                    test.ObtainedGeom2 = obtainedGeom2.ToString().TrimNullValue();
-                    Logger.LogLine("Obtained Geom 1: {0}", test.ObtainedGeom1);
-                    Logger.Log("Obtained Geom 2: {0}", test.ObtainedGeom2);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom1), test.ObtainedGeom1));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.ObtainedGeom2), test.ObtainedGeom2));
-
-                    test.Result = (obtainedGeom1.STEquals(expectedGeom1)
-                                   && obtainedGeom2.STEquals(expectedGeom2)).GetResult();
+                    test.ObtainedResult1 = obtainedGeom1.ToString();
+                    test.ObtainedResult2 = obtainedGeom2.ToString();
+                    Logger.LogLine("Obtained Result1: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result2: {0}", test.ObtainedResult2);
 
                     #region Run against Oracle
 
-                    var oracleError = string.Empty;
-                    Timer.Restart();
+                    OracleTimer.Restart();
                     // Oracle Function Execution
-                    var result = oracleConnector.DoSplitGeometrySegmentTest(test.InputGeom, test.Measure, ref oracleError);
-                    Timer.Stop();
-                    test.OracleResult1 = result.Output_1;
-                    test.OracleResult2 = result.Output_2;
-                    test.SetOracleElapsedTime(Timer.Elapsed);
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult1), test.OracleResult1));
-                    dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleResult2), test.OracleResult2));
-                    if (!string.IsNullOrWhiteSpace(oracleError))
-                        dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(nameof(test.OracleError), oracleError));
+                    oracleConnector.DoSplitGeometrySegmentTest(test);
+                    OracleTimer.Stop();
 
                     #endregion
                 }
@@ -711,11 +562,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                 {
                     test.Result = "Failed";
                     test.Error = ex.Message;
-                    dataManipulator.ExecuteQuery(test.ErrorUpdateQuery);
                     Logger.LogError(ex);
                 }
 
-                dataManipulator.ExecuteQuery(test.ResultUpdateQuery);
+                // Update results to database
+                UpdateTestResults(test, LRSDataSet.SplitGeometrySegmentData.TableName);
+
                 Logger.Log("Test Result : {0}", test.Result);
                 if (test.Result.Equals("Passed")) testSuccessCount++;
                 testIterator++;
@@ -731,6 +583,74 @@ namespace SQLSpatialTools.UnitTests.DDD
         {
             if (dbConnection != null)
                 dbConnection.Close();
+        }
+
+        /// <summary>
+        /// Update test results specific to SQL Server alone
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="tableName"></param>
+        private void UpdateSqlServerTestResults(LRSDataSet.BaseDataSet test, string tableName)
+        {
+            test.SetElapsedTime(MSSQLTimer.Elapsed);
+
+            test.ObtainedResult1 = test.ObtainedResult1.TrimNullValue();
+            test.ExpectedResult1 = test.ExpectedResult1.TrimNullValue();
+
+            test.Result = test.ObtainedResult1.Compare(test.ExpectedResult1).GetResult();
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ObtainedResult1), test.ObtainedResult1));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Result), test.Result));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ElapsedTime), test.ElapsedTime));
+            if (!string.IsNullOrWhiteSpace(test.Error))
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Error), test.Error));
+        }
+
+        /// <summary>
+        /// Update Test Results.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="tableName"></param>
+        /// <param name="obtainedResults"></param>
+        private void UpdateTestResults(LRSDataSet.BaseDataSet test, string tableName)
+        {
+            test.SetElapsedTime(MSSQLTimer.Elapsed);
+            test.SetOracleElapsedTime(OracleTimer.Elapsed);
+
+            test.ObtainedResult1 = test.ObtainedResult1.TrimNullValue();
+            test.ExpectedResult1 = test.ExpectedResult1.TrimNullValue();
+            test.OracleResult1 = test.OracleResult1.TrimDecimalPoints();
+
+            test.OutputComparison = test.ObtainedResult1.Compare(test.OracleResult1);
+            test.Result = test.ObtainedResult1.Compare(test.ExpectedResult1).GetResult();
+
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ObtainedResult1), test.ObtainedResult1));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExpectedResult1), test.ExpectedResult1));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleResult1), test.OracleResult1));
+
+            if (!string.IsNullOrEmpty(test.ObtainedResult2))
+            {
+                test.OutputComparison = test.OutputComparison && test.ObtainedResult2.Compare(test.OracleResult2);
+                test.Result = (test.Result.Equals("Passed") && test.ObtainedResult2.Compare(test.ExpectedResult2)).GetResult();
+
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ObtainedResult2), test.ObtainedResult2));
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExpectedResult2), test.ExpectedResult2));
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleResult2), test.OracleResult2));
+            }
+
+            // comparison of result with expected against obtained results from mssql oss extension functions
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Result), test.Result));
+            // comparison of obtained results from mssql oss extenstion functions against results from competitive Oracle functions.
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OutputComparison), test.OutputComparison));
+
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ElapsedTime), test.ElapsedTime));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleElapsedTime), test.OracleElapsedTime));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleQuery), test.OracleQuery.EscapeQueryString()));
+
+            if (!string.IsNullOrWhiteSpace(test.Error))
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Error), test.Error));
+
+            if (!string.IsNullOrWhiteSpace(test.OracleError))
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleError), test.OracleError));
         }
     }
 }
