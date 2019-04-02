@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
@@ -184,7 +185,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             internal string GetTargetUpdateQuery(string tableName, string fieldName, object fieldValue)
             {
-                return string.Format(UpdateTargetQuery, tableName, fieldName, GetFieldValue(fieldValue), Id);
+                return string.Format(CultureInfo.CurrentCulture, UpdateTargetQuery, tableName, fieldName, GetFieldValue(fieldValue), Id);
             }
 
             private string GetFieldValue(object fieldValue)
@@ -195,7 +196,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                     return fieldValue.ToString();
                 else if (type == typeof(bool))
                     return (bool)fieldValue ? "1" : "0";
-                return string.Format("N'{0}'", fieldValue.ToString());
+                return string.Format(CultureInfo.CurrentCulture, "N'{0}'", fieldValue.ToString());
             }
         }
 

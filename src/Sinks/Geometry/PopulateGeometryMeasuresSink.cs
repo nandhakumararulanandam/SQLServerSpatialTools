@@ -15,7 +15,7 @@ namespace SQLSpatialTools
         readonly double startMeasure;
         readonly double endMeasure;
         readonly double totalLength;
-        double currentLength = 0;
+        double currentLength;
         int srid;                     // The _srid we are working in.
         SqlGeometryBuilder target;    // Where we place our result.
 

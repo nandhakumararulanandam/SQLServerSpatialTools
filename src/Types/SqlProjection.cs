@@ -80,7 +80,7 @@ namespace SQLSpatialTools
 			if (r != null)
 			{
 				string name = r.ReadString();
-				if (name.Equals(""))
+				if (string.IsNullOrEmpty(name))
 				{
 					_projection = null;
 				}

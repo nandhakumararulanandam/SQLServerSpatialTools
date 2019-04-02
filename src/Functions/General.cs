@@ -287,7 +287,7 @@ namespace SQLSpatialTools.Functions.General
                     endCart = currentCart;
                 else
                     startCart = currentCart;
-            } while (Math.Abs(currentDistance - distance) > Constants.THRESHOLD);
+            } while (Math.Abs(currentDistance - distance) > Constants.Threshold);
 
             return current;
         }

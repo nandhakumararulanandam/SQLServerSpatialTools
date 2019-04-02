@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Types;
+using System.Globalization;
 
 namespace SQLSpatialTools.Utility
 {
@@ -244,7 +245,7 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         public static string LinearGeometryRangeExpectionMessage(this double measure, double startMeasure, double endMeasure)
         {
-            return string.Format(ErrorMessage.LinearGeometryMeasureMustBeInRange, measure, Math.Min(startMeasure, endMeasure).ToString(), Math.Max(startMeasure, endMeasure).ToString());
+            return string.Format(CultureInfo.CurrentCulture, ErrorMessage.LinearGeometryMeasureMustBeInRange, measure, Math.Min(startMeasure, endMeasure).ToString(CultureInfo.CurrentCulture), Math.Max(startMeasure, endMeasure).ToString(CultureInfo.CurrentCulture));
         }
 
         /// <summary>
@@ -255,7 +256,7 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         public static SqlChars GetSqlChars(string format, params object[] args)
         {
-            var geometry = string.Format(format, args);
+            var geometry = string.Format(CultureInfo.CurrentCulture, format, args);
             return new SqlChars(geometry);
         }
 
@@ -271,7 +272,7 @@ namespace SQLSpatialTools.Utility
         public static SqlGeometry GetPoint(double x, double y, double? z, double? m, int srid = 4326)
         {
             var zCoordinate = z == null ? "NULL" : z.ToString();
-            var geometry = string.Format(SqlStringFormat.Point, x, y, zCoordinate, m);
+            var geometry = string.Format(CultureInfo.CurrentCulture, Constants.PointSqlCharFormat, x, y, zCoordinate, m);
             return SqlGeometry.STPointFromText(new SqlChars(geometry), srid);
         }
 
@@ -417,7 +418,7 @@ namespace SQLSpatialTools.Utility
         /// <param name="args">Arguments to be appended with format</param>
         public static void ThrowException(string messageFormat, params string[] args)
         {
-            throw new ArgumentException(string.Format(messageFormat, args));
+            throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, messageFormat, args));
         }
 
         #region "Enum Attrib Extension"

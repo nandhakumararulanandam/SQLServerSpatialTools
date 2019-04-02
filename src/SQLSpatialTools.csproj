@@ -126,6 +126,7 @@
     <Compile Include="Sinks\Geography\VacuousGeographyToGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\VacuousGeometryToGeographySink.cs" />
     <Compile Include="Utility\EnumsAndConstants.cs" />
+    <Compile Include="Utility\ErrorMessage.cs" />
     <Compile Include="Utility\SpatialExtensions.cs" />
     <Compile Include="Utility\TestHelpers.cs" />
     <Compile Include="Types\AffineTransform.cs" />

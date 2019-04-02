@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using MST = Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Globalization;
 
 namespace SQLSpatialTools.UnitTests.Extension
 {
@@ -27,7 +28,7 @@ namespace SQLSpatialTools.UnitTests.Extension
         public static void Contains(string inputMessage, string searchString)
         {
             if (!inputMessage.Contains(searchString))
-                MST.Assert.Fail(string.Format("Not expected exception, \"{0}\" not found in the message", searchString));
+                MST.Assert.Fail(string.Format(CultureInfo.CurrentCulture, "Not expected exception, \"{0}\" not found in the message", searchString));
         }
 
         public static string GetResult(this bool result)
@@ -100,7 +101,7 @@ namespace SQLSpatialTools.UnitTests.Extension
 
         public void Log(string msgFormat, params object[] args)
         {
-            testContext.WriteLine(string.Format(msgFormat, args));
+            testContext.WriteLine(string.Format(CultureInfo.CurrentCulture, msgFormat, args));
         }
 
         public void LogLine(string msgFormat, params object[] args)
@@ -108,7 +109,7 @@ namespace SQLSpatialTools.UnitTests.Extension
             var message = new StringBuilder();
             message.AppendLine();
             if (args != null && args.Length > 0)
-                message.AppendFormat(msgFormat, args);
+                message.AppendFormat(CultureInfo.CurrentCulture, msgFormat, args);
             else
                 message.Append(msgFormat);
 
@@ -124,7 +125,7 @@ namespace SQLSpatialTools.UnitTests.Extension
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
                 if (args != null && args.Length > 0)
-                    message.AppendFormat(errorMessage, args);
+                    message.AppendFormat(CultureInfo.CurrentCulture, errorMessage, args);
                 else
                     message.Append(errorMessage);
             }
@@ -132,27 +133,27 @@ namespace SQLSpatialTools.UnitTests.Extension
             message.AppendLine();
             if (frame != null)
             {
-                message.AppendFormat("Error module: {0}", frame.GetMethod().Name);
+                message.AppendFormat(CultureInfo.CurrentCulture, "Error module: {0}", frame.GetMethod().Name);
                 message.AppendLine();
-                message.AppendFormat("File Name: {0}", frame.GetFileName());
+                message.AppendFormat(CultureInfo.CurrentCulture, "File Name: {0}", frame.GetFileName());
                 message.AppendLine();
-                message.AppendFormat("Line Number: {0}", frame.GetFileLineNumber());
+                message.AppendFormat(CultureInfo.CurrentCulture, "Line Number: {0}", frame.GetFileLineNumber());
                 message.AppendLine();
             }
-            message.AppendFormat("Exception: {0}", ex.Message);
+            message.AppendFormat(CultureInfo.CurrentCulture, "Exception: {0}", ex.Message);
             message.AppendLine();
             if (ex.StackTrace != null)
             {
-                message.AppendFormat("Stack trace: {0}", ex.StackTrace);
+                message.AppendFormat(CultureInfo.CurrentCulture, "Stack trace: {0}", ex.StackTrace);
                 message.AppendLine();
             }
 
             if (ex.InnerException != null)
             {
-                message.AppendFormat("Inner Exception: {0}", ex.InnerException.Message);
+                message.AppendFormat(CultureInfo.CurrentCulture, "Inner Exception: {0}", ex.InnerException.Message);
                 message.AppendLine();
                 if (ex.InnerException.StackTrace != null)
-                    message.AppendFormat("Inner Stack trace: {0}", ex.InnerException.StackTrace);
+                    message.AppendFormat(CultureInfo.CurrentCulture, "Inner Stack trace: {0}", ex.InnerException.StackTrace);
             }
 
             testContext.WriteLine(message.ToString());

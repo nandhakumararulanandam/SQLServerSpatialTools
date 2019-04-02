@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Dapper;
 using Oracle.ManagedDataAccess.Client;
+using System.Globalization;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
@@ -79,7 +80,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             }
             catch (Exception ex)
             {
-                throw new Exception(string.Format("Error in connecting Oracle DB:{0}", ex.Message));
+                throw new Exception(string.Format(CultureInfo.CurrentCulture, "Error in connecting Oracle DB:{0}", ex.Message));
             }
         }
 
@@ -364,7 +365,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                         var thirdDim = m == null ? (z != null ? z.Value : "0") : m.Value;
 
-                        convertedStr.Append(string.Format("{0} {1} {2}", x.Value, y.Value, thirdDim));
+                        convertedStr.Append(string.Format(CultureInfo.CurrentCulture, "{0} {1} {2}", x.Value, y.Value, thirdDim));
 
                         if (iterator != dimensions.Count)
                             convertedStr.Append(", ");

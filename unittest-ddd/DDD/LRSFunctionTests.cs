@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.LRS;
 using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
+using System.Globalization;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
@@ -26,7 +27,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (File.Exists(DatabaseFile))
                 File.Delete(DatabaseFile);
 
-            connectionString = string.Format("Data Source=|DataDirectory|\\{0}", DatabaseFile);
+            connectionString = string.Format(CultureInfo.CurrentCulture, "Data Source=|DataDirectory|\\{0}", DatabaseFile);
             dbConnection = new SqlCeConnection(connectionString);
 
             dataManipulator = new DataManipulator(connectionString, SchemaFile, dbConnection, new TestLogger(testContext));

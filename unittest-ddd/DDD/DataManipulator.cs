@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlServerCe;
 using System.IO;
 using SQLSpatialTools.UnitTests.Extension;
+using System.Globalization;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
@@ -69,7 +70,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             try
             {
                 if (!File.Exists(fileName))
-                    throw new Exception(string.Format("Data file :{0} not exists.", fileName));
+                    throw new Exception(string.Format(CultureInfo.CurrentCulture, "Data file :{0} not exists.", fileName));
 
                 var dataSet = File.ReadLines(fileName);
                 var lineCounter = 0;
@@ -91,7 +92,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                     var queryContent = queryFormat;
                     for (var param = 0; param < paramCount; param++)
                     {
-                        queryContent = queryContent.Replace(string.Format("[{0}]", param), subDataSets[param].Trim());
+                        queryContent = queryContent.Replace(string.Format(CultureInfo.CurrentCulture, "[{0}]", param), subDataSets[param].Trim());
                     }
 
                     queryList.Add(queryContent);

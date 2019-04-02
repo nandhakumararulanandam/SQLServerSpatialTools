@@ -41,7 +41,7 @@ namespace SQLSpatialTools.Tests
                 Logger.LogLine("Converting input Geom with 3 dimension and measure : {0}", geomWKT);
                 try
                 {
-                    convertedGeom = Geometry.GeomFromXYMText(geomWKT, Constants.DEFAULT_SRID);
+                    convertedGeom = Geometry.GeomFromXYMText(geomWKT, Constants.DefaultSRID);
                 }
                 catch (ArgumentException e)
                 {
@@ -52,7 +52,7 @@ namespace SQLSpatialTools.Tests
                 geomWKT = "LINESTRING (0 0 3, 10 0 4)";
                 Logger.LogLine("Converting input Geom with 3 dimension and measure : {0}", geomWKT);
                 var expectedGeom = "LINESTRING(0 0 NULL 3, 10 0 NULL 4)".GetGeom();
-                convertedGeom = Geometry.GeomFromXYMText(geomWKT, Constants.DEFAULT_SRID);
+                convertedGeom = Geometry.GeomFromXYMText(geomWKT, Constants.DefaultSRID);
                 Logger.Log("Expected converted geom: {0}", expectedGeom);
                 Logger.Log("Obtained converted geom: {0}", convertedGeom);
                 SqlAssert.IsTrue(convertedGeom.STEquals(expectedGeom));
@@ -175,7 +175,7 @@ namespace SQLSpatialTools.Tests
                 var expectedGeog = "LINESTRING (0 0, 2 2)".GetGeog();
                 Logger.LogLine("Input Geometry: {0}", geom);
                 Logger.Log("Expected Geography: {0}", expectedGeog);
-                var obtainedGeog = Geometry.VacuousGeometryToGeography(geom, Constants.DEFAULT_SRID);
+                var obtainedGeog = Geometry.VacuousGeometryToGeography(geom, Constants.DefaultSRID);
                 Logger.Log("Obtained Geography: {0}", obtainedGeog);
                 SqlAssert.IsTrue(obtainedGeog.STEquals(expectedGeog));
             }
@@ -190,7 +190,7 @@ namespace SQLSpatialTools.Tests
                 var geomText = "LINESTRING(-122.360 47.656, -122.343 47.656)";
                 var expectedGeog = "LINESTRING (-122.343 47.655999999999992, -122.36 47.655999999999992)".GetGeog();
                 Logger.LogLine("Input Geometry: {0}", geomText);
-                var result = Geography.ConvexHullGeographyFromText(geomText, Constants.DEFAULT_SRID);
+                var result = Geography.ConvexHullGeographyFromText(geomText, Constants.DefaultSRID);
                 Logger.LogLine("Expected result: {0}", expectedGeog);
                 Logger.LogLine("Obtained result: {0}", result);
                 SqlAssert.IsTrue(result.STEquals(expectedGeog));
@@ -271,13 +271,13 @@ namespace SQLSpatialTools.Tests
             {
                 var geogText = "CURVEPOLYGON (CIRCULARSTRING (0 -4, 4 0, 0 4, -4 0, 0 -4)";
                 Logger.LogLine("Input Geography: {0}", geogText);
-                var result = Geography.IsValidGeographyFromText(geogText, Constants.DEFAULT_SRID);
+                var result = Geography.IsValidGeographyFromText(geogText, Constants.DefaultSRID);
                 Logger.LogLine("Expected result: false, Obtained result: {0}", result);
                 SqlAssert.IsFalse(result);
 
                 geogText = "CURVEPOLYGON (CIRCULARSTRING (0 -4, 4 0, 0 4, -4 0, 0 -4))";
                 Logger.LogLine("Input Geography: {0}", geogText);
-                result = Geography.IsValidGeographyFromText(geogText, Constants.DEFAULT_SRID);
+                result = Geography.IsValidGeographyFromText(geogText, Constants.DefaultSRID);
                 Logger.LogLine("Expected result: false, Obtained result: {0}", result);
                 SqlAssert.IsTrue(result);
             }
@@ -315,7 +315,7 @@ namespace SQLSpatialTools.Tests
                 var geomText = "LINESTRING(-122.360 47.656, -122.343 47.656)";
                 var expectedGeog = "LINESTRING (-122.343 47.655999999999992, -122.36 47.655999999999992)".GetGeog();
                 Logger.LogLine("Input Geometry: {0}", geomText);
-                var result = Geography.MakeValidGeographyFromText(geomText, Constants.DEFAULT_SRID);
+                var result = Geography.MakeValidGeographyFromText(geomText, Constants.DefaultSRID);
                 Logger.LogLine("Expected result: {0}", expectedGeog);
                 Logger.LogLine("Obtained result: {0}", result);
                 SqlAssert.IsTrue(result.STEquals(expectedGeog));
@@ -328,7 +328,7 @@ namespace SQLSpatialTools.Tests
                 var expectedGeom = "LINESTRING (0 0, 2 2)".GetGeom();
                 Logger.LogLine("Input Geometry: {0}", geog);
                 Logger.Log("Expected Geography: {0}", expectedGeom);
-                var obtainedGeom = Geography.VacuousGeographyToGeometry(geog, Constants.DEFAULT_SRID);
+                var obtainedGeom = Geography.VacuousGeographyToGeometry(geog, Constants.DefaultSRID);
                 Logger.Log("Obtained Geography: {0}", obtainedGeom);
                 SqlAssert.IsTrue(obtainedGeom.STEquals(expectedGeom));
             }

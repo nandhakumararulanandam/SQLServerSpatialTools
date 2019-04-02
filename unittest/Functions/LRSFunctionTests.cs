@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.LRS;
 using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
+using System.Globalization;
 
 namespace SQLSpatialTools.Tests
 {
@@ -97,17 +98,17 @@ namespace SQLSpatialTools.Tests
         public void GetEndMeasureTest()
         {
             var endMeasureValue = 14.0F;
-            var geom = string.Format("POINT(5.5 5 0 {0})", endMeasureValue).GetGeom();
+            var geom = string.Format(CultureInfo.CurrentCulture, "POINT(5.5 5 0 {0})", endMeasureValue).GetGeom();
             SqlDouble endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
             endMeasureValue = 10.0F;
-            geom = string.Format("LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000 {0})", endMeasureValue).GetGeom();
+            geom = string.Format(CultureInfo.CurrentCulture, "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000 {0})", endMeasureValue).GetGeom();
             endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
             endMeasureValue = 100.000999450684F;
-            geom = string.Format("MULTILINESTRING((0 0 0 0, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", endMeasureValue ).GetGeom();
+            geom = string.Format(CultureInfo.CurrentCulture, "MULTILINESTRING((0 0 0 0, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", endMeasureValue ).GetGeom();
             endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
@@ -133,17 +134,17 @@ namespace SQLSpatialTools.Tests
         public void GetStartMeasureTest()
         {
             var startMeasureValue = 14.0F;
-            var geom = string.Format("POINT(5.5 5 1000 14)", startMeasureValue).GetGeom();
+            var geom = string.Format(CultureInfo.CurrentCulture, "POINT(5.5 5 1000 14)", startMeasureValue).GetGeom();
             SqlDouble startMeasure = Geometry.GetStartMeasure(geom);
             SqlAssert.AreEqual(startMeasure, startMeasureValue);
 
             startMeasureValue = 10.0F;
-            geom = string.Format("LINESTRING(0 0 0 {0}, 1 1 0 0, 3 4 0 0, 5.5 5 1000 0)", startMeasureValue).GetGeom();
+            geom = string.Format(CultureInfo.CurrentCulture, "LINESTRING(0 0 0 {0}, 1 1 0 0, 3 4 0 0, 5.5 5 1000 0)", startMeasureValue).GetGeom();
             startMeasure = Geometry.GetStartMeasure(geom);
             SqlAssert.AreEqual(startMeasure, startMeasureValue);
 
             startMeasureValue = 100.000999450684F;
-            geom = string.Format("MULTILINESTRING((0 0 0 {0}, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", startMeasureValue).GetGeom();
+            geom = string.Format(CultureInfo.CurrentCulture, "MULTILINESTRING((0 0 0 {0}, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", startMeasureValue).GetGeom();
             startMeasure = Geometry.GetStartMeasure(geom);
             SqlAssert.AreEqual(startMeasure, startMeasureValue);
 
@@ -186,7 +187,7 @@ namespace SQLSpatialTools.Tests
             // test cases without considering tolerance values
             var geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             var geom2 = "LINESTRING(0 0 0 0, 2 2 0 0)".GetGeom();
-            var tolerance = Constants.THRESHOLD;
+            var tolerance = Constants.Threshold;
             var result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
