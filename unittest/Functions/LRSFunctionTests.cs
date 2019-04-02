@@ -96,9 +96,14 @@ namespace SQLSpatialTools.Tests
         [TestMethod]
         public void GetEndMeasureTest()
         {
-            var endMeasureValue = 10.0F;
-            var geom = string.Format("LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000 {0})", endMeasureValue).GetGeom();
+            var endMeasureValue = 14.0F;
+            var geom = string.Format("POINT(5.5 5 0 {0})", endMeasureValue).GetGeom();
             SqlDouble endMeasure = Geometry.GetEndMeasure(geom);
+            SqlAssert.AreEqual(endMeasure, endMeasureValue);
+
+            endMeasureValue = 10.0F;
+            geom = string.Format("LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000 {0})", endMeasureValue).GetGeom();
+            endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
             endMeasureValue = 100.000999450684F;
@@ -114,35 +119,50 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, ErrorMessage.LineOrMultiLineStringCompatible);
-                TestContext.WriteLine(ErrorMessage.LineOrMultiLineStringCompatible);
+                Assert.AreEqual(e.Message, ErrorMessage.LRSCompatible);
+                TestContext.WriteLine(ErrorMessage.LRSCompatible);
             }
+
+            endMeasureValue = 10.0F;
+            geom = "GEOMETRYCOLLECTION(LINESTRING(1 1 4, 3 5 6), MULTILINESTRING((-1 -1 0, 1 -5 5, -5 5 10), (-5 -1 5, -1 -1 10)), POINT(5 6 10))".GetGeom();
+            endMeasure = Geometry.GetEndMeasure(geom);
+            SqlAssert.AreEqual(endMeasure, endMeasureValue);
         }
 
         [TestMethod]
         public void GetStartMeasureTest()
         {
-            var startMeasureValue = 10.0F;
-            var geom = string.Format("LINESTRING(0 0 0 {0}, 1 1 0 0, 3 4 0 0, 5.5 5 1000 0)", startMeasureValue).GetGeom();
-            SqlDouble endMeasure = Geometry.GetStartMeasure(geom);
-            SqlAssert.AreEqual(endMeasure, startMeasureValue);
+            var startMeasureValue = 14.0F;
+            var geom = string.Format("POINT(5.5 5 1000 14)", startMeasureValue).GetGeom();
+            SqlDouble startMeasure = Geometry.GetStartMeasure(geom);
+            SqlAssert.AreEqual(startMeasure, startMeasureValue);
+
+            startMeasureValue = 10.0F;
+            geom = string.Format("LINESTRING(0 0 0 {0}, 1 1 0 0, 3 4 0 0, 5.5 5 1000 0)", startMeasureValue).GetGeom();
+            startMeasure = Geometry.GetStartMeasure(geom);
+            SqlAssert.AreEqual(startMeasure, startMeasureValue);
 
             startMeasureValue = 100.000999450684F;
             geom = string.Format("MULTILINESTRING((0 0 0 {0}, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", startMeasureValue).GetGeom();
-            endMeasure = Geometry.GetStartMeasure(geom);
-            SqlAssert.AreEqual(endMeasure, startMeasureValue);
+            startMeasure = Geometry.GetStartMeasure(geom);
+            SqlAssert.AreEqual(startMeasure, startMeasureValue);
 
             try
             {
                 geom = ("POLYGON((0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 1000, 0 0 0 0))").GetGeom();
-                endMeasure = Geometry.GetStartMeasure(geom);
+                startMeasure = Geometry.GetStartMeasure(geom);
                 Assert.Fail("Method GetGeomSegmentStartMeasure should not accept polygon geometric structure");
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, ErrorMessage.LineOrMultiLineStringCompatible);
-                TestContext.WriteLine(ErrorMessage.LineOrMultiLineStringCompatible);
+                Assert.AreEqual(e.Message, ErrorMessage.LRSCompatible);
+                TestContext.WriteLine(ErrorMessage.LRSCompatible);
             }
+
+            startMeasureValue = 4.0F;
+            geom = "GEOMETRYCOLLECTION(LINESTRING(1 1 4, 3 5 6), MULTILINESTRING((-1 -1 0, 1 -5 5, -5 5 10), (-5 -1 5, -1 -1 10)), POINT(5 6 10))".GetGeom();
+            startMeasure = Geometry.GetStartMeasure(geom);
+            SqlAssert.AreEqual(startMeasure, startMeasureValue);
         }
 
         [TestMethod]

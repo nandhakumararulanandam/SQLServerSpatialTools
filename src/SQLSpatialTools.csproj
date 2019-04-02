@@ -85,6 +85,7 @@
   <ItemGroup>
     <Compile Include="Functions\LRS.cs" />
     <Compile Include="Sinks\Geometry\ClipMGeometrySegmentSink.cs" />
+    <Compile Include="Sinks\Geometry\LocateMAlongGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ResetMGeometrySink.cs" />
     <Compile Include="KMLProcessor\Constants.cs" />
     <Compile Include="KMLProcessor\Export\ExportContext.cs" />
@@ -118,7 +119,7 @@
     <Compile Include="Sinks\Geography\GeographyFilters.cs" />
     <Compile Include="Sinks\Geometry\GeometryFilters.cs" />
     <Compile Include="Sinks\Geometry\GeometryToPointGeographySink.cs" />
-    <Compile Include="Sinks\Geometry\LocateMAlongGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\GISTypeCheckGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\MergeGeometrySegmentSink.cs" />
     <Compile Include="Sinks\Geometry\PopulateGeometryMeasuresSink.cs" />
     <Compile Include="Sinks\Geometry\SplitGeometrySegmentSink.cs" />

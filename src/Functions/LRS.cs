@@ -43,7 +43,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>End measure</returns>
         public static SqlDouble GetEndMeasure(SqlGeometry geometry)
         {
-            Ext.ThrowIfNotLineOrMultiLine(geometry);
+            Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
             return geometry.GetEndPointMeasure();
         }
@@ -55,7 +55,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Start measure</returns>
         public static SqlDouble GetStartMeasure(SqlGeometry geometry)
         {
-            Ext.ThrowIfNotLineOrMultiLine(geometry);
+            Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
             return geometry.GetStartPointMeasure();
         }

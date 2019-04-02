@@ -460,7 +460,7 @@ namespace SQLSpatialTools.Utility
             // Return the first if there was a match.
             return attribs.Length > 0 ? attribs[0].StringValue : null;
         }
-        
+
         #endregion
 
         /// <summary>
@@ -502,41 +502,16 @@ namespace SQLSpatialTools.Utility
         #region Exception Handlings
 
         /// <summary>
-        /// Throw if input geometry is not a line string.
+        /// Throw if input geometry is not a LRS Geometry collection POINT, LINESTRING or MULTILINESTRING.
         /// </summary>
         /// <param name="sqlGeometry">Input Sql Geometry</param>
-        internal static void ThrowIfNotLine(params SqlGeometry[] sqlGeometry)
+        internal static void ThrowIfNotLRSType(params SqlGeometry[] sqlGeometry)
         {
-            var isLineString = true;
-
             foreach (var geom in sqlGeometry)
             {
-                isLineString = geom.IsLineString();
-                if (!isLineString)
-                    break;
+                if (!geom.IsLRSType())
+                    throw new ArgumentException(ErrorMessage.LRSCompatible);
             }
-
-            if (!isLineString)
-                throw new ArgumentException(ErrorMessage.LineStringCompatible);
-        }
-
-        /// <summary>
-        /// Throw if input geometry is not a line string or multiline string.
-        /// </summary>
-        /// <param name="sqlGeometry">Input Sql Geometry</param>
-        internal static void ThrowIfNotLineOrMultiLine(params SqlGeometry[] sqlGeometry)
-        {
-            var isLineString = true;
-
-            foreach (var geom in sqlGeometry)
-            {
-                isLineString = geom.IsLineString() || geom.IsMultiLineString();
-                if (!isLineString)
-                    break;
-            }
-
-            if (!isLineString)
-                throw new ArgumentException(ErrorMessage.LineOrMultiLineStringCompatible);
         }
 
         /// <summary>
@@ -545,17 +520,37 @@ namespace SQLSpatialTools.Utility
         /// <param name="sqlGeometry">Input Sql Geometry</param>
         internal static void ThrowIfNotPoint(params SqlGeometry[] sqlGeometry)
         {
-            var isPoint = true;
-
             foreach (var geom in sqlGeometry)
             {
-                isPoint = geom.IsPoint();
-                if (!isPoint)
-                    break;
+                if (!geom.IsOfSupportedTypes(OpenGisGeometryType.Point))
+                    throw new ArgumentException(ErrorMessage.PointCompatible);
             }
+        }
 
-            if (!isPoint)
-                throw new ArgumentException(ErrorMessage.PointCompatible);
+        /// <summary>
+        /// Throw if input geometry is not a line string.
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfNotLine(params SqlGeometry[] sqlGeometry)
+        {
+            foreach (var geom in sqlGeometry)
+            {
+                if (!geom.IsOfSupportedTypes(OpenGisGeometryType.LineString))
+                    throw new ArgumentException(ErrorMessage.LineStringCompatible);
+            }
+        }
+
+        /// <summary>
+        /// Throw if input geometry is not a line string or multiline string.
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        internal static void ThrowIfNotLineOrMultiLine(params SqlGeometry[] sqlGeometry)
+        {
+            foreach (var geom in sqlGeometry)
+            {
+                if (!geom.IsOfSupportedTypes(OpenGisGeometryType.LineString, OpenGisGeometryType.MultiLineString))
+                    throw new ArgumentException(ErrorMessage.LineOrMultiLineStringCompatible);
+            }
         }
 
         /// <summary>
@@ -614,6 +609,48 @@ namespace SQLSpatialTools.Utility
         {
             if (!endMeasure.IsWithinRange(sqlGeometry))
                 ThrowException("End measure {0}", startMeasure.LinearGeometryRangeExpectionMessage(startMeasure, endMeasure));
+        }
+
+        /// <summary>
+        /// Check if the geometry collection is of POINT, LINSTRING, MULTILINESTRING.
+        /// </summary>
+        /// <param name="geometry"></param>
+        /// <returns></returns>
+        public static bool IsLRSType(this SqlGeometry geometry)
+        {
+            return geometry.IsOfSupportedTypes(OpenGisGeometryType.Point, OpenGisGeometryType.LineString, OpenGisGeometryType.MultiLineString);
+        }
+
+        /// <summary>
+        /// Check if the input geometry is of the supported specified type
+        /// </summary>
+        /// <param name="geometry"></param>
+        /// <param name="supportedType"></param>
+        /// <param name="additionalSupportedTypes"></param>
+        /// <returns></returns>
+        public static bool IsOfSupportedTypes(this SqlGeometry geometry, OpenGisGeometryType supportedType, params OpenGisGeometryType[] additionalSupportedTypes)
+        {
+            var geomSink = new GISTypeCheckGeometrySink((new[] { supportedType }).Concat(additionalSupportedTypes).ToArray());
+            geometry.Populate(geomSink);
+            return geomSink.IsCompatible();
+        }
+
+
+        /// <summary>
+        /// Returns true if the input type is in the list of supported types.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="geometryTypes"></param>
+        /// <returns></returns>
+        public static bool Contains(this OpenGisGeometryType type, OpenGisGeometryType[] geometryTypes)
+        {
+            foreach (var geom in geometryTypes)
+            {
+                if (type.Equals(geom))
+                    return true;
+            }
+
+            return false;
         }
 
         #endregion
