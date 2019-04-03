@@ -86,4 +86,26 @@ namespace SQLSpatialTools.Utility
             this.StringValue = value;
         }
     }
+
+    public enum LRSErrorCodes
+    {
+        [StringValue("Invalid LRS Segment")]
+        Valid = 1,
+
+        [StringValue("Invalid LRS Segment")]
+        Invalid = 13331,
+
+        [StringValue("Invalid LRS measure not defined")]
+        MeasureNotDefined = 13331,
+
+        [StringValue("Invalid LRS measure not in linear sequence")]
+        MeasureNotLinear = 13333,
+    }
+
+    public enum LinearMeasureProgress : short
+    {
+        None = 0,
+        Increasing = 1,
+        Decreasing = 2
+    }
 }

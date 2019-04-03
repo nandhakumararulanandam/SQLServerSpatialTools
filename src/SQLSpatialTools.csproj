@@ -85,6 +85,7 @@
   <ItemGroup>
     <Compile Include="Functions\LRS.cs" />
     <Compile Include="Sinks\Geometry\ClipMGeometrySegmentSink.cs" />
+    <Compile Include="Sinks\Geometry\ValidateLinearMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\LocateMAlongGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ResetMGeometrySink.cs" />
     <Compile Include="KMLProcessor\Constants.cs" />

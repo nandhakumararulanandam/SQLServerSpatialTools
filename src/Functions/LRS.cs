@@ -296,5 +296,38 @@ namespace SQLSpatialTools.Functions.LRS
             geometry1 = geometryBuilder1.ConstructedGeometry;
             geometry2 = geometryBuilder2.ConstructedGeometry;
         }
+
+        /// <summary>
+        /// Validates the LRS geometry.
+        /// </summary>
+        /// <param name="geometry">The input SqlGeometry.</param>
+        /// <returns>TRUE if Valid; 13331 - if Invalid; 13333 - if Invalid Measure</returns>
+        public static string ValidateLRSGeometry(SqlGeometry geometry)
+        {
+            // throw if type apart from POINT, LINESTRING, MULTILINESTRING is given as input.
+            Ext.ThrowIfNotLRSType(geometry);
+
+            // If there is no measure value; return invalid.
+            if (geometry.STGetDimension() == DimensionalInfo._2D)
+                return LRSErrorCodes.MeasureNotDefined.Value();
+
+            // convert to valid 3 point LRS co-ordinate.
+            Ext.ValidateLRSDimensions(ref geometry);
+
+            // return invalid if empty or is of geometry collection
+            if (geometry.IsNull || geometry.STIsEmpty() || !geometry.STIsValid() || geometry.IsGeometryCollection())
+                return LRSErrorCodes.Invalid.Value();
+
+            // return invalid if geometry doesn't or have null values
+            if (!geometry.STHasMeasureValues())
+                return LRSErrorCodes.MeasureNotDefined.Value();
+
+            // checks if the measures are in linear range.
+            var geomBuilder = new SqlGeometryBuilder();
+            var geomSink = new ValidateLinearMeasureGeometrySink(geomBuilder, geometry.STLinearMeasureProgress());
+            geometry.Populate(geomSink);
+
+            return geomSink.IsLinearMeasure() ? LRSErrorCodes.Valid.Value() : LRSErrorCodes.MeasureNotLinear.Value();
+        }
     }
 }

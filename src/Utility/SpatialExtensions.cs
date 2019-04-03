@@ -368,6 +368,49 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Loop through individual points in geometry and check whether it has the measure values.
+        /// </summary>
+        /// <param name="geometry">The geometry.</param>
+        /// <returns></returns>
+        public static bool STHasMeasureValues(this SqlGeometry geometry)
+        {
+            if (geometry.IsNull || geometry.STIsEmpty())
+                return false;
+
+            var numPoints = geometry.STNumPoints();
+
+            for (var iterator = 1; iterator <= numPoints; iterator++)
+            {
+                if (!geometry.STPointN(iterator).HasM)
+                    return false;
+            }
+
+            return true;
+        }
+
+
+        /// <summary>
+        /// Get the linear progression of the geometry based on measure value; whether increasing or decreasing.
+        /// </summary>
+        /// <param name="geometry">The input SqlGeometry.</param>
+        /// <returns>Increasing or Decreasing</returns>
+        public static LinearMeasureProgress STLinearMeasureProgress(this SqlGeometry geometry)
+        {
+            if (geometry.IsNull || geometry.STIsEmpty())
+                return LinearMeasureProgress.None;
+
+            if (geometry.IsPoint())
+                return LinearMeasureProgress.Increasing;
+
+            var startPoint = geometry.STStartPoint();
+            var endPoint = geometry.STEndPoint();
+            if (!geometry.STStartPoint().HasM || !geometry.STEndPoint().HasM)
+                return LinearMeasureProgress.None;
+
+            return (endPoint.M - startPoint.M > 0 ? LinearMeasureProgress.Increasing : LinearMeasureProgress.Decreasing);
+        }
+
+        /// <summary>
         /// Convert wkt string to SqlGeography object.
         /// </summary>
         /// <param name="geogString">geography in wkt string representation</param>
@@ -461,6 +504,27 @@ namespace SQLSpatialTools.Utility
 
             // Return the first if there was a match.
             return attribs.Length > 0 ? attribs[0].StringValue : null;
+        }
+
+
+        /// <summary>  
+        /// Get the int value of enum
+        /// </summary>
+        /// <param name="linearMeasureProgress">The linear measure progress.</param>
+        /// <returns>Returns the implicit integer value of respective enum</returns>
+        public static short Value(this LinearMeasureProgress linearMeasureProgress)
+        {
+            return (short)linearMeasureProgress;
+        }
+
+        /// <summary>
+        /// Get the string value for the specified LRS Error Code.
+        /// </summary>
+        /// <param name="lrsErrorCodes">The LRS error codes.</param>
+        /// <returns>String Value of LRS Error Code.</returns>
+        public static string Value(this LRSErrorCodes lrsErrorCodes)
+        {
+            return lrsErrorCodes == LRSErrorCodes.Valid ? "TRUE" : ((short)lrsErrorCodes).ToString();
         }
 
         #endregion

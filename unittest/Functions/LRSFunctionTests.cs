@@ -511,5 +511,89 @@ namespace SQLSpatialTools.Tests
             SqlAssert.IsTrue(geomSegment1.STEquals(splitedGeom1));
             SqlAssert.IsTrue(geomSegment2.STEquals(splitedGeom2));
         }
+
+        [TestMethod]
+        public void ValidateLRSGeometryTest()
+        {
+            var geom = "GEOMETRYCOLLECTION(LINESTRING(1 1 1, 3 5 2))".GetGeom();
+            var result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.Invalid.Value());
+
+            geom = "POINT(5 6)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotDefined.Value());
+
+            geom = "LINESTRING(1 1, 3 5)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotDefined.Value());
+
+            geom = "MULTILINESTRING ((2 2, 2 4), (8 4, 12 4))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotDefined.Value());
+
+            geom = "LINESTRING (2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 29, 8 10 22, 5 14 27)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+
+            geom = "LINESTRING (2 2 6, 2 4 2, 8 4 8)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+
+            geom = "MULTILINESTRING ((2 2 2, 2 4 0), (8 4 8, 12 4 12, 12 10 29))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+
+            geom = "MULTILINESTRING ((2 2 2, 2 4 4), (8 4 4, 12 4 2, 12 10 29))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+
+            geom = "MULTILINESTRING((2 2 2, 2 4 4), (8 4 2, 12 4 4, 12 10 6))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+
+            // Valid cases
+            geom = "POINT(5 6 5)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, "TRUE");
+
+            geom = "LINESTRING(1 1 3, 3 5 5)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, "TRUE");
+
+            geom = "MULTILINESTRING ((2 2 1, 2 4 4), (8 4 5, 12 4 6))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, "TRUE");
+
+            geom = "LINESTRING (2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 18, 8 10 22, 5 14 27)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(result, "TRUE");
+        }
+        
     }
 }
