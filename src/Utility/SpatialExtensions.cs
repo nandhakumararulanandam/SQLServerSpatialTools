@@ -305,7 +305,8 @@ namespace SQLSpatialTools.Utility
 
         public static DimensionalInfo STGetDimension(this SqlGeometry sqlGeometry)
         {
-            if (sqlGeometry.STNumPoints() > 0)
+            // STNumpoint can be performed only on valid geometries.
+            if (sqlGeometry.STIsValid() && sqlGeometry.STNumPoints() > 0)
             {
                 var firstPoint = sqlGeometry.STPointN(1);
                 if (firstPoint.Z.IsNull && firstPoint.M.IsNull)
@@ -374,7 +375,7 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         public static bool STHasMeasureValues(this SqlGeometry geometry)
         {
-            if (geometry.IsNull || geometry.STIsEmpty())
+            if (geometry.IsNull || geometry.STIsEmpty() || !geometry.STIsValid())
                 return false;
 
             var numPoints = geometry.STNumPoints();
@@ -547,9 +548,12 @@ namespace SQLSpatialTools.Utility
                 case DimensionalInfo._3D:
                     sqlGeometry = sqlGeometry.ConvertTo2DM();
                     break;
-                default:
+                case DimensionalInfo._2D:
                     ThrowException("Cannot operate on 2 Dimensional co-ordinates without measure values");
                     break;
+                // skip for invalid types where Dimensional information can't be inferred
+                default:
+                    return;
             }
         }
 

@@ -519,80 +519,99 @@ namespace SQLSpatialTools.Tests
             var result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.Invalid.Value());
+            Assert.AreEqual(LRSErrorCodes.Invalid.Value(), result);
 
             geom = "POINT(5 6)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotDefined.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotDefined.Value(), result);
 
             geom = "LINESTRING(1 1, 3 5)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotDefined.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotDefined.Value(), result);
 
             geom = "MULTILINESTRING ((2 2, 2 4), (8 4, 12 4))".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotDefined.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotDefined.Value(), result);
 
             geom = "LINESTRING (2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 29, 8 10 22, 5 14 27)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotLinear.Value(), result);
 
             geom = "LINESTRING (2 2 6, 2 4 2, 8 4 8)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotLinear.Value(), result);
 
             geom = "MULTILINESTRING ((2 2 2, 2 4 0), (8 4 8, 12 4 12, 12 10 29))".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotLinear.Value(), result);
 
             geom = "MULTILINESTRING ((2 2 2, 2 4 4), (8 4 4, 12 4 2, 12 10 29))".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotLinear.Value(), result);
 
             geom = "MULTILINESTRING((2 2 2, 2 4 4), (8 4 2, 12 4 4, 12 10 6))".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, LRSErrorCodes.MeasureNotLinear.Value());
+            Assert.AreEqual(LRSErrorCodes.MeasureNotLinear.Value(), result);
+
+            geom = "MULTILINESTRING((2 2 2, 2 4 4), (8 4 4, 12 4 4, 12 10 6))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(LRSErrorCodes.Valid.Value(), result);
+
+            geom = "MULTILINESTRING((2 2 2, 2 4 2), (8 4 4, 12 4 4, 12 10 6))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(LRSErrorCodes.Valid.Value(), result);
+
+            // For the below TRUE is seen in Oracle; but in SQL the geom is Invalid hence we are returning invalid in this case.
+            geom = "MULTILINESTRING((2 2 2, 2 2 2), (2 2 2, 2 2 2, 2 2 2))".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(LRSErrorCodes.Invalid.Value(), result);
 
             // Valid cases
             geom = "POINT(5 6 5)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, "TRUE");
+            Assert.AreEqual("TRUE", result);
 
             geom = "LINESTRING(1 1 3, 3 5 5)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, "TRUE");
+            Assert.AreEqual("TRUE", result);
 
             geom = "MULTILINESTRING ((2 2 1, 2 4 4), (8 4 5, 12 4 6))".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, "TRUE");
+            Assert.AreEqual("TRUE", result);
 
             geom = "LINESTRING (2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 18, 8 10 22, 5 14 27)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);
-            Assert.AreEqual(result, "TRUE");
+            Assert.AreEqual("TRUE", result);
         }
         
     }
