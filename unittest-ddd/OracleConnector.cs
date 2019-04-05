@@ -323,6 +323,19 @@ namespace SQLSpatialTools.UnitTests.DDD
             testObj.OracleResult2 = result.Output_2;
         }
 
+        /// <summary>
+        /// Returns the LRS validation state of input geom WKT.
+        /// </summary>
+        /// <param name="testObj"></param>
+        internal void ValidateLRSGeometry(LRSDataSet.ValidateLRSGeometryData testObj)
+        {
+            var query = string.Format(OracleLRSQuery.ValidateLRSGeometryQuery, testObj.InputGeom);
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
+        }
+
         #endregion LRS Test Functions
 
         #region Utility Functions
@@ -493,6 +506,12 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                    + " SELECT MAX(OUTPUT_ID)"
                                                    + " FROM TEMP_DATA"
                                                    + " )";
+
+        public const string ValidateLRSGeometryQuery ="SELECT "
+                                                    + "SDO_LRS.VALIDATE_LRS_GEOMETRY ("
+                                                    + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
+                                                    + ") from dual";
+
 
         #endregion Oracle Queries
 

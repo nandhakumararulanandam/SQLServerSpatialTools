@@ -150,6 +150,18 @@ namespace SQLSpatialTools.UnitTests.DDD
             public double Measure { get; set; }
         }
 
+        public class ValidateLRSGeometryData : BaseDataSet
+        {
+            public const short ParamCount = 2;
+            public const string TableName = "LRS_ValidateLRSGeometryData";
+            public const string DataFile = "Dataset\\LRS\\ValidateLRSGeometryTest.data";
+            public static readonly string SelectQuery = string.Format("SELECT [Id], [InputGeom], [ExpectedResult1] FROM [{0}];", TableName);
+            public static readonly string InsertQuery = string.Format("INSERT INTO [{0}] ([InputGeom], [ExpectedResult1]) VALUES (N'[0]', N'[1]');", TableName);
+            public string GetTargetUpdateQuery(string fieldName, object fieldValue) { return GetTargetUpdateQuery(TableName, fieldName, fieldValue); }
+
+            public string InputGeom { get; set; }
+        }
+
         abstract public class BaseDataSet
         {
             public const string UpdateResultQuery = "UPDATE [{0}] Set [Result] = N'{1}' WHERE [ID] = {2};";

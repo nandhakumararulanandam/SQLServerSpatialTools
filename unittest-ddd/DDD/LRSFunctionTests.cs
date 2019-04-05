@@ -579,6 +579,59 @@ namespace SQLSpatialTools.UnitTests.DDD
             SqlAssert.AreEqual(testIterator, testSuccessCount);
         }
 
+        [TestMethod]
+        public void ValidateLRSGeometryTest()
+        {
+            Logger.LogLine("Clip Geometry Segments Tests");
+            var dataSet = dbConnection.Query<LRSDataSet.ValidateLRSGeometryData>(LRSDataSet.ValidateLRSGeometryData.SelectQuery);
+            int testIterator = 1, testSuccessCount = 1;
+            foreach (var test in dataSet)
+            {
+                Logger.LogLine("Executing test {0}", testIterator);
+                try
+                {
+                    var inputGeomSegment = test.InputGeom.GetGeom();
+                    test.ExpectedResult1 = test.ExpectedResult1;
+                    Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
+                    Logger.Log("Expected Geom : {0}", test.ExpectedResult1);
+
+                    MSSQLTimer.Restart();
+                    // OSS Function Execution
+                    test.ObtainedResult1 = Geometry.ValidateLRSGeometry(inputGeomSegment).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+
+                    #region Run against Oracle
+
+                    OracleTimer.Restart();
+                    // Oracle Function Execution
+                    oracleConnector.ValidateLRSGeometry(test);
+                    OracleTimer.Stop();
+
+                    #endregion
+
+                }
+                catch (Exception ex)
+                {
+                    test.Result = "Failed";
+                    test.Error = ex.Message;
+                    Logger.LogError(ex);
+                }
+
+                // Update test results in DB
+                UpdateTestResults(test, LRSDataSet.ValidateLRSGeometryData.TableName);
+
+                Logger.Log("Test Result : {0}", test.Result);
+                if (test.Result.Equals("Passed")) testSuccessCount++;
+                testIterator++;
+            }
+            if (testIterator == 1)
+                Logger.Log("No test cases found");
+
+            SqlAssert.AreEqual(testIterator, testSuccessCount);
+        }
+
+
         [ClassCleanup()]
         public static void Cleanup()
         {

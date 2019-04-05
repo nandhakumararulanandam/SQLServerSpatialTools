@@ -220,3 +220,22 @@ CREATE TABLE [LRS_SplitGeometrySegmentData] (
 GO
 ALTER TABLE [LRS_SplitGeometrySegmentData] ADD CONSTRAINT [PK_SplitGeometrySegmentData] PRIMARY KEY ([Id]);
 GO
+
+-- Validate LRS Geometry
+CREATE TABLE [LRS_ValidateLRSGeometryData] (
+  [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ObtainedResult1] nvarchar(1000)
+, [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
+, [Error] nvarchar(1000)
+, [OracleResult1] nvarchar(1000)
+, [OracleElapsedTime] nvarchar(100)
+, [OracleError] nvarchar(1000)
+, [OracleQuery] nvarchar(1000)
+, [OutputComparison] bit
+);
+GO
+ALTER TABLE [LRS_ValidateLRSGeometryData] ADD CONSTRAINT [PK_ValidateLRSGeometryData] PRIMARY KEY ([Id]);
+GO

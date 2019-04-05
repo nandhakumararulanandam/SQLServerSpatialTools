@@ -83,6 +83,9 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Dataset\LRS\ValidateLRSGeometryTest.data">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Dataset\LRS\LocatePointAlongGeom.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
