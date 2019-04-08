@@ -14,8 +14,8 @@ CREATE TABLE [LRS_ClipGeometrySegmentData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_ClipGeometrySegmentData] ADD CONSTRAINT [PK_ClipGeometrySegmentTest] PRIMARY KEY ([Id]);
@@ -34,8 +34,8 @@ CREATE TABLE [LRS_GetEndMeasureData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_GetEndMeasureData] ADD CONSTRAINT [PK_GetEndMeasureData] PRIMARY KEY ([Id]);
@@ -54,8 +54,8 @@ CREATE TABLE [LRS_GetStartMeasureData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_GetStartMeasureData] ADD CONSTRAINT [PK_GetStartMeasureData] PRIMARY KEY ([Id]);
@@ -93,8 +93,8 @@ CREATE TABLE [LRS_IsConnectedData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_IsConnectedData] ADD CONSTRAINT [PK_IsConnectedData] PRIMARY KEY ([Id]);
@@ -114,8 +114,8 @@ CREATE TABLE [LRS_LocatePointAlongGeomData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_LocatePointAlongGeomData] ADD CONSTRAINT [PK_LocatePointAlongGeomData] PRIMARY KEY ([Id]);
@@ -136,8 +136,8 @@ CREATE TABLE [LRS_MergeGeometrySegmentsData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_MergeGeometrySegmentsData] ADD CONSTRAINT [PK_MergeGeometrySegmentsData] PRIMARY KEY ([Id]);
@@ -158,8 +158,8 @@ CREATE TABLE [LRS_PopulateGeometryMeasuresData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_PopulateGeometryMeasuresData] ADD CONSTRAINT [PK_PopulateGeometryMeasuresData] PRIMARY KEY ([Id]);
@@ -192,8 +192,8 @@ CREATE TABLE [LRS_ReverseLinearGeometryData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_ReverseLinearGeometryData] ADD CONSTRAINT [PK_ReverseLinearGeometryData] PRIMARY KEY ([Id]);
@@ -233,8 +233,8 @@ CREATE TABLE [LRS_ValidateLRSGeometryData] (
 , [OracleResult1] nvarchar(1000)
 , [OracleElapsedTime] nvarchar(100)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
 , [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_ValidateLRSGeometryData] ADD CONSTRAINT [PK_ValidateLRSGeometryData] PRIMARY KEY ([Id]);
