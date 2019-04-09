@@ -18,16 +18,16 @@ namespace SQLSpatialTools.Tests
                 var geom = "GEOMETRYCOLLECTION(LINESTRING EMPTY, LINESTRING (1 1, 3 5), POINT (1 1), POLYGON ((-1 -1, -1 -5, -5 -5, -5 -1, -1 -1)))".GetGeom();
 
                 // Empty line and point should be removed
-                // short line should be removed - tolerence length
-                var shortLineTolerence = 5;
-                // Polygon inner ring with area < tolerence * polygon length
+                // short line should be removed - tolerance length
+                var shortLinetolerance = 5;
+                // Polygon inner ring with area < tolerance * polygon length
                 var polygonAreaTolerance = 1.5;
 
                 Logger.LogLine("Input Geometry: {0}", geom);
-                Logger.Log("Filtering input geometry; removing empty linestring");
-                Logger.Log("points, short line of tolerence: {0}, Polygon with inner ring area tolerence: {1}", shortLineTolerence, polygonAreaTolerance);
+                Logger.Log("Filtering input geometry; removing empty line string");
+                Logger.Log("points, short line of tolerance: {0}, Polygon with inner ring area tolerance: {1}", shortLinetolerance, polygonAreaTolerance);
                 var expectedGeom = "GEOMETRYCOLLECTION EMPTY".GetGeom();
-                var filteredGeom = Geometry.FilterArtifactsGeometry(geom, true, true, shortLineTolerence, polygonAreaTolerance);
+                var filteredGeom = Geometry.FilterArtifactsGeometry(geom, true, true, shortLinetolerance, polygonAreaTolerance);
                 Logger.Log("Expected converted geom: {0}", expectedGeom);
                 Logger.Log("Obtained converted geom: {0}", filteredGeom);
                 SqlAssert.IsTrue(filteredGeom.STEquals(expectedGeom));
@@ -133,7 +133,8 @@ namespace SQLSpatialTools.Tests
                 // Simple Line String
                 geom = "LINESTRING (1 1, 4 4)".GetGeom();
                 shiftPoint = "LINESTRING (11 11, 14 14)".GetGeom();
-                xShift = 10; yShift = 10;
+                xShift = 10;
+                yShift = 10;
                 Logger.LogLine("Input Geom: {0}", geom);
                 Logger.Log("Expected Geom: {0}", shiftPoint);
                 shiftedGeom = Geometry.ShiftGeometry(geom, xShift, yShift);
@@ -226,16 +227,16 @@ namespace SQLSpatialTools.Tests
                 var geog = "GEOMETRYCOLLECTION(LINESTRING EMPTY, LINESTRING (1 1, 3 5), POINT (1 1), POLYGON ((-1 -1, -1 -5, -5 -5, -5 -1, -1 -1)))".GetGeog();
 
                 // Empty line and point should be removed
-                // short line should be removed - tolerence length
-                double shortLineTolerence = 500000.0F;
-                // Polygon inner ring with area < tolerence * polygon length
+                // short line should be removed - tolerance length
+                double shortLinetolerance = 500000.0F;
+                // Polygon inner ring with area < tolerance * polygon length
                 double polygonAreaTolerance = 150000.0F;
 
-                Logger.LogLine("Input Geogetry: {0}", geog);
-                Logger.Log("Filtering input geometry; removing empty linestring");
-                Logger.Log("points, short line of tolerence: {0}, Polygon with inner ring area tolerence: {1}", shortLineTolerence, polygonAreaTolerance);
+                Logger.LogLine("Input Geography: {0}", geog);
+                Logger.Log("Filtering input geometry; removing empty line string");
+                Logger.Log("points, short line of tolerance: {0}, Polygon with inner ring area tolerance: {1}", shortLinetolerance, polygonAreaTolerance);
                 var expectedGeog = "GEOMETRYCOLLECTION EMPTY".GetGeog();
-                var filteredGeog = Geography.FilterArtifactsGeography(geog, true, true, shortLineTolerence, polygonAreaTolerance);
+                var filteredGeog = Geography.FilterArtifactsGeography(geog, true, true, shortLinetolerance, polygonAreaTolerance);
                 Logger.Log("Expected converted geog: {0}", expectedGeog);
                 Logger.Log("Obtained converted geog: {0}", filteredGeog);
                 SqlAssert.IsTrue(filteredGeog.STEquals(expectedGeog));
@@ -246,7 +247,7 @@ namespace SQLSpatialTools.Tests
             {
                 var geog1 = "POINT(0 0 0 0)".GetGeog();
                 var geog2 = "POINT(10 0 0 10)".GetGeog();
-                var returnPoint = "POINT (4.4921643138263056E-05 0)".GetGeog();
+                var returnPoint = "POINT (4.7441999536520428E-05 0)".GetGeog();
                 var distance = 5;
                 Logger.LogLine("Input Point 1:{0} Point 2:{1}", geog1, geog2);
                 Logger.Log("Interpolating at a distance of {0}", geog1, geog2, distance);
@@ -287,7 +288,7 @@ namespace SQLSpatialTools.Tests
             {
                 var geog = "LINESTRING (0 0, 10 0)".GetGeog();
                 Logger.Log("Input Geom : {0}", geog.ToString());
-                var returnPoint = "POINT (4.4921643138263056E-05 0)".GetGeog();
+                var returnPoint = "POINT (4.7441999536520428E-05 0)".GetGeog();
                 var distance = 5;
 
                 Logger.LogLine("Locating a point at distance of {0} Measure", distance);

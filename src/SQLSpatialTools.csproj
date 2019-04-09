@@ -129,7 +129,6 @@
     <Compile Include="Utility\EnumsAndConstants.cs" />
     <Compile Include="Utility\ErrorMessage.cs" />
     <Compile Include="Utility\SpatialExtensions.cs" />
-    <Compile Include="Utility\TestHelpers.cs" />
     <Compile Include="Types\AffineTransform.cs" />
     <Compile Include="Aggregates\GeometryEnvelopeAggregate.cs" />
     <Compile Include="Aggregates\GeographyUnionAggregate.cs" />
@@ -210,7 +209,8 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q
-powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'DLLPath', '$(TargetPath)' -join \"`r`n\"))</PostBuildEvent>
+powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'DLLPath', '$(TargetPath)' -join \"`r`n\"))
+powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'UnregisterScriptPath', '$(TargetDir)SQL Scripts\Unregister.sql' -join \"`r`n\"))</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

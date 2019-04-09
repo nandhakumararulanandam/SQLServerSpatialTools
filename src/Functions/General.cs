@@ -16,7 +16,7 @@ namespace SQLSpatialTools.Functions.General
         /// Selectively filter unwanted artifacts in input object:
         ///	- empty shapes (if [filterEmptyShapes] is true)
         ///	- points (if [filterPoints] is true)
-        ///	- linestrings shorter than provided tolerance (if lineString.STLength < [lineStringTolerance])
+        ///	- line strings shorter than provided tolerance (if lineString.STLength < [lineStringTolerance])
         ///	- polygon rings thinner than provied tolerance (if ring.STArea < ring.STLength * [ringTolerance])
         ///	- general behaviour: Returned spatial objects will always to the simplest OGC construction
         /// </summary>
@@ -80,7 +80,7 @@ namespace SQLSpatialTools.Functions.General
         /// <returns></returns>
         public static SqlGeometry InterpolateBetweenGeom(SqlGeometry start, SqlGeometry end, double distance)
         {
-            // We need to check a few prequisites.
+            // We need to check a few prerequisites.
             // We only operate on points.
             if (!start.IsPoint() || !end.IsPoint())
             {
@@ -237,7 +237,7 @@ namespace SQLSpatialTools.Functions.General
         /// <returns></returns>
         public static SqlGeography InterpolateBetweenGeog(SqlGeography start, SqlGeography end, double distance)
         {
-            // We need to check a few prequisites.
+            // We need to check a few prerequisite.
             // We only operate on points.
             if (!start.IsPoint() || !end.IsPoint())
             {
@@ -287,7 +287,7 @@ namespace SQLSpatialTools.Functions.General
                     endCart = currentCart;
                 else
                     startCart = currentCart;
-            } while (Math.Abs(currentDistance - distance) > Constants.Threshold);
+            } while (Math.Abs(currentDistance - distance) > Constants.Tolerance);
 
             return current;
         }
@@ -324,7 +324,7 @@ namespace SQLSpatialTools.Functions.General
         }
 
         /// <summary>
-        /// Computes ConvexHull of input geography and returns a polygon (unless all input points are colinear).
+        /// Computes ConvexHull of input geography and returns a polygon (unless all input points are collinear).
         /// </summary>
         /// <param name="geography">Input Sql Geography</param>
         /// <returns></returns>
@@ -339,7 +339,7 @@ namespace SQLSpatialTools.Functions.General
         }
 
         /// <summary>
-        /// Computes ConvexHull of input WKT and returns a polygon (unless all input points are colinear).
+        /// Computes ConvexHull of input WKT and returns a polygon (unless all input points are collinear).
         /// This function does not require its input to be a valid geography. This function does require
         /// that the WKT coordinate values are longitude/latitude values, in that order and that a valid
         /// geography SRID value is supplied.
@@ -502,9 +502,9 @@ namespace SQLSpatialTools.Functions.General
         // Selectively filter unwanted artifacts in input object:
         //	- empty shapes (if [filterEmptyShapes] is true)
         //	- points (if [filterPoints] is true)
-        //	- linestrings shorter than provided tolerance (if lineString.STLength < [lineStringTolerance])
-        //	- polygon rings thinner than provied tolerance (if ring.STArea < ring.STLength * [ringTolerance])
-        //	- general behaviour: Returned spatial objects will always to the simplest OGC construction
+        //	- line strings shorter than provided tolerance (if lineString.STLength < [lineStringTolerance])
+        //	- polygon rings thinner than provided tolerance (if ring.STArea < ring.STLength * [ringTolerance])
+        //	- general behavior: Returned spatial objects will always to the simplest OGC construction
         //
         public static SqlGeography FilterArtifactsGeography(SqlGeography geography, bool filterEmptyShapes, bool filterPoints, double lineStringTolerance, double ringTolerance)
         {

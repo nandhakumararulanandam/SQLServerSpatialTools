@@ -6,7 +6,7 @@ using System.Text;
 namespace SQLSpatialTools.Utility
 {
     /// <summary>
-    /// Enum for Open Geospatial Consortium Type Names
+    /// Enum for Open Geo spatial Consortium Type Names
     /// </summary>
     public enum OGCType
     {
@@ -59,7 +59,7 @@ namespace SQLSpatialTools.Utility
         public const int DefaultSRID = 4326;
 
         // 1 cm tolerance in most SRIDs
-        public const double Threshold = 0.01;
+        public const double Tolerance = 0.5;
 
         // Point sql char format.
         public const string PointSqlCharFormat = "POINT({0} {1} {2} {3})";
@@ -73,12 +73,12 @@ namespace SQLSpatialTools.Utility
     {
 
         /// <summary>
-        /// Holds the stringvalue for a value in an enum.
+        /// Holds the string value for a value in an enum.
         /// </summary>
-        public string StringValue { get; protected set; }
+        public string StringValue { get; private set; }
 
         /// <summary>
-        /// Constructor used to init a StringValue Attribute
+        /// Constructor used to initialize a StringValue Attribute
         /// </summary>
         /// <param name="value"></param>
         public StringValueAttribute(string value)

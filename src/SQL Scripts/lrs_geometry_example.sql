@@ -4,7 +4,7 @@ DECLARE @geom geometry;
 DECLARE @srid INT = 4326;
 DECLARE @distance FLOAT;
 DECLARE @measure FLOAT;
-DECLARE @tolerance FLOAT;
+DECLARE @tolerance FLOAT = 0.5;
 DECLARE @startMeasure FLOAT = 15.0;
 DECLARE @endMeasure FLOAT = 20.0;
 
@@ -12,15 +12,15 @@ SET @geom = GEOMETRY::STGeomFromText('LINESTRING (20 1 NULL 10, 25 1 NULL 25 )',
 
 -- 1. ClipGeometrySegement Function
 SELECT 'Clipped Segment' AS 'FunctionInfo'
-	,[dbo].[LRS_ClipGeometrySegment](@geom, @startMeasure, @endMeasure) AS 'Geometry'
-	,[dbo].[LRS_ClipGeometrySegment](@geom, @startMeasure, @endMeasure).ToString() AS 'Geometry in String'
+	,[dbo].[LRS_ClipGeometrySegment](@geom, @startMeasure, @endMeasure, @tolerance) AS 'Geometry'
+	,[dbo].[LRS_ClipGeometrySegment](@geom, @startMeasure, @endMeasure, @tolerance).ToString() AS 'Geometry in String'
 
 -- 2. Get Start Measure
 SELECT 'Start Measure' AS 'FunctionInfo'
 	,[dbo].[LRS_GetStartMeasure](@geom) AS 'Measure'
 
 -- 3. Get End Measure
-SELECT 'Start Measure' AS 'FunctionInfo'
+SELECT 'End Measure' AS 'FunctionInfo'
 	,[dbo].[LRS_GetEndMeasure](@geom) AS 'Measure'
 
 -- 4. Interpolate points between Geom

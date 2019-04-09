@@ -4,6 +4,7 @@ using Microsoft.SqlServer.Types;
 using System;
 using SQLSpatialTools.Functions.LRS;
 using Ext = SQLSpatialTools.Utility.SpatialExtensions;
+using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools
 {
@@ -14,6 +15,7 @@ namespace SQLSpatialTools
     class LocateMAlongGeometrySink : IGeometrySink110
     {
         readonly double measure;      // The running count of how much further we have to go.
+        readonly double tolerance;      // The tolerance.
         int srid;                     // The srid we are working in.
         SqlGeometry lastPoint;        // The last point in the LineString we have passed.
         SqlGeometry foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
@@ -22,10 +24,11 @@ namespace SQLSpatialTools
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a measure, which is the point along the input linestring we will travel to.
         // Note that we only operate on LineString instances: anything else will throw an exception.
-        public LocateMAlongGeometrySink(double measure, SqlGeometryBuilder target)
+        public LocateMAlongGeometrySink(double measure, SqlGeometryBuilder target, double tolerance = Constants.Tolerance)
         {
             this.target = target;
             this.measure = measure;
+            this.tolerance = tolerance;
         }
 
         // Save the SRID for later
@@ -54,22 +57,26 @@ namespace SQLSpatialTools
         {
             // If we've already found a point, then we're done.  We just need to keep ignoring these
             // pesky calls.
-            if (foundPoint != null) return;
+            if (foundPoint != null)
+                return;
 
             // Make a point for our current position.
             var thisPoint = Ext.GetPoint(x, y, z, m, srid);
 
             // is the found point between this point and the last, or past this point?
-            double rest = measure - (double)m;
-            if (rest > 0)
-            {
-                // it's past this point---just step along the line
-                lastPoint = thisPoint;
-            }
-            else
+            if (measure.IsWithinRange(lastPoint.M.Value, (double)m))
             {
                 // now we need to do the hard work and find the point in between these two
                 foundPoint = Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, measure);
+                if (lastPoint.IsTolerable(foundPoint, tolerance))
+                    foundPoint = lastPoint;
+                else if (thisPoint.IsTolerable(foundPoint, tolerance))
+                    foundPoint = thisPoint;
+            }
+            else
+            {
+                // it's past this point---just step along the line
+                lastPoint = thisPoint;
             }
         }
 
@@ -89,7 +96,7 @@ namespace SQLSpatialTools
         {
             if (foundPoint != null)
             {
-                // We could use a simple point constructor, but by targetting another sink we can use this
+                // We could use a simple point constructor, but by targeting another sink we can use this
                 // class in a pipeline.
                 target.SetSrid(srid);
                 target.BeginGeometry(OpenGisGeometryType.Point);

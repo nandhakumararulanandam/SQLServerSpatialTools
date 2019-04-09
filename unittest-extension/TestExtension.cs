@@ -53,17 +53,35 @@ namespace SQLSpatialTools.UnitTests.Extension
         /// <returns>Null trimmed geom text</returns>
         public static string TrimNullValue(this string inputGeom)
         {
-            return Regex.Replace(inputGeom, @"\s*null\s*", " ", RegexOptions.IgnoreCase);
+            var result = Regex.Replace(inputGeom, @"\s*null\s*", " ", RegexOptions.IgnoreCase);
+            var output = result;
+            var matches = Regex.Matches(result, @"(\d+\.\d{10,16})", RegexOptions.Compiled);
+
+            foreach (Match match in matches)
+            {
+                var inputStr = match.Groups[1].Value;
+                if (double.TryParse(inputStr, out double trimValue))
+                {
+                    output = output.Replace(inputStr, Math.Round(trimValue, 8).ToString());
+                }
+            }
+
+            return output;
         }
 
         /// <summary>
-        /// Compare the two results aftering converting to lower and triming space.
+        /// Compare the two results after converting to lower and trimming space.
         /// </summary>
         /// <param name="firstResult"></param>
         /// <param name="secondResult"></param>
         /// <returns></returns>
         public static bool Compare(this string firstResult, string secondResult)
         {
+            if (string.IsNullOrEmpty(firstResult) && string.IsNullOrEmpty(secondResult))
+                return true;
+            if (string.IsNullOrEmpty(firstResult) || string.IsNullOrEmpty(secondResult))
+                return false;
+
             firstResult = Regex.Replace(firstResult.ToLower(), @"\s+", string.Empty);
             secondResult = Regex.Replace(secondResult.ToLower(), @"\s+", string.Empty);
             return firstResult.Equals(secondResult);
@@ -76,7 +94,9 @@ namespace SQLSpatialTools.UnitTests.Extension
         /// <returns></returns>
         public static string TrimDecimalPoints(this string inputGeomWKT)
         {
-            return Regex.Replace(inputGeomWKT, DecimalPointMatch, "$1");
+            if (!string.IsNullOrEmpty(inputGeomWKT))
+                return Regex.Replace(inputGeomWKT, DecimalPointMatch, "$1");
+            return inputGeomWKT;
         }
 
         /// <summary>
@@ -86,7 +106,7 @@ namespace SQLSpatialTools.UnitTests.Extension
         /// <returns></returns>
         public static string EscapeQueryString(this string query)
         {
-            return query.Replace("'", "''");
+            return query?.Replace("'", "''");
         }
     }
 

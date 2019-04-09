@@ -17,21 +17,86 @@ namespace SQLSpatialTools.Functions.LRS
     {
         /// <summary>
         /// Clip a geometry segment based on specified measure.
-        /// This function just hooks up and runs a pipeline using the sink.
+        /// <br /> If the clipped start and end point is within tolerance of shape point then shape point is returned as start and end of clipped Geom segment. 
+        /// <br /> This function just hooks up and runs a pipeline using the sink.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
-        /// <param name="startMeasure"></param>
-        /// <param name="endMeasure"></param>
-        /// <returns></returns>
-        public static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double startMeasure, double endMeasure)
+        /// <param name="clipStartMeasure">Start Measure</param>
+        /// <param name="clipEndMeasure">End Measure</param>
+        /// <param name="tolerance">Tolerance Value</param>
+        /// <returns>Clipped Segment</returns>
+        public static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance = Constants.Tolerance)
         {
             Ext.ThrowIfNotLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
-            Ext.ThrowIfStartMeasureIsNotInRange(startMeasure, endMeasure, geometry);
-            Ext.ThrowIfEndMeasureIsNotInRange(startMeasure, endMeasure, geometry);
+            bool startMeasureInvalid = false;
+            bool endMeasureInvalid = false;
+
+            // reassign clip start and end measure based upon there difference
+            if (clipStartMeasure > clipEndMeasure)
+            {
+                var shiftObj = clipStartMeasure;
+                clipStartMeasure = clipEndMeasure;
+                clipEndMeasure = shiftObj;
+            }
+
+            // Get the measure progress of linear geometry and reassign the start and end measures based upon the progression
+            var measureProgress = geometry.STLinearMeasureProgress();
+            var geomStartMeasure = measureProgress == LinearMeasureProgress.Increasing ? geometry.GetStartPointMeasure() : geometry.GetEndPointMeasure();
+            var geomEndMeasure = measureProgress == LinearMeasureProgress.Increasing ? geometry.GetEndPointMeasure() : geometry.GetStartPointMeasure();
+
+            // clip start measure matches geom start measure and
+            // clip end measure matches geom end measure then return the input geom
+            if (clipStartMeasure == geomStartMeasure && clipEndMeasure == geomEndMeasure)
+                return geometry;
+
+            // Check if clip start and end measures are beyond geom start and end point measures
+            var isStartBeyond = clipStartMeasure < geomStartMeasure;
+            var isEndBeyond = clipEndMeasure > geomEndMeasure;
+
+            // When clip measure range is not beyond range; then don't consider tolerance on extreme math; as per Oracle
+            var isExtremeMeasuresMatch = Ext.IsExtremeMeasuresMatch(geomStartMeasure, geomEndMeasure, clipStartMeasure, clipEndMeasure);
+
+            // don't throw error when measure is not in the range
+            // rather reassign segment start and end measure 
+            // if they are beyond the range or matching with the start and end point measure of input geometry
+            if (!clipStartMeasure.IsWithinRange(geometry))
+            {
+                if (isStartBeyond || isExtremeMeasuresMatch)
+                {
+                    if (clipStartMeasure <= geomStartMeasure)
+                        clipStartMeasure = geomStartMeasure;
+                }
+                else
+                    startMeasureInvalid = true;
+            }
+
+            if (!clipEndMeasure.IsWithinRange(geometry))
+            {
+                if (isEndBeyond || isExtremeMeasuresMatch)
+                {
+                    if (clipEndMeasure >= geomEndMeasure)
+                        clipEndMeasure = geomEndMeasure;
+                }
+                else
+                    endMeasureInvalid = true;
+            }
+
+            // if both clip start and end measure are reassigned to 0 then return null
+            if (startMeasureInvalid || endMeasureInvalid)
+                return null;
+
+            // if both clip start and end point measure is same then don't check for distance tolerance
+            if (clipStartMeasure != clipEndMeasure)
+            {
+                var startClipPoint = LocatePointWithTolerance(geometry, clipStartMeasure, tolerance);
+                var endClipPoint = LocatePointWithTolerance(geometry, clipEndMeasure, tolerance);
+                if (startClipPoint.STDistance(endClipPoint).IsTolerable(tolerance))
+                    return null;
+            }
 
             var geometryBuilder = new SqlGeometryBuilder();
-            var geomSink = new ClipMGeometrySegmentSink(startMeasure, endMeasure, geometryBuilder);
+            var geomSink = new ClipMGeometrySegmentSink(clipStartMeasure, clipEndMeasure, geometryBuilder);
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
         }
@@ -70,7 +135,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns></returns>
         public static SqlGeometry InterpolateBetweenGeom(SqlGeometry startPoint, SqlGeometry endPoint, double measure)
         {
-            // We need to check a few prequisites.
+            // We need to check a few prerequisite.
             // We only operate on points.
             Ext.ThrowIfNotPoint(startPoint, endPoint);
             Ext.ThrowIfSRIDsDoesNotMatch(startPoint, endPoint);
@@ -89,7 +154,6 @@ namespace SQLSpatialTools.Functions.LRS
 
             //There's no way to know Z, so just put NULL there
             return Ext.GetPoint(newX, newY, null, measure, srid);
-
         }
 
         /// <summary>
@@ -97,9 +161,9 @@ namespace SQLSpatialTools.Functions.LRS
         /// </summary>
         /// <param name="geometry1">First Geometry</param>
         /// <param name="geometry2">Second Geometry</param>
-        /// <param name="tolerence">Distance Threshold range; default 0.01F</param>
+        /// <param name="tolerance">Distance Threshold range; default 0.01F</param>
         /// <returns></returns>
-        public static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence = 0.01F)
+        public static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = 0.01F)
         {
             Ext.ThrowIfNotLine(geometry1, geometry2);
             Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
@@ -122,13 +186,14 @@ namespace SQLSpatialTools.Functions.LRS
             if (geometry1EndPoint.STEquals(geometry2StartPoint) || geometry1EndPoint.STEquals(geometry2EndPoint))
                 return true;
 
-            // If the points doesn't coincide, check for the distance and whether it falls with the tolerance range
-            // Comparing geom1 start point distance against geom2 start and end points
-            if (geometry1StartPoint.IsXYWithinRange(geometry2StartPoint, tolerence) || geometry1StartPoint.IsXYWithinRange(geometry2EndPoint, tolerence))
+            // If the points doesn't coincide, check for the point co-ordinate difference and whether it falls within the tolerance
+            // distance not considered as per Oracle.
+            // Comparing geom1 start point x and y co-ordinate difference against geom2 start and end point x and y co-ordinates
+            if (geometry1StartPoint.IsXYWithinRange(geometry2StartPoint, tolerance) || geometry1StartPoint.IsXYWithinRange(geometry2EndPoint, tolerance))
                 return true;
 
-            // Comparing geom1 start point distance against geom2 start and end points
-            if (geometry1EndPoint.IsXYWithinRange(geometry2StartPoint, tolerence) || geometry1EndPoint.IsXYWithinRange(geometry2EndPoint, tolerence))
+            // Comparing geom1 start point x and y co-ordinate difference against geom2 start and end point x and y co-ordinates
+            if (geometry1EndPoint.IsXYWithinRange(geometry2StartPoint, tolerance) || geometry1EndPoint.IsXYWithinRange(geometry2EndPoint, tolerance))
                 return true;
 
             return false;
@@ -162,15 +227,29 @@ namespace SQLSpatialTools.Functions.LRS
         /// This function just hooks up and runs a pipeline using the sink.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
-        /// <param name="distance">Measure of the Geometry point to locate</param>
+        /// <param name="measure">Measure of the Geometry point to locate</param>
         /// <returns>Geometry Point</returns>
-        public static SqlGeometry LocatePointAlongGeom(SqlGeometry geometry, double distance)
+        public static SqlGeometry LocatePointAlongGeom(SqlGeometry geometry, double measure)
+        {
+            // Invoking locate point without tolerance
+            return LocatePointWithTolerance(geometry, measure, 0);
+        }
+
+        /// <summary>
+        /// Locates the point with tolerance.
+        /// </summary>
+        /// <param name="geometry">The geometry.</param>
+        /// <param name="measure">The measure.</param>
+        /// <param name="tolerance">The tolerance.</param>
+        /// <returns></returns>
+        private static SqlGeometry LocatePointWithTolerance(SqlGeometry geometry, double measure, double tolerance = Constants.Tolerance)
         {
             Ext.ThrowIfNotLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
+            Ext.ThrowIfMeasureIsNotInRange(measure, geometry);
 
             var geomBuilder = new SqlGeometryBuilder();
-            var geomSink = new LocateMAlongGeometrySink(distance, geomBuilder);
+            var geomSink = new LocateMAlongGeometrySink(measure, geomBuilder, tolerance);
             geometry.Populate(geomSink);
             return geomBuilder.ConstructedGeometry;
         }
@@ -259,16 +338,17 @@ namespace SQLSpatialTools.Functions.LRS
 
             geomBuilder.SetSrid((int)geometry.STSrid);
             geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
-            geomBuilder.BeginFigure(geometry.STEndPoint().STX.Value, geometry.STEndPoint().STY.Value, geometry.STEndPoint().Z.Value, geometry.STEndPoint().M.Value);
+
+            // Get end point
+            geometry.STEndPoint().GetCoordinates(out double x, out double y, out double? z, out double? m);
+
+            geomBuilder.BeginFigure(x, y, z, m);
 
             var iterator = (int)geometry.STNumPoints() - 1;
             for (; iterator >= 1; iterator--)
             {
-                geomBuilder.AddLine(
-                    geometry.STPointN(iterator).STX.Value,
-                    geometry.STPointN(iterator).STY.Value,
-                    geometry.STPointN(iterator).Z.Value,
-                    geometry.STPointN(iterator).M.Value);
+                geometry.STPointN(iterator).GetCoordinates(out x, out y, out z, out m);
+                geomBuilder.AddLine(x, y, z, m);
             }
             geomBuilder.EndFigure();
             geomBuilder.EndGeometry();
@@ -287,6 +367,7 @@ namespace SQLSpatialTools.Functions.LRS
         {
             Ext.ThrowIfNotLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
+            Ext.ThrowIfMeasureIsNotInRange(splitMeasure, geometry);
 
             var splitPoint = LocatePointAlongGeom(geometry, splitMeasure);
             var geometryBuilder1 = new SqlGeometryBuilder();

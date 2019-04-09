@@ -16,7 +16,7 @@ namespace SQLSpatialTools
         SqlGeometryBuilder target;    // Where we place our result.
 
         // We target another builder, to which we will send a point representing the point we find.
-        // We also take a distance, which is the point along the input linestring we will travel.
+        // We also take a distance, which is the point along the input line string we will travel.
         // Note that we only operate on LineString instances: anything else will throw an exception.
         public ClipGeometrySegmentSink(SqlGeometry startPoint, SqlGeometry endPoint, SqlGeometryBuilder target)
         {
@@ -51,7 +51,7 @@ namespace SQLSpatialTools
         // This is where the real work is done.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            // If current measure is betweem start measure and end measure, we should add segment to the result linestring
+            // If current measure is between start measure and end measure, we should add segment to the result line string
             if (m > startPoint.M.Value && m < endPoint.M.Value)
             {
                 target.AddLine(x, y, z, m);

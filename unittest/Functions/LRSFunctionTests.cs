@@ -13,6 +13,74 @@ namespace SQLSpatialTools.Tests
     public class LRSFunctionTests : BaseUnitTest
     {
         [TestMethod]
+        public void ClipGeometrySegmentExtensionTest()
+        {
+            double startMeasure = 0;
+            double endMeasure = 500;
+            var geom = "LINESTRING(200000 100000 0, 200500 100000 500)".GetGeom();
+            var expected = "LINESTRING (200000 100000 NULL 0, 200500 100000 NULL 500)".GetGeom();
+            var result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 10;
+            endMeasure = 5;
+            geom = "LINESTRING(5 10 10, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = "POINT (5 10 NULL 10)".GetGeom();
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 5;
+            endMeasure = 110;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = "LINESTRING (5 10 NULL 10, 20 5 NULL 30.628, 35 10 NULL 61.257, 55 10 NULL 100)".GetGeom();
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            // both measures less than start measure of input geom
+            startMeasure = 5;
+            endMeasure = 9;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = null;
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            // both measures greater than end measure of input geom
+            startMeasure = 110;
+            endMeasure = 120;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = null;
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 10;
+            endMeasure = 110;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = "LINESTRING (5 10 NULL 10, 20 5 NULL 30.628, 35 10 NULL 61.257, 55 10 NULL 100)".GetGeom();
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 15;
+            endMeasure = 90;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = "LINESTRING (8.63583478766725 8.7880550707775846 NULL 15, 20 5 NULL 30.628, 35 10 NULL 61.257, 49.837777146839429 10 NULL 90)".GetGeom();
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 100;
+            endMeasure = 200;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = "POINT (55 10 NULL 100)".GetGeom();
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 61.257F;
+            endMeasure = 200;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = "LINESTRING (35 10 NULL 61.257, 55 10 NULL 100)".GetGeom();
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 50;
+            endMeasure = 100;
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            expected = "LINESTRING (29.487087400829282 8.1623624669430939 NULL 50, 35 10 NULL 61.257, 55 10 NULL 100)".GetGeom();
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+        }
+
+        [TestMethod]
         public void ClipGeometrySegmentTest()
         {
             var geom = "MULTILINESTRING((100 100, 200 200), (3 4, 7 8, 10 10))".GetGeom();
@@ -31,7 +99,8 @@ namespace SQLSpatialTools.Tests
             geom = "LINESTRING (10 1 NULL 10, 25 1 NULL 25 )".GetGeom();
             Logger.LogLine("Input Geom : {0}", geom.ToString());
 
-            int startMeasure = 5, endMeasure = 10;
+            int startMeasure = 5;
+            int endMeasure = 10;
             Logger.Log("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
             try
             {
@@ -43,7 +112,8 @@ namespace SQLSpatialTools.Tests
                 Logger.Log(e.Message);
             }
 
-            startMeasure = 15; endMeasure = 27;
+            startMeasure = 15;
+            endMeasure = 27;
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
             try
             {
@@ -56,7 +126,8 @@ namespace SQLSpatialTools.Tests
             }
 
             // From start to 5 point measure
-            startMeasure = 10; endMeasure = 15;
+            startMeasure = 10;
+            endMeasure = 15;
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
 
             var retGeom = "LINESTRING (10 1 NULL 10, 15 1 NULL 15 )".GetGeom();
@@ -66,7 +137,8 @@ namespace SQLSpatialTools.Tests
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
 
             // From 15 to 20
-            startMeasure = 15; endMeasure = 20;
+            startMeasure = 15;
+            endMeasure = 20;
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
 
             retGeom = "LINESTRING (15 1 NULL 15, 20 1 NULL 20 )".GetGeom();
@@ -76,7 +148,8 @@ namespace SQLSpatialTools.Tests
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
 
             // From 20 to 25
-            startMeasure = 20; endMeasure = 25;
+            startMeasure = 20;
+            endMeasure = 25;
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
 
             retGeom = "LINESTRING (20 1 NULL 20, 25 1 NULL 25 )".GetGeom();
@@ -85,7 +158,8 @@ namespace SQLSpatialTools.Tests
             SqlAssert.IsTrue(retGeom.STIsValid());
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
 
-            startMeasure = 5; endMeasure = 10;
+            startMeasure = 5;
+            endMeasure = 10;
             geom = "LINESTRING(2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 0, 8 10 22, 5 14  27)".GetGeom();
             retGeom = "LINESTRING (5 4 NULL 5, 8 4 NULL 8, 10 4 NULL 10)".GetGeom();
             clippedGeom = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
@@ -108,7 +182,7 @@ namespace SQLSpatialTools.Tests
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
             endMeasureValue = 100.000999450684F;
-            geom = string.Format(CultureInfo.CurrentCulture, "MULTILINESTRING((0 0 0 0, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", endMeasureValue ).GetGeom();
+            geom = string.Format(CultureInfo.CurrentCulture, "MULTILINESTRING((0 0 0 0, 1 1 0 0), (3 2 0 null, 5 5 2 {0}))", endMeasureValue).GetGeom();
             endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
@@ -187,7 +261,7 @@ namespace SQLSpatialTools.Tests
             // test cases without considering tolerance values
             var geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             var geom2 = "LINESTRING(0 0 0 0, 2 2 0 0)".GetGeom();
-            var tolerance = Constants.Threshold;
+            var tolerance = Constants.Tolerance;
             var result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
 
@@ -222,6 +296,7 @@ namespace SQLSpatialTools.Tests
             SqlAssert.IsTrue(result);
 
             // test cases with tolerance values considered
+            // here point difference is not considered; rather x2-x1 and y2-y1 is considered for tolerance
             geom1 = "LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)".GetGeom();
             geom2 = "LINESTRING(0.5 0.5 0 0, 2 2 0 0)".GetGeom();
             tolerance = 0.5;
@@ -416,7 +491,7 @@ namespace SQLSpatialTools.Tests
 
             var measureResettedGeom = Geometry.ResetMeasure(geom);
             Logger.Log("Expected Geom: {0}", expectedGeom);
-            Logger.Log("Resetted Geom: {0}", measureResettedGeom);
+            Logger.Log("Obtained Geom: {0}", measureResettedGeom);
 
             SqlAssert.AreEqual(geom.GetStartPointMeasure(), 10);
             SqlAssert.AreEqual(geom.GetEndPointMeasure(), 20);
@@ -430,7 +505,7 @@ namespace SQLSpatialTools.Tests
 
             measureResettedGeom = Geometry.ResetMeasure(geom);
             Logger.Log("Expected Geom: {0}", expectedGeom);
-            Logger.Log("Resetted Geom: {0}", measureResettedGeom);
+            Logger.Log("Obtained Geom: {0}", measureResettedGeom);
 
             SqlAssert.AreEqual(geom.GetStartPointMeasure(), 116.124);
             SqlAssert.AreEqual(geom.GetEndPointMeasure(), 206.35);
@@ -494,16 +569,16 @@ namespace SQLSpatialTools.Tests
             }
             catch (ArgumentException e)
             {
-                Assert.AreEqual(e.Message, "Measure provided is greater than maximum measure of LineString.");
-                Logger.Log("Measure provided is greater than maximum measure of LineString.");
+                Assert.AreEqual(e.Message, ErrorMessage.MeasureRange);
+                Logger.Log(ErrorMessage.MeasureRange);
             }
 
             distance = 15;
             Logger.Log("Split input geom at a distance of {0} Measure", distance);
 
             Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
-            Logger.Log("Splitted Geom 1 : {0}", geomSegment1);
-            Logger.Log("Splitted Geom 2 : {0}", geomSegment2);
+            Logger.Log("Split Geom 1 : {0}", geomSegment1);
+            Logger.Log("Split Geom 2 : {0}", geomSegment2);
 
             SqlAssert.IsTrue(geomSegment1.STIsValid());
             SqlAssert.IsTrue(geomSegment2.STIsValid());
@@ -613,6 +688,25 @@ namespace SQLSpatialTools.Tests
             Logger.Log(result);
             Assert.AreEqual("TRUE", result);
         }
-        
+
+        /// <summary>
+        /// Logs the clip geom segments.
+        /// </summary>
+        /// <param name="startMeasure">The start measure.</param>
+        /// <param name="endMeasure">The end measure.</param>
+        /// <param name="geom">The geom.</param>
+        /// <param name="result">The result.</param>
+        /// <param name="expected">The expected.</param>
+        private void LogClipGeomSegments(double startMeasure, double endMeasure, SqlGeometry geom, SqlGeometry result, SqlGeometry expected)
+        {
+            Logger.LogLine("Input Clipped at measure : {0}, End Measure : {1}", startMeasure, endMeasure);
+            Logger.Log("Input Geom : {0}", geom.ToString());
+            Logger.Log("Clipped : {0}", result?.ToString());
+            
+            if(expected == null)
+                SqlAssert.IsTrue(result == null);
+            else
+                SqlAssert.IsTrue(expected.STEquals(result));
+        }
     }
 }

@@ -5,10 +5,10 @@ using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools
 {
-    /**
-     * This class contains functions that are meant to be used internally in this library.
-     */
-    class Util
+    /// <summary>
+    /// This class contains functions that are meant to be used internally in this library.
+    /// </summary>
+    internal static class Util
     {
         // Convert a SqlGeography to an X,Y,Z vector.
         public static Vector3 GeographicToCartesian(SqlGeography point)

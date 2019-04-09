@@ -9,3 +9,5 @@ packages/
 Backup/
 output/
 *.user
+*.playlist
+*.CodeItRight.xml

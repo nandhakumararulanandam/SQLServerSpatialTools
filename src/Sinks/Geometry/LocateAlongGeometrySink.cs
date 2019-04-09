@@ -54,7 +54,8 @@ namespace SQLSpatialTools
         {
             // If we've already found a point, then we're done.  We just need to keep ignoring these
             // pesky calls.
-            if (foundPoint != null) return;
+            if (foundPoint != null)
+                return;
 
             // Make a point for our current position.
             SqlGeometry thisPoint = SqlGeometry.Point(x, y, srid);
@@ -90,7 +91,7 @@ namespace SQLSpatialTools
         {
             if (foundPoint != null)
             {
-                // We could use a simple point constructor, but by targetting another sink we can use this
+                // We could use a simple point constructor, but by targeting another sink we can use this
                 // class in a pipeline.
                 target.SetSrid(srid);
                 target.BeginGeometry(OpenGisGeometryType.Point);

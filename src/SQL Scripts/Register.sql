@@ -1,6 +1,15 @@
 ﻿-- Copyright (c) Microsoft Corporation.  All rights reserved.
 -- Install the SQLSpatialTools assembly and all its functions into the current database
 
+
+-- First unregister should be called
+-- To run sql script inside another SQLCMD Mode should be enabled
+-- To enable SQLCMD Mode: Query -> SQLCMD Mode
+-- Unregister Script Path will be replaced in run time
+:r "UnregisterScriptPath"
+
+
+-- Enabling CLR prior to registering assembly and its related functions.
 EXEC sp_configure 'show advanced option', '1'; 
 RECONFIGURE;
 Go
@@ -201,6 +210,7 @@ CREATE FUNCTION LRS_ClipGeometrySegment (
 	@g GEOMETRY
 	,@startMeasure FLOAT
 	,@endMeasure FLOAT
+	,@tolerance FLOAT
 	)
 RETURNS GEOMETRY
 AS
