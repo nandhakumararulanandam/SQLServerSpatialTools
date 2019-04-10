@@ -517,13 +517,37 @@ namespace SQLSpatialTools.Tests
         [TestMethod]
         public void ReverseLinearGeometryTest()
         {
-            var geom = "LINESTRING (1 1 0 0, 5 5 0 0)".GetGeom();
-            Logger.Log("Input Geom : {0}", geom.ToString());
+            // Check for Multi Line
+            var geom = "MULTILINESTRING((1 1 1,2 2 2),(3 3 3, 5 5 7))".GetGeom();
+            var reversedStartPoint = "POINT (5 5 7)".GetGeom();
+            Logger.LogLine("Input Geom : {0}", geom.ToString());
+            var reversedGeom = Geometry.ReverseLinearGeometry(geom);
+            Logger.Log("Reversed Geom : {0}", reversedGeom);
+            SqlAssert.IsTrue(reversedGeom.STStartPoint().STEquals(reversedStartPoint));
 
-            var endPoint = "POINT (5 5 0 0)".GetGeom();
-            var reversedLineSegment = Geometry.ReverseLinearGeometry(geom);
-            Logger.Log("Reversed Line string : {0}", reversedLineSegment.ToString());
-            SqlAssert.IsTrue(reversedLineSegment.STStartPoint().STEquals(endPoint));
+            // Multi Line with 5 line segments
+            geom = "MULTILINESTRING((1 1 1,2 2 2, 3 3 3),(4 4 4, 5 5 5, 6 6 6), (8 8 8, 9 9 9, 10 10 10), (11 11 11, 12 12 12, 13 13 13, 14 14 14))".GetGeom();
+            reversedStartPoint = "POINT (14 14 14)".GetGeom();
+            Logger.LogLine("Input Geom : {0}", geom.ToString());
+            reversedGeom = Geometry.ReverseLinearGeometry(geom);
+            Logger.Log("Reversed Geom : {0}", reversedGeom);
+            SqlAssert.IsTrue(reversedGeom.STStartPoint().STEquals(reversedStartPoint));
+
+            // Check for Line String
+            geom = " LINESTRING(0 0 0, 10 0 40)".GetGeom();
+            reversedStartPoint = "POINT (10 0 40)".GetGeom();
+            Logger.LogLine("Input Geom : {0}", geom.ToString());
+            reversedGeom = Geometry.ReverseLinearGeometry(geom);
+            Logger.Log("Reversed Geom : {0}", reversedGeom);
+            SqlAssert.IsTrue(reversedGeom.STStartPoint().STEquals(reversedStartPoint));
+
+            // Check for Point
+            geom = " POINT(10 0 40)".GetGeom();
+            reversedStartPoint = "POINT (10 0 40)".GetGeom();
+            Logger.LogLine("Input Geom : {0}", geom.ToString());
+            reversedGeom = Geometry.ReverseLinearGeometry(geom);
+            Logger.Log("Reversed Geom : {0}", reversedGeom);
+            SqlAssert.IsTrue(reversedGeom.STStartPoint().STEquals(reversedStartPoint));
         }
 
         [TestMethod]

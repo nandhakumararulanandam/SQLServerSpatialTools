@@ -325,34 +325,23 @@ namespace SQLSpatialTools.Functions.LRS
 
         /// <summary>
         /// Reverse Linear Geometry
-        /// Works only for LineString Geometry.
+        /// Works only for POINT, LINESTRING, MULTILINESTRING Geometry.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
         /// <returns></returns>
         public static SqlGeometry ReverseLinearGeometry(SqlGeometry geometry)
         {
-            Ext.ThrowIfNotLine(geometry);
+            Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
-            var geomBuilder = new SqlGeometryBuilder();
+            // if point its no-op
+            if (geometry.IsPoint())
+                return geometry;
 
-            geomBuilder.SetSrid((int)geometry.STSrid);
-            geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
-
-            // Get end point
-            geometry.STEndPoint().GetCoordinates(out double x, out double y, out double? z, out double? m);
-
-            geomBuilder.BeginFigure(x, y, z, m);
-
-            var iterator = (int)geometry.STNumPoints() - 1;
-            for (; iterator >= 1; iterator--)
-            {
-                geometry.STPointN(iterator).GetCoordinates(out x, out y, out z, out m);
-                geomBuilder.AddLine(x, y, z, m);
-            }
-            geomBuilder.EndFigure();
-            geomBuilder.EndGeometry();
-            return geomBuilder.ConstructedGeometry;
+            var geometryBuilder = new SqlGeometryBuilder();
+            var geomSink = new ReverseLinearGeometrySink(geometryBuilder);
+            geometry.Populate(geomSink);
+            return geometryBuilder.ConstructedGeometry;
         }
 
         /// <summary>
