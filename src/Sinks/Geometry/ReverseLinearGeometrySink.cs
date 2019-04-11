@@ -11,63 +11,29 @@ namespace SQLSpatialTools
     /// </summary>
     class ReverseLinearGeometrySink : IGeometrySink110
     {
-        #region DS
-
-        class Line
-        {
-            public List<Point> Points;
-
-            public Line()
-            {
-                Points = new List<Point>();
-            }
-
-            public void AddPoint(Point point)
-            {
-                Points.Add(point);
-            }
-
-        }
-        struct Point
-        {
-            public double x;
-            public double y;
-            public double? z;
-            public double? m;
-
-            public Point(double x, double y, double? z, double? m)
-            {
-                this.x = x;
-                this.y = y;
-                this.z = z;
-                this.m = m;
-            }
-        }
-
-        #endregion
-
         readonly SqlGeometryBuilder target;
-        List<Line> lines;
-        Line currentLine;
-        int srid;
+        LRSMultiLine lines;
+        LRSLine currentLine;
         bool isMultiLine = false;
-
         int lineCounter = 0;
+
         /// <summary>
-        /// Loop through each geometry types in geom collection and validate if the type is either POINT, LINESTRING, MULTILINESTRING
+        /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse it accordingly.
         /// </summary>
         /// <param name="type">Geometry Type</param>
         public ReverseLinearGeometrySink(SqlGeometryBuilder target)
         {
             this.target = target;
-            lines = new List<Line>();
+            lines = new LRSMultiLine();
         }
-        /// 
+
+        // This is a NOP.
         public void SetSrid(int srid)
         {
-            this.srid = srid;
-            target.SetSrid(this.srid);
+            target.SetSrid(srid);
         }
+
+        // Check for types and begin geometry accordingly.
         public void BeginGeometry(OpenGisGeometryType type)
         {
             // check if the type is of the supported types
@@ -82,40 +48,44 @@ namespace SQLSpatialTools
             }
         }
 
-        // This is a NOP.
+        // Just add the points to the current line segment.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            currentLine = new Line();
-            currentLine.AddPoint(new Point(x, y, z, m));
+            currentLine = new LRSLine();
+            currentLine.AddPoint(x, y, z, m);
         }
 
-        // This is a NOP.
+        // Just add the points to the current line segment.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            currentLine.AddPoint(new Point(x, y, z, m));
+            currentLine.AddPoint(x, y, z, m);
         }
 
-        // This is a NOP.
+        // Reverse the points at the end of figure.
         public void EndFigure()
         {
-            currentLine.Points.Reverse();
+            currentLine.ReversePoints();
         }
 
-        // This is a NOP.
+        // This is where real work is done.
         public void EndGeometry()
         {
+            // if not multi line then add the current line to the collection.
             if (!isMultiLine)
-                lines.Add(currentLine);
+                lines.AddLine(currentLine);
 
+            // if line counter is 0 then it is multiline
+            // if 1 then it is linestring 
             if (lineCounter == 0 || !isMultiLine)
             {
-                lines.Reverse();
-                foreach (Line line in lines)
+                // reverse the line before constructing the geometry
+                lines.ReversLines();
+                foreach (LRSLine line in lines.Lines)
                 {
                     target.BeginGeometry(OpenGisGeometryType.LineString);
 
                     var pointIterator = 1;
-                    foreach (Point point in line.Points)
+                    foreach (LRSPoint point in line.Points)
                     {
                         if (pointIterator == 1)
                             target.BeginFigure(point.x, point.y, point.z, point.m);
@@ -131,7 +101,8 @@ namespace SQLSpatialTools
             }
             else
             {
-                lines.Add(currentLine);
+                lines.AddLine(currentLine);
+                // reset the line counter so that the child line strings chaining is done and return to base multiline type
                 lineCounter--;
             }
         }

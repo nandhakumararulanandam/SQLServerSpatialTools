@@ -18,9 +18,21 @@ namespace SQLSpatialTools
             Lines = new List<LRSLine>();
         }
 
-        public void AddPoint(LRSLine lrsLine)
+        /// <summary>
+        /// Adds the line.
+        /// </summary>
+        /// <param name="lrsLine">The LRS line.</param>
+        public void AddLine(LRSLine lrsLine)
         {
             Lines.Add(lrsLine);
+        }
+
+        /// <summary>
+        /// Reverses the lines.
+        /// </summary>
+        public void ReversLines()
+        {
+            Lines.Reverse();
         }
     }
 
@@ -36,11 +48,35 @@ namespace SQLSpatialTools
             Points = new List<LRSPoint>();
         }
 
+        /// <summary>
+        /// Adds the point.
+        /// </summary>
+        /// <param name="lRSPoint">The l rs point.</param>
         public void AddPoint(LRSPoint lRSPoint)
         {
             Points.Add(lRSPoint);
         }
-        
+
+        /// <summary>
+        /// Adds the point.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="z">The z.</param>
+        /// <param name="m">The m.</param>
+        public void AddPoint(double x, double y, double? z, double? m)
+        {
+            Points.Add(new LRSPoint(x, y, z, m));
+        }
+
+        /// <summary>
+        /// Reverses the points of the line.
+        /// </summary>
+        public void ReversePoints()
+        {
+            Points.Reverse();
+        }
+
         /// <summary>
         /// Calculate offset bearings for all points.
         /// </summary>
