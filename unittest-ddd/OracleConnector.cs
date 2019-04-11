@@ -153,12 +153,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         #region LRS Test Functions
 
         /// <summary>
-        /// Returns WKT of Merged geom segments.
+        /// Test MergeGeom Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom1">Line Segment 1 in WKT</param>
-        /// <param name="inputGeom2">Line Segment 2 in WKT</param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoMergeGeomTest(LRSDataSet.MergeGeometrySegmentsData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.MergeGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom1), ConvertTo3DCoordinates(testObj.InputGeom2), testObj.Tolerance);
@@ -169,13 +166,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Returns WKT of Clipped geom segment.
+        /// Test ClipGeom Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom"></param>
-        /// <param name="startMeasure"></param>
-        /// <param name="endMeasure"></param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoClipGeometrySegment(LRSDataSet.ClipGeometrySegmentData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance);
@@ -186,11 +179,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Returns the EndMeasure Value.
+        /// Test GetEndMeasure Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom"></param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoGetEndMeasure(LRSDataSet.GetEndMeasureData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetEndMeasureQuery, ConvertTo3DCoordinates(testObj.InputGeom));
@@ -201,11 +192,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Returns StartMeasure Value.
+        /// Test GetStartMeasure Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom"></param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoGetStartMeasure(LRSDataSet.GetStartMeasureData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetStartMeasureQuery, ConvertTo3DCoordinates(testObj.InputGeom));
@@ -216,12 +205,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Returns true if two line segments are spatially connected.
+        /// Test Is Spatially Connected Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom1">Line Segment 1 in WKT</param>
-        /// <param name="inputGeom2">Line Segment 2 in WKT</param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoIsConnectedGeomSegmentTest(LRSDataSet.IsConnectedData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetIsConnectedGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom1), ConvertTo3DCoordinates(testObj.InputGeom2), testObj.Tolerance);
@@ -232,12 +218,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Return WKT of Located point.
+        /// Test LocatePoint Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom"></param>
-        /// <param name="endMeasure"></param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoLocatePointAlongGeomTest(LRSDataSet.LocatePointAlongGeomData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetLocatePointAlongGeomQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.Measure);
@@ -248,13 +231,22 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Returns WKT of Input Geom populated with measure values.
+        /// Test OffsetGeom Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom"></param>
-        /// <param name="startMeasure"></param>
-        /// <param name="endMeasure"></param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
+        internal void DoOffsetGeometrySegment(LRSDataSet.OffsetGeometrySegmentData testObj)
+        {
+            var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.OffsetGeometryQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Offset, testObj.Tolerance);
+            var result = ExecuteScalar<string>(query, out string errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
+        }
+
+        /// <summary>
+        /// Test Populate Measure Function against Oracle.
+        /// </summary>
+        /// <param name="testObj">The test object.</param>
         internal void DoPopulateMeasuresTest(LRSDataSet.PopulateGeometryMeasuresData testObj)
         {
             var optionBuilder = new StringBuilder();
@@ -280,11 +272,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Return WKT of Reversed geom segment.
+        /// Test Reverse Linear Geometry Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom"></param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoReverseLinearGeomTest(LRSDataSet.ReverseLinearGeometryData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetReverseLinearGeomQuery, ConvertTo3DCoordinates(testObj.InputGeom));
@@ -294,13 +284,11 @@ namespace SQLSpatialTools.UnitTests.DDD
             testObj.OracleResult1 = result;
         }
 
+
         /// <summary>
-        /// Returns WKT of two split geom segments,
+        /// Test Split Geometry Function against Oracle.
         /// </summary>
-        /// <param name="inputGeom"></param>
-        /// <param name="Measure"></param>
-        /// <param name="error"></param>
-        /// <returns></returns>
+        /// <param name="testObj">The test object.</param>
         internal void DoSplitGeometrySegmentTest(LRSDataSet.SplitGeometrySegmentData testObj)
         {
             var errorInfo = string.Empty;
@@ -320,13 +308,14 @@ namespace SQLSpatialTools.UnitTests.DDD
             testObj.OracleResult2 = result.Output_2;
         }
 
+
         /// <summary>
-        /// Returns the LRS validation state of input geom WKT.
+        /// Test Validate LRS Geometry Function against Oracle.
         /// </summary>
-        /// <param name="testObj"></param>
+        /// <param name="testObj">The test object.</param>
         internal void ValidateLRSGeometry(LRSDataSet.ValidateLRSGeometryData testObj)
         {
-            var query = string.Format(OracleLRSQuery.ValidateLRSGeometryQuery, testObj.InputGeom);
+            var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ValidateLRSGeometryQuery, testObj.InputGeom);
             var result = ExecuteScalar<string>(query, out string errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
@@ -504,11 +493,15 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                    + " FROM TEMP_DATA"
                                                    + " )";
 
-        public const string ValidateLRSGeometryQuery ="SELECT "
+        public const string ValidateLRSGeometryQuery = "SELECT "
                                                     + "SDO_LRS.VALIDATE_LRS_GEOMETRY ("
                                                     + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
                                                     + ") from dual";
 
+        public const string OffsetGeometryQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                  + "SDO_LRS.OFFSET_GEOM_SEGMENT("
+                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2}, {3}, {4})"
+                                                  + ") from dual";
 
         #endregion Oracle Queries
 

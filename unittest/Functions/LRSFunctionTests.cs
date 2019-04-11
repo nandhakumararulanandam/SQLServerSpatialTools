@@ -454,6 +454,32 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
+        public void OffsetGeometrySegmentTest()
+        {
+            var geom = "LINESTRING(5 10 0, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
+            var offetGeom = "LINESTRING (5.632455532033676 11.897366596101028 NULL 0, 20 7.10818510677892 NULL 30.628, 34.367544467966326 11.897366596101028 NULL 61.257)".GetGeom();
+            var startMeasure = 0;
+            var endMeasure = 61.5;
+            var offset = 2;
+            var tolerance = 0.5;
+            Logger.LogLine("Input Line : {0}", geom.ToString());
+            var result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+            Logger.Log("Offset Line : {0}", result.ToString());
+            SqlAssert.IsTrue(offetGeom.STEquals(result));
+
+            geom = "LINESTRING (55 10 NULL 100, 35 10 NULL 61.257, 20 5 NULL 30.628, 5 10 NULL 0)".GetGeom();
+            offetGeom = "LINESTRING (35.632455532033674 8.102633403898972 NULL 61.257, 20 2.8918148932210808 NULL 30.628, 4.3675444679663249 8.102633403898972 NULL 0)".GetGeom();
+            startMeasure = 0;
+            endMeasure = 61.5;
+            offset = 2;
+            tolerance = 0.5;
+            Logger.LogLine("Input Line : {0}", geom.ToString());
+            result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+            Logger.Log("Offset Line : {0}", result.ToString());
+            SqlAssert.IsTrue(offetGeom.STEquals(result));
+        }
+
+        [TestMethod]
         public void PopulateGeometryMeasuresTest()
         {
             // 4 point line string

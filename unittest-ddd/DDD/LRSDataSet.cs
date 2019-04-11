@@ -99,6 +99,22 @@ namespace SQLSpatialTools.UnitTests.DDD
             public double Tolerance { get; set; }
         }
 
+        public class OffsetGeometrySegmentData : BaseDataSet
+        {
+            public const short ParamCount = 6;
+            public const string TableName = "LRS_OffsetGeometrySegmentData";
+            public const string DataFile = "Dataset\\LRS\\OffsetGeometrySegment.data";
+            public static readonly string SelectQuery = string.Format(CultureInfo.CurrentCulture, "SELECT [Id], [InputGeom], [StartMeasure], [EndMeasure], [Offset], [Tolerance], [ExpectedResult1] FROM [{0}];", TableName);
+            public static readonly string InsertQuery = string.Format(CultureInfo.CurrentCulture, "INSERT INTO [{0}] ([InputGeom], [StartMeasure], [EndMeasure], [Offset], [Tolerance], [ExpectedResult1]) VALUES (N'[0]', [1], [2], [3], [4], N'[5]');", TableName);
+            public string GetTargetUpdateQuery(string fieldName, object fieldValue) { return GetTargetUpdateQuery(TableName, fieldName, fieldValue); }
+
+            public string InputGeom { get; set; }
+            public double StartMeasure { get; set; }
+            public double EndMeasure { get; set; }
+            public double Offset { get; set; }
+            public double Tolerance { get; set; }
+        }
+
         public class PopulateGeometryMeasuresData : BaseDataSet
         {
             public const short ParamCount = 4;
@@ -184,8 +200,8 @@ namespace SQLSpatialTools.UnitTests.DDD
             public string OracleResult2 { get; set; }
             public string OracleElapsedTime { get; private set; }
             public string OracleError { get; set; }
-            public string ExecutionTime { get { return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);  } }
-     
+            public string ExecutionTime => DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+
             public string OracleQuery { get; set; }
             internal void SetElapsedTime(TimeSpan elapsed)
             {

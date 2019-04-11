@@ -898,12 +898,12 @@ namespace SQLSpatialTools.Utility
         /// <summary>
         /// Converts WKT string to SqlGeometry object.
         /// </summary>
-        /// <param name="geomString">geometry in string representation</param>
+        /// <param name="geomWKT">geometry in WKT representation</param>
         /// <param name="srid">Spatial reference identifier; Default for SQL Server 4326</param>
         /// <returns>SqlGeometry</returns>
-        public static SqlGeometry GetGeom(this string geomString, int srid = Constants.DefaultSRID)
+        public static SqlGeometry GetGeom(this string geomWKT, int srid = Constants.DefaultSRID)
         {
-            return SqlGeometry.STGeomFromText(new SqlChars(geomString), srid);
+            return SqlGeometry.STGeomFromText(new SqlChars(geomWKT), srid);
         }
 
         /// <summary>

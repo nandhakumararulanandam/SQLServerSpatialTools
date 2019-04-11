@@ -48,6 +48,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             ExecuteQuery(ParseDataSet(LRSDataSet.ReverseLinearGeometryData.DataFile, LRSDataSet.ReverseLinearGeometryData.ParamCount, LRSDataSet.ReverseLinearGeometryData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.SplitGeometrySegmentData.DataFile, LRSDataSet.SplitGeometrySegmentData.ParamCount, LRSDataSet.SplitGeometrySegmentData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.ValidateLRSGeometryData.DataFile, LRSDataSet.ValidateLRSGeometryData.ParamCount, LRSDataSet.ValidateLRSGeometryData.InsertQuery));
+            ExecuteQuery(ParseDataSet(LRSDataSet.OffsetGeometrySegmentData.DataFile, LRSDataSet.OffsetGeometrySegmentData.ParamCount, LRSDataSet.OffsetGeometrySegmentData.InsertQuery));
         }
 
         private bool CreateSchema()

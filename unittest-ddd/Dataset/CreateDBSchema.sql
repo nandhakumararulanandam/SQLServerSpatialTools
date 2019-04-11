@@ -20,7 +20,7 @@ CREATE TABLE [LRS_ClipGeometrySegmentData] (
 , [ExecutionTime] datetime
 );
 GO
-ALTER TABLE [LRS_ClipGeometrySegmentData] ADD CONSTRAINT [PK_ClipGeometrySegmentTest] PRIMARY KEY ([Id]);
+ALTER TABLE [LRS_ClipGeometrySegmentData] ADD CONSTRAINT [PK_ClipGeometrySegmentData] PRIMARY KEY ([Id]);
 GO
 
 
@@ -149,6 +149,31 @@ CREATE TABLE [LRS_MergeGeometrySegmentsData] (
 );
 GO
 ALTER TABLE [LRS_MergeGeometrySegmentsData] ADD CONSTRAINT [PK_MergeGeometrySegmentsData] PRIMARY KEY ([Id]);
+GO
+
+
+-- OffsetGeometrySegment
+CREATE TABLE [LRS_OffsetGeometrySegmentData] (
+  [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom] nvarchar(1000) NOT NULL
+, [StartMeasure] float NOT NULL
+, [EndMeasure] float NOT NULL
+, [Offset] float NOT NULL
+, [Tolerance] float NOT NULL
+, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ObtainedResult1] nvarchar(1000)
+, [Result] nvarchar(50)
+, [ElapsedTime] nvarchar(100)
+, [Error] nvarchar(1000)
+, [OracleResult1] nvarchar(1000)
+, [OracleElapsedTime] nvarchar(100)
+, [OracleError] nvarchar(1000)
+, [OutputComparison] bit
+, [OracleQuery] nvarchar(1000)
+, [ExecutionTime] datetime
+);
+GO
+ALTER TABLE [LRS_OffsetGeometrySegmentData] ADD CONSTRAINT [PK_OffsetGeometrySegmentData] PRIMARY KEY ([Id]);
 GO
 
 

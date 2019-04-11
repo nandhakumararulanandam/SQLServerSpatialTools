@@ -367,6 +367,27 @@ namespace SQLSpatialTools.Functions.LRS
             geometry2 = geometryBuilder2.ConstructedGeometry;
         }
 
+        /// <summary>Returns the geometric segment at a specified offset from a geometric segment.
+        /// Works only for LineString Geometry.</summary>
+        /// <param name="geometry">Input Geometry</param>
+        /// <param name="startMeasure">Start Measure</param>
+        /// <param name="endMeasure">End Measure</param>
+        /// <param name="offset">Offset value</param>
+        /// <param name="tolerance">Tolerance</param>
+        /// <returns>Offset Geometry Segment</returns>
+        public static SqlGeometry OffsetGeometrySegment(SqlGeometry geometry, double startMeasure, double endMeasure, double offset, double tolerance = Constants.Tolerance)
+        {
+            Ext.ThrowIfNotLine(geometry);
+            Ext.ValidateLRSDimensions(ref geometry);
+
+            geometry = ClipGeometrySegment(geometry, startMeasure, endMeasure, tolerance);
+
+            var geomBuilder = new SqlGeometryBuilder();
+            var geomSink = new OffsetGeometrySink(geomBuilder, offset, geometry.STLinearMeasureProgress());
+            geometry.Populate(geomSink);
+            return geomBuilder.ConstructedGeometry;
+        }
+
         /// <summary>
         /// Validates the LRS geometry.
         /// </summary>

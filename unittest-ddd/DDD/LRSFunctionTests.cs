@@ -396,6 +396,60 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         [TestMethod]
+        public void OffsetGeometrySegmentTest()
+        {
+            Logger.LogLine("Offset Geometry Segments Tests");
+            var dataSet = dbConnection.Query<LRSDataSet.OffsetGeometrySegmentData>(LRSDataSet.OffsetGeometrySegmentData.SelectQuery);
+
+            if (dataSet == null || !dataSet.Any())
+                Logger.Log("No test cases found");
+
+            int testIterator = 1;
+            foreach (var test in dataSet)
+            {
+                Logger.LogLine("Executing test {0}", testIterator);
+                try
+                {
+                    var inputGeomSegment = test.InputGeom.GetGeom();
+                    Logger.Log("Input Geom : {0}", inputGeomSegment.ToString());
+                    Logger.Log("Start Measure : {0}", test.StartMeasure);
+                    Logger.Log("End Measure : {0}", test.EndMeasure);
+                    Logger.Log("Offset : {0}", test.Offset);
+                    Logger.Log("Tolerance : {0}", test.Tolerance);
+                    Logger.Log("Expected Geom : {0}", test.ExpectedResult1);
+
+                    MSSQLTimer.Restart();
+                    // OSS Function Execution
+                    test.ObtainedResult1 = Geometry.OffsetGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure, test.Offset, test.Tolerance)?.ToString().TrimNullValue();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+
+                    #region Run against Oracle
+
+                    OracleTimer.Restart();
+                    // Oracle Function Execution
+                    oracleConnector.DoOffsetGeometrySegment(test);
+                    OracleTimer.Stop();
+
+                    #endregion
+
+                }
+                catch (Exception ex)
+                {
+                    test.Result = "Failed";
+                    test.Error = ex.Message;
+                    Logger.LogError(ex);
+                }
+
+                // Update test results in DB
+                UpdateTestResults(test, LRSDataSet.OffsetGeometrySegmentData.TableName);
+
+                Logger.Log("Test Result : {0}", test.Result);
+                testIterator++;
+            }
+        }
+
+        [TestMethod]
         public void PopulateGeometryMeasuresTest()
         {
             Logger.LogLine("PopulateGeometryMeasures Tests");

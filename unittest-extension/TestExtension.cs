@@ -55,7 +55,7 @@ namespace SQLSpatialTools.UnitTests.Extension
         {
             var result = Regex.Replace(inputGeom, @"\s*null\s*", " ", RegexOptions.IgnoreCase);
             var output = result;
-            var matches = Regex.Matches(result, @"(\d+\.\d{10,16})", RegexOptions.Compiled);
+            var matches = Regex.Matches(result, @"(\d+\.\d{5,16})", RegexOptions.Compiled);
 
             foreach (Match match in matches)
             {
