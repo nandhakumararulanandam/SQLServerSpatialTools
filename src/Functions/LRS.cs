@@ -244,9 +244,13 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns></returns>
         private static SqlGeometry LocatePointWithTolerance(SqlGeometry geometry, double measure, double tolerance = Constants.Tolerance)
         {
-            Ext.ThrowIfNotLine(geometry);
+            Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
             Ext.ThrowIfMeasureIsNotInRange(measure, geometry);
+
+            // If input geom is point; its a no-op just return the same.
+            if (geometry.IsPoint())
+                return geometry;
 
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new LocateMAlongGeometrySink(measure, geomBuilder, tolerance);

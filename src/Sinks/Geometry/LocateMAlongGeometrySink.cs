@@ -20,6 +20,7 @@ namespace SQLSpatialTools
         SqlGeometry lastPoint;        // The last point in the LineString we have passed.
         SqlGeometry foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
         SqlGeometryBuilder target;    // Where we place our result.
+        bool isPointDerived = false;
 
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a measure, which is the point along the input linestring we will travel to.
@@ -40,14 +41,14 @@ namespace SQLSpatialTools
         // Start the geometry.  Throw if it isn't a LineString.
         public void BeginGeometry(OpenGisGeometryType type)
         {
-            if (type != OpenGisGeometryType.LineString)
-                throw new ArgumentException("This operation may only be executed on LineString instances.");
         }
 
         // Start the figure.  Note that since we only operate on LineStrings, this should only be executed
         // once.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
+            if (foundPoint != null)
+                return;
             // Memorize the point.
             lastPoint = Ext.GetPoint(x, y, z, m, srid);
         }
@@ -94,7 +95,7 @@ namespace SQLSpatialTools
         // Here's also where we catch whether we've run off the end of our LineString.
         public void EndGeometry()
         {
-            if (foundPoint != null)
+            if (foundPoint != null && !isPointDerived)
             {
                 // We could use a simple point constructor, but by targeting another sink we can use this
                 // class in a pipeline.
@@ -103,10 +104,7 @@ namespace SQLSpatialTools
                 target.BeginFigure(foundPoint.STX.Value, foundPoint.STY.Value, foundPoint.Z.IsNull ? (double?)null : foundPoint.Z.Value, foundPoint.M.Value);
                 target.EndFigure();
                 target.EndGeometry();
-            }
-            else
-            {
-                throw new ArgumentException("Measure provided is greater than maximum measure of LineString.");
+                isPointDerived = true;
             }
         }
     }
