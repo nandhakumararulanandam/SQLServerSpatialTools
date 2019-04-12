@@ -294,7 +294,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns></returns>
         public static SqlGeometry PopulateGeometryMeasures(SqlGeometry geometry, double? startMeasure, double? endMeasure)
         {
-            Ext.ThrowIfNotLine(geometry);
+            Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
             // As per requirement; 
@@ -304,7 +304,6 @@ namespace SQLSpatialTools.Functions.LRS
             var localEndMeasure = endMeasure ?? (double)geometry.STLength();
 
             var length = geometry.STLength().Value;
-
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new PopulateGeometryMeasuresSink(localStartMeasure, localEndMeasure, length, geomBuilder);
             geometry.Populate(geomSink);
