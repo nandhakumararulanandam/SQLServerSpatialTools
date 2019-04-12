@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools
@@ -27,12 +28,51 @@ namespace SQLSpatialTools
             Lines.Add(lrsLine);
         }
 
+        public bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
+        public int Count { get { return Lines.Any() ? Lines.Count : 0 ; } }
+
         /// <summary>
         /// Reverses the lines.
         /// </summary>
         public void ReversLines()
         {
             Lines.Reverse();
+        }
+
+        public LRSLine GetFirstLine()
+        {
+            if (Lines.Any())
+            {
+                return Lines.First();
+            }
+            return null;
+        }
+
+        public LRSLine GetLastLine()
+        {
+            if (Lines.Any())
+            {
+                return Lines.Last();
+            }
+            return null;
+        }
+
+        public LRSPoint GetStartPoint()
+        {
+            if (Lines.Any())
+            {
+                return Lines.First().Points.First();
+            }
+            return null;
+        }
+
+        public LRSPoint GetEndPoint()
+        {
+            if (Lines.Any())
+            {
+                return Lines.Last().Points.Last();
+            }
+            return null;
         }
     }
 
@@ -188,8 +228,8 @@ namespace SQLSpatialTools
         {
             this.x = x;
             this.y = y;
-            this.z = z;
-            this.m = m;
+            this.z = m.HasValue ? z : null;
+            this.m = m.HasValue ? m : z;
         }
 
         /// <summary>

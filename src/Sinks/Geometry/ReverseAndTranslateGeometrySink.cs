@@ -6,28 +6,25 @@ using Microsoft.SqlServer.Types;
 namespace SQLSpatialTools
 {
     /// <summary>
-    /// This class implements a geometry sink that reverses the input geometry and translate the measure
+    /// This class implements a geometry sink that reverses the input geometry.
     /// </summary>
-    class ReverseAndTranslateGeometrySink : IGeometrySink110
+    class ReverseLinearGeometrySink : IGeometrySink110
     {
         readonly SqlGeometryBuilder target;
-        readonly double translateMeasure;
         LRSMultiLine lines;
         LRSLine currentLine;
-        bool isMultiLine, isPoint;
+        bool isMultiLine;
         int lineCounter;
 
         /// <summary>
-        /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse and translate measure it accordingly.
+        /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse it accordingly.
         /// </summary>
         /// <param name="type">Geometry Type</param>
-        public ReverseAndTranslateGeometrySink(SqlGeometryBuilder target, double translateMeasure)
+        public ReverseLinearGeometrySink(SqlGeometryBuilder target)
         {
             this.target = target;
-            this.translateMeasure = translateMeasure;
             lines = new LRSMultiLine();
             isMultiLine = false;
-            isPoint = false;
             lineCounter = 0;
         }
 
@@ -41,11 +38,6 @@ namespace SQLSpatialTools
         public void BeginGeometry(OpenGisGeometryType type)
         {
             // check if the type is of the supported types
-            if(type == OpenGisGeometryType.Point)
-            {
-                isPoint = true;
-                target.BeginGeometry(OpenGisGeometryType.Point);
-            }
             if (type == OpenGisGeometryType.MultiLineString)
             {
                 isMultiLine = true;
@@ -60,13 +52,8 @@ namespace SQLSpatialTools
         // Just add the points to the current line segment.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            if (isPoint)
-                target.BeginFigure(x, y, z, m + translateMeasure);
-            else
-            {
-                currentLine = new LRSLine();
-                currentLine.AddPoint(x, y, z, m);
-            }
+            currentLine = new LRSLine();
+            currentLine.AddPoint(x, y, z, m);
         }
 
         // Just add the points to the current line segment.
@@ -78,21 +65,12 @@ namespace SQLSpatialTools
         // Reverse the points at the end of figure.
         public void EndFigure()
         {
-            if (isPoint)
-                target.EndFigure();
-            else
-                currentLine.ReversePoints();
+            currentLine.ReversePoints();
         }
 
         // This is where real work is done.
         public void EndGeometry()
         {
-            if (isPoint)
-            {
-                target.EndGeometry();
-                return;
-            }
-
             // if not multi line then add the current line to the collection.
             if (!isMultiLine)
                 lines.AddLine(currentLine);
@@ -111,9 +89,9 @@ namespace SQLSpatialTools
                     foreach (LRSPoint point in line.Points)
                     {
                         if (pointIterator == 1)
-                            target.BeginFigure(point.x, point.y, point.z, point.m + translateMeasure);
+                            target.BeginFigure(point.x, point.y, point.z, point.m);
                         else
-                            target.AddLine(point.x, point.y, point.z, point.m + translateMeasure);
+                            target.AddLine(point.x, point.y, point.z, point.m);
                         pointIterator++;
                     }
                     target.EndFigure();

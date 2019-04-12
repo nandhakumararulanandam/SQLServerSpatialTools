@@ -84,9 +84,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Functions\LRS.cs" />
+    <Compile Include="Sinks\Geometry\ReverseAndTranslateGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\ScaleMeasureGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\TranslateMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ReverseLinearGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ClipMGeometrySegmentSink.cs" />
     <Compile Include="Sinks\Geometry\OffsetGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\LineStringMergeGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ValidateLinearMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\LocateMAlongGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ResetMGeometrySink.cs" />
@@ -124,6 +128,7 @@
     <Compile Include="Sinks\Geometry\GeometryToPointGeographySink.cs" />
     <Compile Include="Sinks\Geometry\GISTypeCheckGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\MergeGeometrySegmentSink.cs" />
+    <Compile Include="Sinks\Geometry\BuidLRSMultiLineSink.cs" />
     <Compile Include="Sinks\Geometry\PopulateGeometryMeasuresSink.cs" />
     <Compile Include="Sinks\Geometry\SplitGeometrySegmentSink.cs" />
     <Compile Include="Sinks\Geography\VacuousGeographyToGeometrySink.cs" />

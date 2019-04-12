@@ -344,7 +344,6 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void MergeGeometrySegmentsTest()
         {
-            Logger.LogLine("MergeGeometrySegments Tests");
             var dataSet = dbConnection.Query<LRSDataSet.MergeGeometrySegmentsData>(LRSDataSet.MergeGeometrySegmentsData.SelectQuery);
 
             if (dataSet == null || !dataSet.Any())
@@ -366,7 +365,8 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.MergeGeometrySegments(geom1, geom2).ToString();
+                    
+                    test.ObtainedResult1 = Geometry.MergeGeometrySegments(geom1, geom2, test.Tolerance).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result : {0}", test.ObtainedResult1);
 

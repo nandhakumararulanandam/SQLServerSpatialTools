@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace SQLSpatialTools.Utility
 {
@@ -71,7 +68,6 @@ namespace SQLSpatialTools.Utility
     /// </summary>
     public sealed class StringValueAttribute : Attribute
     {
-
         /// <summary>
         /// Holds the string value for a value in an enum.
         /// </summary>
@@ -102,10 +98,39 @@ namespace SQLSpatialTools.Utility
         MeasureNotLinear = 13333,
     }
 
+    /// <summary>
+    /// Progression of Geom Segment based on measure.
+    /// </summary>
     public enum LinearMeasureProgress : short
     {
         None = 0,
         Increasing = 1,
         Decreasing = 2
+    }
+
+    /// <summary>
+    /// Merging position of Geom Segments
+    /// </summary>
+    public enum MergePosition
+    {
+        None = 0,
+        StartStart = 1,
+        StartEnd = 2,
+        EndStart = 3,
+        EndEnd = 4,
+        BothEnds = 5,
+        CrossEnds = 6
+    }
+
+    /// <summary>
+    /// Merge Input Segments Geometry type.
+    /// </summary>
+    public enum MergeInputType
+    {
+        None = 0,
+        LSLS = 1,
+        LSMLS = 2,
+        MLSLS = 3,
+        MLSMLS = 4
     }
 }

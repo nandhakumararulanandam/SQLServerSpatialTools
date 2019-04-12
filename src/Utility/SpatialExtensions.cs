@@ -463,20 +463,35 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// <para>
         /// Get offset measure between the two geometry.
-        /// Subtracts end measure of first geometry against the first measure of second geometry.
+        /// </para>
+        ///   <para>Subtracts end measure of first geometry against the first measure of second geometry.
+        /// </para>
         /// </summary>
         /// <param name="sqlgeometry1">First Geometry</param>
         /// <param name="sqlgeometry2">Second Geometry</param>
-        /// <returns></returns>
+        /// <returns>Difference in measure</returns>
         public static double? GetOffset(this SqlGeometry sqlgeometry1, SqlGeometry sqlgeometry2)
         {
             return sqlgeometry1.GetEndPointMeasure() - sqlgeometry2.GetStartPointMeasure();
         }
 
+        /// <summary>
+        /// Get offset measure between the two point geometry.
+        /// Subtracts end measure of first point and second point.
+        /// </summary>
+        /// <param name="point1">First Point</param>
+        /// <param name="point2">Second Point</param>
+        /// <returns>Difference in measure</returns>
+        public static double GetPointOffset(this SqlGeometry point1, SqlGeometry point2)
+        {
+            return point1.M.Value - point2.M.Value;
+        }
+
         #endregion       
 
-        #region Sql Types Comparison with Double
+        #region Sql Types Comparison
 
         /// <summary>
         /// Compares sql string for equality.
@@ -491,7 +506,7 @@ namespace SQLSpatialTools.Utility
 
             string convertString = sqlString.ToString();
 
-            return string.IsNullOrEmpty(convertString) ? false : convertString.ToLowerInvariant().Equals(targetString.ToLowerInvariant());
+            return string.IsNullOrEmpty(convertString) ? false : convertString.ToLowerInvariant().Equals(targetString.ToLowerInvariant(), StringComparison.CurrentCulture);
         }
 
         /// <summary>
@@ -594,7 +609,7 @@ namespace SQLSpatialTools.Utility
         /// <returns>String Value of LRS Error Code.</returns>
         public static string Value(this LRSErrorCodes lrsErrorCodes)
         {
-            return lrsErrorCodes == LRSErrorCodes.Valid ? "TRUE" : ((short)lrsErrorCodes).ToString();
+            return lrsErrorCodes == LRSErrorCodes.Valid ? "TRUE" : ((short)lrsErrorCodes).ToString(CultureInfo.CurrentCulture);
         }
 
         #endregion        
@@ -783,8 +798,17 @@ namespace SQLSpatialTools.Utility
 
             return false;
         }
-
         /// <summary>
+        /// Checks if both the segments are in same direction. either increasing or decrease based on measures.
+        /// </summary>
+        /// <param name="geometrySegment1">Geometry 1</param>
+        /// <param name="geometrySegment2">Geometry 2</param>
+        /// <returns>Returns true if both Geom Segments are in same direction</returns>
+        public static bool STSameDirection(this SqlGeometry geometrySegment1, SqlGeometry geometrySegment2)
+        {
+            return geometrySegment1.STLinearMeasureProgress() == geometrySegment2.STLinearMeasureProgress();
+        }
+
         /// Gets the dimension info of input geometry
         /// </summary>
         /// <param name="sqlGeometry">The SQL geometry.</param>
@@ -871,6 +895,35 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Gets the type of the merge.
+        /// </summary>
+        /// <param name="geometry1">The geometry1.</param>
+        /// <param name="geometry2">The geometry2.</param>
+        /// <returns></returns>
+        public static MergeInputType GetMergeType(this SqlGeometry geometry1, SqlGeometry geometry2)
+        {
+            var isGeom1LineString = geometry1.IsLineString();
+            var isGeom1MultiLineString = geometry1.IsMultiLineString();
+
+            var isGeom2LineString = geometry2.IsLineString();
+            var isGeom2MultiLineString = geometry2.IsMultiLineString();
+
+            if (isGeom1LineString && isGeom2LineString)
+                return MergeInputType.LSLS;
+
+            if (isGeom1MultiLineString && isGeom2MultiLineString)
+                return MergeInputType.MLSMLS;
+
+            if (isGeom1LineString && isGeom2MultiLineString)
+                return MergeInputType.LSMLS;
+
+            if (isGeom1MultiLineString && isGeom2LineString)
+                return MergeInputType.MLSLS;
+
+            return MergeInputType.None;
+        }
+
+        /// <summary>
         /// Gets the coordinates of the point
         /// </summary>
         /// <param name="geometry">The geometry.</param>
@@ -918,5 +971,68 @@ namespace SQLSpatialTools.Utility
         }
 
         #endregion
+    }
+
+    public class SQLTypeConversions
+    {
+        public class Numeric
+        {
+            public int Value;
+
+            private Numeric(int value)
+            {
+                Value = value;
+            }
+
+            public static implicit operator int(Numeric v)
+            {
+                return v.Value;
+            }
+
+            public static implicit operator SqlInt32(Numeric v)
+            {
+                return v.Value;
+            }
+
+            public static implicit operator Numeric(int value)
+            {
+                return new Numeric(value);
+            }
+
+            public static implicit operator Numeric(SqlInt32 value)
+            {
+                return new Numeric((int)value);
+            }
+        }
+
+        public class DecimalValue
+        {
+            public double Value;
+
+            private DecimalValue(double value)
+            {
+                Value = value;
+            }
+
+            public static implicit operator double(DecimalValue v)
+            {
+                return v.Value;
+            }
+
+            public static implicit operator SqlDouble(DecimalValue v)
+            {
+                return v.Value;
+            }
+
+            public static implicit operator DecimalValue(int value)
+            {
+                return new DecimalValue(value);
+            }
+
+            public static implicit operator DecimalValue(SqlDouble value)
+            {
+                return new DecimalValue((double)value);
+            }
+        }
     }
 }
