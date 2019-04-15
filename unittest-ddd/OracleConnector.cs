@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Dapper;
 using Oracle.ManagedDataAccess.Client;
 using System.Globalization;
+using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
@@ -249,6 +250,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="testObj">The test object.</param>
         internal void DoPopulateMeasuresTest(LRSDataSet.PopulateGeometryMeasuresData testObj)
         {
+            var inputGeom = testObj.InputGeom.GetGeom();
             var optionBuilder = new StringBuilder();
 
             if (testObj.StartMeasure != null)
@@ -258,9 +260,19 @@ namespace SQLSpatialTools.UnitTests.DDD
                 optionBuilder.AppendFormat(CultureInfo.CurrentCulture, ", {0}", testObj.EndMeasure);
 
             var errorInfo = string.Empty;
-            var query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasureNonQuery, ConvertTo3DCoordinates(testObj.InputGeom), optionBuilder.ToString());
-            // first execute to store the result in temp table.
-            ExecuteNonQuery(query1, ref errorInfo);
+            string query1;
+            if (inputGeom.IsPoint())
+            {
+                var pointInOracle = string.Format("{0}, {1}, {2}", inputGeom.STX, inputGeom.STY, inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value);
+                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasurePoint, pointInOracle, optionBuilder.ToString());
+                ExecuteNonQuery(query1, ref errorInfo);
+            }
+            else
+            {
+                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasureNonQuery, ConvertTo3DCoordinates(testObj.InputGeom), optionBuilder.ToString());
+                // first execute to stores the result in temp table.
+                ExecuteNonQuery(query1, ref errorInfo);
+            }
 
             // retrieve the result from temp table.
             // if there is an error in the previous query; don't run the result from temp table.
@@ -446,6 +458,16 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                        + "	SELECT SDO_UTIL.TO_WKTGEOMETRY(geom_segment)"
                                                        + "	FROM dual;"
                                                        + "END;";
+
+        public const string GetPopulateMeasurePoint = "DECLARE geom_segment SDO_GEOMETRY; "
+                                                      + "BEGIN "
+                                                      + "SELECT SDO_GEOMETRY(3001, NULL, NULL, "
+                                                      + "SDO_ELEM_INFO_ARRAY(1, 1, 1), "
+                                                      + "SDO_ORDINATE_ARRAY({0})) "
+                                                      + "INTO geom_segment FROM DUAL; "
+                                                      + "SDO_LRS.REDEFINE_GEOM_SEGMENT(geom_segment{1}); "
+                                                      + "INSERT INTO TEMP_DATA (OUTPUT_1) SELECT SDO_UTIL.TO_WKTGEOMETRY(geom_segment) FROM dual; "
+                                                      + "END; ";
 
         public const string GetSplitGeometrySegmentQuery = "DECLARE "
                                                         + "geom_segment SDO_GEOMETRY;"
