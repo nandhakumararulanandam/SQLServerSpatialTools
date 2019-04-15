@@ -18,6 +18,7 @@ namespace SQLSpatialTools
         readonly double clipEndMeasure;
         readonly double tolerance;
         readonly bool isPoint;
+        readonly bool retainClipMeasure;
 
         double lastX;
         double lastY;
@@ -33,15 +34,18 @@ namespace SQLSpatialTools
         /// We also take a distance, which is the point along the input linestring we will travel.
         /// Note that we only operate on LineString instances: anything else will throw an exception.
         /// </summary>
-        /// <param name="startMeasure"></param>
-        /// <param name="endMeasure"></param>
-        /// <param name="target"></param>
-        public ClipMGeometrySegmentSink(double startMeasure, double endMeasure, SqlGeometryBuilder target, double tolerance = Constants.Tolerance)
+        /// <param name="startMeasure">Start Measure to be clipped</param>
+        /// <param name="endMeasure">End Measure to be clipped</param>
+        /// <param name="target">SqlGeometry builder</param>
+        /// <param name="tolerance">tolerance value</param>
+        /// <param name="retainClipMeasure">Flag to retain ClipMeasure values</param>
+        public ClipMGeometrySegmentSink(double startMeasure, double endMeasure, SqlGeometryBuilder target, double tolerance, bool retainClipMeasure = false)
         {
             this.target = target;
             clipStartMeasure = startMeasure;
             clipEndMeasure = endMeasure;
             this.tolerance = tolerance;
+            this.retainClipMeasure = retainClipMeasure;
             isPoint = clipStartMeasure == clipEndMeasure;
         }
 
@@ -114,11 +118,11 @@ namespace SQLSpatialTools
 
                         // if computed point is within tolerance of last point then begin figure with last point
                         if (Ext.IsTwoPointsWithinTolerance(lastX, lastY, newX, newY, tolerance))
-                            target.BeginFigure(lastX, lastY, null, lastM);
+                            target.BeginFigure(lastX, lastY, null, retainClipMeasure ? clipStartMeasure : lastM);
                         // check with current point against new computed point
                         else if (Ext.IsTwoPointsWithinTolerance(x, y, newX, newY, tolerance))
                         {
-                            target.BeginFigure(x, y, null, m);
+                            target.BeginFigure(x, y, null, retainClipMeasure ? clipStartMeasure : m);
                             isShapePoint = true;
                         }
                         // else begin figure with clipped point
@@ -149,11 +153,11 @@ namespace SQLSpatialTools
 
                         // if computed point is within tolerance of last point then begin figure with last point
                         if (Ext.IsTwoPointsWithinTolerance(lastX, lastY, newX, newY, tolerance))
-                            target.BeginFigure(lastX, lastY, null, lastM);
+                            target.BeginFigure(lastX, lastY, null, retainClipMeasure ? clipStartMeasure : lastM);
                         // check with current point against new computed point
                         else if (Ext.IsTwoPointsWithinTolerance(x, y, newX, newY, tolerance))
                         {
-                            target.BeginFigure(x, y, null, m);
+                            target.BeginFigure(x, y, null, retainClipMeasure ? clipStartMeasure : m);
                             isShapePoint = true;
                         }
                         // else begin figure with clipped point
@@ -185,7 +189,7 @@ namespace SQLSpatialTools
                         {
                             // if within current point then add current point
                             if (isWithinCurrentPoint)
-                                target.AddLine(x, y, null, m);
+                                target.AddLine(x, y, null, retainClipMeasure ? clipEndMeasure : m);
                             // else add computed point
                             else
                                 target.AddLine(newX, newY, null, clipPointMeasure);

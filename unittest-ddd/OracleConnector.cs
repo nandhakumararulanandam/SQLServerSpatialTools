@@ -263,12 +263,15 @@ namespace SQLSpatialTools.UnitTests.DDD
             ExecuteNonQuery(query1, ref errorInfo);
 
             // retrieve the result from temp table.
-            var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetOneResultFromTempTable);
-            var result = ExecuteScalar<string>(query2, out errorInfo);
+            // if there is an error in the previous query; don't run the result from temp table.
+            if (string.IsNullOrEmpty(errorInfo))
+            {
+                var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetOneResultFromTempTable);
+                var result = ExecuteScalar<string>(query2, out errorInfo);
+                testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
+                testObj.OracleResult1 = result;
+            }
             testObj.OracleError = errorInfo;
-            testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
-            testObj.OracleResult1 = result;
-
         }
 
         /// <summary>
@@ -296,16 +299,18 @@ namespace SQLSpatialTools.UnitTests.DDD
             // first execute to store the result in temp table.
             ExecuteNonQuery(query1, ref errorInfo);
 
-
             // retrieve the result from temp table.
-            var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetTwoResultFromTempTable);
-            // retrieve the result from temp table.
-            var result = ExecuteScalar<LRSDataSet.SplitGeomResult>(query2, out errorInfo);
+            // if there is an error in the previous query; don't run the result from temp table.
+            if (string.IsNullOrEmpty(errorInfo))
+            {
+                var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetTwoResultFromTempTable);
+                var result = ExecuteScalar<LRSDataSet.SplitGeomResult>(query2, out errorInfo);
+                testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
+                testObj.OracleResult1 = result.Output_1;
+                testObj.OracleResult2 = result.Output_2;
+            }
 
             testObj.OracleError = errorInfo;
-            testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
-            testObj.OracleResult1 = result.Output_1;
-            testObj.OracleResult2 = result.Output_2;
         }
 
 

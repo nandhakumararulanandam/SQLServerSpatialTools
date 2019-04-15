@@ -27,6 +27,22 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Clipped Segment</returns>
         public static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance = Constants.Tolerance)
         {
+            return ClipGeometrySegment(geometry, clipStartMeasure, clipEndMeasure, tolerance, false);
+        }
+
+        /// <summary>
+        /// Clip a geometry segment based on specified measure.
+        /// <br /> If the clipped start and end point is within tolerance of shape point then shape point is returned as start and end of clipped Geom segment.
+        /// <br /> This function just hooks up and runs a pipeline using the sink.
+        /// </summary>
+        /// <param name="geometry">Input Geometry</param>
+        /// <param name="clipStartMeasure">Start Measure</param>
+        /// <param name="clipEndMeasure">End Measure</param>
+        /// <param name="tolerance">Tolerance Value</param>
+        /// <param name="retainClipMeasure">Flag to retain clip measures</param>
+        /// <returns>Clipped Segment</returns>
+        private static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
+        {
             Ext.ThrowIfNotLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
             bool startMeasureInvalid = false;
@@ -96,7 +112,7 @@ namespace SQLSpatialTools.Functions.LRS
             }
 
             var geometryBuilder = new SqlGeometryBuilder();
-            var geomSink = new ClipMGeometrySegmentSink(clipStartMeasure, clipEndMeasure, geometryBuilder);
+            var geomSink = new ClipMGeometrySegmentSink(clipStartMeasure, clipEndMeasure, geometryBuilder, tolerance, retainClipMeasure);
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
         }
@@ -340,7 +356,8 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ThrowIfNotLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
-            geometry = ClipGeometrySegment(geometry, startMeasure, endMeasure, tolerance);
+            // to retain clip measures on offset
+            geometry = ClipGeometrySegment(geometry, startMeasure, endMeasure, tolerance, true);
 
             // if clipped segment is null; then return null.
             if (geometry == null)
