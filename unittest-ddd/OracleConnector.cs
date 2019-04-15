@@ -534,8 +534,8 @@ namespace SQLSpatialTools.UnitTests.DDD
 
         public const string GeomTypeMatch = @"(?<type>\w+)\s*?(?<content>\(.*\))";
         public const string DimensionGroup = @"\((?<group>.*?)\)";
-        public const string DimensionMatch = @"((?<x>[\d\.]+)\s+(?<y>[\d\.]+)\s+(?<z>([\d\.]+)|(null)|(NULL))\s+(?<m>([\d\.]+)|(null)|(NULL)))"
-                                          + @"|((?<x>[\d\.]+)\s+(?<y>[\d\.]+)\s+(?<z>([\d\.]+)|(null)|(NULL)))"
-                                          + @"|((?<x>[\d\.]+)\s+(?<y>[\d\.]+))";
+        public const string DimensionMatch = @"((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+)\s+(?<z>([\d\.\-]+)|(null)|(NULL))\s+(?<m>([\d\.]+)|(null)|(NULL)))"
+                                          + @"|((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+)\s+(?<z>([\d\.\-]+)|(null)|(NULL)))"
+                                          + @"|((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+))";
     }
 }
