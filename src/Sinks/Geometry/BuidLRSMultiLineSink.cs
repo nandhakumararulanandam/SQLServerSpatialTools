@@ -3,6 +3,7 @@
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 using System;
+using System.Text;
 
 namespace SQLSpatialTools
 {
@@ -10,41 +11,53 @@ namespace SQLSpatialTools
     /// This class implements a geometry sink that builds LRS multiline.
     /// Second segment measure is updated with offset difference.
     /// </summary>
-    class BuidLRSMultiLineSink : IGeometrySink110
+    class BuildLRSMultiLineSink : IGeometrySink110
     {
-        private LRSLine currentLine;
+        private LRSLine CurrentLine;
         public LRSMultiLine Lines;
+        private int Srid;
 
+        public  void ScaleMeasure(double offsetMeasure)
+        {
+            Lines.ScaleMeasure(offsetMeasure);
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="MultiLineMergeGeometrySink"/> class.
         /// </summary>
-        public BuidLRSMultiLineSink()
+        public BuildLRSMultiLineSink()
         {
             Lines = new LRSMultiLine();
         }
 
-        // This is a NO-OP
         public void SetSrid(int srid)
         {
+            Srid = srid;
+        }
+        public int GetSrid()
+        {
+            return Srid;
         }
 
         // Start the geometry.
         public void BeginGeometry(OpenGisGeometryType type)
         {
             if (type == OpenGisGeometryType.LineString)
-                currentLine = new LRSLine();
+            {
+                CurrentLine = new LRSLine();
+                CurrentLine.SetSrid(Srid);
+            }
         }
 
         // Start the figure.  
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            currentLine.AddPoint(new LRSPoint(x, y, z, m));
+            CurrentLine.AddPoint(new LRSPoint(x, y, z, m));
         }
 
         // This is where the real work is done.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            currentLine.AddPoint(new LRSPoint(x, y, z, m));
+            CurrentLine.AddPoint(new LRSPoint(x, y, z, m));
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -55,12 +68,16 @@ namespace SQLSpatialTools
         // This is a NO-OP
         public void EndFigure()
         {
-            Lines.AddLine(currentLine);
+            Lines.AddLine(CurrentLine);
         }
 
         // This is a NO-OP
         public void EndGeometry()
         {
+        }
+        public SqlGeometry ToSqlGeometry()
+        {
+            return Lines.ToSqlGeometry();
         }
     }
 }

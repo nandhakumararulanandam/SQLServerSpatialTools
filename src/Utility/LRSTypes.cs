@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools
@@ -13,23 +15,44 @@ namespace SQLSpatialTools
     internal class LRSMultiLine
     {
         public List<LRSLine> Lines;
+        private int Srid;
 
         public LRSMultiLine()
         {
             Lines = new List<LRSLine>();
         }
+        public void SetSrid(int srid)
+        {
+            Srid = srid;
+        }
 
+        public void ScaleMeasure(double offsetMeasure)
+        {
+            foreach (var line in Lines)
+                line.ScaleMeasure(offsetMeasure);
+        }
         /// <summary>
         /// Adds the line.
         /// </summary>
         /// <param name="lrsLine">The LRS line.</param>
-        public void AddLine(LRSLine lrsLine)
+        public void AddLine(LRSLine line)
         {
-            Lines.Add(lrsLine);
+            Lines.Add(line);
+        }
+
+        public void AddLines(params LRSLine[] lineList)
+        {
+            if (lineList != null && lineList.Any())
+                Lines.AddRange(lineList);
+        }
+
+        public void AddLines(List<LRSLine> lineList)
+        {
+            AddLines(lineList.ToArray());
         }
 
         public bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
-        public int Count { get { return Lines.Any() ? Lines.Count : 0 ; } }
+        public int Count { get { return Lines.Any() ? Lines.Count : 0; } }
 
         /// <summary>
         /// Reverses the lines.
@@ -74,6 +97,42 @@ namespace SQLSpatialTools
             }
             return null;
         }
+        public List<LRSLine> RemoveFirst()
+        {
+            if (Lines.Any())
+            {
+                Lines.RemoveAt(0);
+                return Lines;
+            }
+            return null;
+        }
+
+        public List<LRSLine> RemoveLast()
+        {
+            if (Lines.Any())
+            {
+                Lines.RemoveAt(Lines.Count - 1);
+                return Lines;
+            }
+            return null;
+        }
+        /// <summary>
+        /// Method returns the SqlGeometry form of the 
+        /// </summary>
+        /// <param name="srid"></param>
+        /// <returns></returns>
+        public SqlGeometry ToSqlGeometry()
+        {
+            var geomBuilder = new SqlGeometryBuilder();
+            geomBuilder.SetSrid(Srid);
+            geomBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
+            foreach (LRSLine line in Lines)
+            {
+                line.ToSqlGeometry(ref geomBuilder);
+            }
+            geomBuilder.EndGeometry();      // ending geometry of the multi line string
+            return geomBuilder.ConstructedGeometry;
+        }
     }
 
     /// <summary>
@@ -82,12 +141,20 @@ namespace SQLSpatialTools
     internal class LRSLine
     {
         public List<LRSPoint> Points;
-
+        private int Srid;
         public LRSLine()
         {
             Points = new List<LRSPoint>();
         }
-
+        public void SetSrid(int srid)
+        {
+            Srid = srid;
+        }
+        public void ScaleMeasure(double offsetMeasure)
+        {
+            foreach (var point in Points)
+                point.ScaleMeasure(offsetMeasure);
+        }
         /// <summary>
         /// Adds the point.
         /// </summary>
@@ -129,7 +196,7 @@ namespace SQLSpatialTools
                 if (i != pointCount - 1)
                 {
                     var nextPoint = Points[i + 1];
-                    currentPoint.SetOffsetBearing(nextPoint); 
+                    currentPoint.SetOffsetBearing(nextPoint);
                 }
                 else
                 {
@@ -201,12 +268,35 @@ namespace SQLSpatialTools
 
             var parallelLine = new LRSLine();
 
-            foreach(var point in Points)
+            foreach (var point in Points)
             {
                 parallelLine.AddPoint(point.GetParallelPoint(offset));
-            }           
+            }
 
             return parallelLine;
+        }
+
+        public void ToSqlGeometry(ref SqlGeometryBuilder geomBuilder)
+        {
+            geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
+            var pointIterator = 1;
+            foreach (LRSPoint point in Points)
+            {
+                if (pointIterator == 1)
+                    geomBuilder.BeginFigure(point.x, point.y, point.z, point.m);
+                else
+                    geomBuilder.AddLine(point.x, point.y, point.z, point.m);
+                pointIterator++;
+            }
+            geomBuilder.EndFigure();
+            geomBuilder.EndGeometry();
+        }
+        public SqlGeometry ToSqlGeometry()
+        {
+            var geomBuilder = new SqlGeometryBuilder();
+            geomBuilder.SetSrid(Srid);
+            ToSqlGeometry(ref geomBuilder);
+            return geomBuilder.ConstructedGeometry;
         }
     }
 
@@ -216,8 +306,8 @@ namespace SQLSpatialTools
     internal class LRSPoint
     {
         // Fields.
-        public readonly double x, y;
-        public readonly double? z, m;
+        public double x, y;
+        public double? z, m;
 
         public double? OffsetBearing;
         public double OffsetAngle;
@@ -232,6 +322,10 @@ namespace SQLSpatialTools
             this.m = m.HasValue ? m : z;
         }
 
+        public void ScaleMeasure(double offsetMeasure)
+        {
+            m += offsetMeasure;
+        }
         /// <summary>
         /// Implements the operator -.
         /// </summary>

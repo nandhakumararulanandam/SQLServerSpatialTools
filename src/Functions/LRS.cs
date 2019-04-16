@@ -308,11 +308,12 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Returns Merged Geometry Segments</returns>
         public static SqlGeometry MergeGeometrySegments(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = Constants.Tolerance)
         {
-            Ext.ThrowIfNotLine(geometry1, geometry2);
+            Ext.ThrowIfNotLineOrMultiLine(geometry1, geometry2);
             Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
 
+            double offsetMeasureDifference = 0;
             var isConnected = IsConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
 
             var mergeType = geometry1.GetMergeType(geometry2);
@@ -321,9 +322,9 @@ namespace SQLSpatialTools.Functions.LRS
                 switch (mergeType)
                 {
                     case MergeInputType.LSLS:
-                        return SimpleLineStringMerger(geometry1, geometry2, tolerance, mergePosition);
+                        return SimpleLineStringMerger(geometry1, geometry2, tolerance, mergePosition, out offsetMeasureDifference);
                     case MergeInputType.LSMLS:
-                        // have to implement logic of this combinations
+                        LSMLSMerger(geometry1, geometry2, tolerance, mergePosition);
                         break;
                     case MergeInputType.MLSLS:
                         // have to implement logic of this combinations
@@ -341,6 +342,72 @@ namespace SQLSpatialTools.Functions.LRS
             return null;
         }
 
+        public static SqlGeometry LSMLSMerger(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition)
+        {
+            BuildLRSMultiLineSink geom1Line = new BuildLRSMultiLineSink();
+            geometry1.Populate(geom1Line);
+
+            BuildLRSMultiLineSink geom2Line = new BuildLRSMultiLineSink();
+            geometry2.Populate(geom2Line);
+
+            var segment1 = geom1Line.Lines;
+            var segment2 = geom2Line.Lines;
+
+
+            SqlGeometry sourceSegment, targetSegment, mergedSegment;
+            int srid = geom1Line.GetSrid();
+
+            // check direction of measure.
+            var isSameDirection = geometry1.STSameDirection(geometry2);
+
+            switch (mergePosition)
+            {
+                case MergePosition.EndEnd:
+                case MergePosition.BothEnds:
+                    {
+                        if (isSameDirection)
+                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+
+                        geom2Line = new BuildLRSMultiLineSink();
+                        geometry2.Populate(geom2Line);
+
+                        sourceSegment = segment1.GetLastLine().ToSqlGeometry();
+                        targetSegment = segment2.GetLastLine().ToSqlGeometry();
+                        mergedSegment = SimpleLineStringMerger(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+
+                        segment1.RemoveLast();
+                        segment2.RemoveLast();
+                        geometry2 = ReverseAndTranslateGeometry(geom2Line.ToSqlGeometry(), measureDifference);
+
+                        geom2Line = new BuildLRSMultiLineSink();
+                        geometry2.Populate(geom2Line);
+                        segment2 = geom2Line.Lines;
+
+                        var mergedGeom = new BuildLRSMultiLineSink();
+                        mergedSegment.Populate(mergedGeom);
+
+                        var mergedLine = mergedGeom.Lines;
+
+                        segment1.AddLines(mergedLine.Lines);
+                        segment1.AddLines(segment2.Lines);
+                        return segment1.ToSqlGeometry();
+                    }
+                case MergePosition.EndStart:
+                case MergePosition.CrossEnds:
+                    {
+                        break;
+                    }
+                case MergePosition.StartEnd:
+                    {
+                        break;
+                    }
+                case MergePosition.StartStart:
+                    {
+                        break;
+                    }
+            }
+            return null;    // remove this
+        }
         /// <summary>
         /// Returns the geometric segment at a specified offset from a geometric segment.
         /// Works only for LineString Geometry.
@@ -498,11 +565,11 @@ namespace SQLSpatialTools.Functions.LRS
             else
                 doUpdateM = true;
 
-            var builder = new BuidLRSMultiLineSink();
+            var builder = new BuildLRSMultiLineSink();
             geometry1.Populate(builder);
             var lrsMultiline1 = builder.Lines;
 
-            builder = new BuidLRSMultiLineSink();
+            builder = new BuildLRSMultiLineSink();
             geometry2.Populate(builder);
             var lrsMultiline2 = builder.Lines;
 
@@ -561,7 +628,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="geometry2"></param>
         /// <param name="tolerance"></param>
         /// <returns>SqlGeometry</returns>
-        private static SqlGeometry SimpleLineStringMerger(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition)
+        private static SqlGeometry SimpleLineStringMerger(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition, out double measureDifference)
         {
             // geometry 1 and geometry 2 to be 2D line strings with measure 'm'
             Ext.ThrowIfNotLine(geometry1, geometry2);
@@ -642,7 +709,7 @@ namespace SQLSpatialTools.Functions.LRS
                 default:
                     throw new Exception("Invalid Merge Coordinate position");
             }
-
+            measureDifference = offsetM;    // gives the offset measure difference for the caller method consumption
             // Builder for resultant merged geometry to store
             var geomBuilder = new SqlGeometryBuilder();
 
