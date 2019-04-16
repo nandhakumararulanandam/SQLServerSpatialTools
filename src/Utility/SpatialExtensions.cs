@@ -571,6 +571,18 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Will get the string value for a given enums value, this will
+        /// only work if you assign the StringValue attribute to
+        /// the items in your enum.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string GetString(this LRSErrorCodes value)
+        {
+            return GetStringAttributeValue<LRSErrorCodes>(value);
+        }
+
+        /// <summary>
         /// Gets the string attribute value.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -609,7 +621,7 @@ namespace SQLSpatialTools.Utility
         /// <returns>String Value of LRS Error Code.</returns>
         public static string Value(this LRSErrorCodes lrsErrorCodes)
         {
-            return lrsErrorCodes == LRSErrorCodes.Valid ? "TRUE" : ((short)lrsErrorCodes).ToString(CultureInfo.CurrentCulture);
+            return lrsErrorCodes == LRSErrorCodes.ValidLRS ? "TRUE" : ((short)lrsErrorCodes).ToString(CultureInfo.CurrentCulture);
         }
 
         #endregion        
@@ -778,6 +790,16 @@ namespace SQLSpatialTools.Utility
             throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, messageFormat, args));
         }
 
+        /// <summary>
+        /// Throws LRS Error based on error code.
+        /// </summary>
+        /// <param name="lrsErrorCode">LRS Error Code</param>
+        public static void ThrowLRSError(LRSErrorCodes lrsErrorCode)
+        {
+            var message = string.Format(CultureInfo.CurrentCulture, "{0} - {1}", (int)lrsErrorCode, lrsErrorCode.GetString());
+            throw new ArgumentException(message);
+        }
+
         #endregion
 
         #region Dimensions
@@ -854,7 +876,7 @@ namespace SQLSpatialTools.Utility
                     sqlGeometry = sqlGeometry.ConvertTo2DM();
                     break;
                 case DimensionalInfo._2D:
-                    ThrowException("Cannot operate on 2 Dimensional co-ordinates without measure values");
+                    ThrowException(ErrorMessage.TwoDimensionalCoordinates);
                     break;
                 // skip for invalid types where Dimensional information can't be inferred
                 default:

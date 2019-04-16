@@ -85,17 +85,23 @@ namespace SQLSpatialTools.Utility
 
     public enum LRSErrorCodes
     {
-        [StringValue("Invalid LRS Segment")]
-        Valid = 1,
+        [StringValue("Valid LRS segment")]
+        ValidLRS = 1,
 
-        [StringValue("Invalid LRS Segment")]
-        Invalid = 13331,
+        [StringValue("Invalid LRS segment")]
+        InvalidLRS = 13331,
 
-        [StringValue("Invalid LRS measure not defined")]
-        MeasureNotDefined = 13331,
+        [StringValue("Invalid LRS point")]
+        InvalidLRSPoint = 13332,
 
-        [StringValue("Invalid LRS measure not in linear sequence")]
-        MeasureNotLinear = 13333,
+        [StringValue("Invalid LRS measure")]
+        InvalidLRSMeasure = 13333,
+
+        [StringValue("LRS segments not connected")]
+        LRSSegmentNotConnected = 13334,
+
+        [StringValue("LRS segment is not defined")]
+        LRSSegmentNotDefined = 13335
     }
 
     /// <summary>

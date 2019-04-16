@@ -7,6 +7,7 @@ using Dapper;
 using Oracle.ManagedDataAccess.Client;
 using System.Globalization;
 using SQLSpatialTools.Utility;
+using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
@@ -172,7 +173,10 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="testObj">The test object.</param>
         internal void DoClipGeometrySegment(LRSDataSet.ClipGeometrySegmentData testObj)
         {
-            var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance);
+            var inputGeom = testObj.InputGeom.GetGeom();
+            var query = inputGeom.IsPoint() 
+                ? string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentPointQuery, GetOracleOrdinatePoint(inputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance)
+                : string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance);
             var result = ExecuteScalar<string>(query, out string errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
@@ -263,8 +267,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             string query1;
             if (inputGeom.IsPoint())
             {
-                var pointInOracle = string.Format("{0}, {1}, {2}", inputGeom.STX, inputGeom.STY, inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value);
-                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasurePoint, pointInOracle, optionBuilder.ToString());
+                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasurePoint, GetOracleOrdinatePoint(inputGeom), optionBuilder.ToString());
                 ExecuteNonQuery(query1, ref errorInfo);
             }
             else
@@ -344,6 +347,16 @@ namespace SQLSpatialTools.UnitTests.DDD
         #region Utility Functions
 
         /// <summary>
+        /// Gets the oracle ordinate point.
+        /// </summary>
+        /// <param name="inputGeom">The input geom.</param>
+        /// <returns></returns>
+        internal string GetOracleOrdinatePoint(SqlGeometry inputGeom)
+        {
+            return string.Format("{0}, {1}, {2}", inputGeom.STX, inputGeom.STY, inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value);
+        }
+
+        /// <summary>
         /// Converts the input WKT in 4d(x,y,z,m), 3d(x,y,m) 2d(x,y) to P(x,y,m) values.
         /// </summary>
         /// <param name="geomSegmentWKT"></param>
@@ -418,6 +431,14 @@ namespace SQLSpatialTools.UnitTests.DDD
         public const string ClipGeomSegmentQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
                                                  + "SDO_LRS.CLIP_GEOM_SEGMENT("
                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2}, {3})"
+                                                 + ") from dual";
+
+        public const string ClipGeomSegmentPointQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                 + "SDO_LRS.CLIP_GEOM_SEGMENT("
+                                                 + " SDO_GEOMETRY(3001, NULL, NULL, "
+                                                      + "SDO_ELEM_INFO_ARRAY(1, 1, 1), "
+                                                      + "SDO_ORDINATE_ARRAY({0}))"
+                                                 + ", {1}, {2}, {3})"
                                                  + ") from dual";
 
         public const string GetEndMeasureQuery = "SELECT "
