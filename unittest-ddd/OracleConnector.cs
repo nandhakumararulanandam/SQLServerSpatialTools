@@ -267,7 +267,8 @@ namespace SQLSpatialTools.UnitTests.DDD
             string query1;
             if (inputGeom.IsPoint())
             {
-                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasurePoint, GetOracleOrdinatePoint(inputGeom), optionBuilder.ToString());
+                var pointInOracle = string.Format("{0}, {1}, {2}", inputGeom.STX, inputGeom.STY, inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value);
+                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasurePoint, pointInOracle, optionBuilder.ToString());
                 ExecuteNonQuery(query1, ref errorInfo);
             }
             else

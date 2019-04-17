@@ -212,7 +212,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>SqlBoolean</returns>
         private static SqlBoolean CheckConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
         {
-            Ext.ThrowIfNotLineOrMultiLine(geometry1, geometry2);
+            Ext.ThrowIfNotLRSType(geometry1, geometry2);
             Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
