@@ -61,8 +61,8 @@ SET @geom1 = GEOMETRY::STGeomFromText('LINESTRING (10 1 NULL 10, 25 1 NULL 25)',
 SET @geom2 = GEOMETRY::STGeomFromText('LINESTRING (30 1 NULL 30, 40 1 NULL 40 )', @srid);
 
 SELECT 'Merge Geometry Segments' AS 'FunctionInfo'
-	,[dbo].[LRS_MergeGeometrySegments](@geom1, @geom2) AS 'Geometry'
-	,[dbo].[LRS_MergeGeometrySegments](@geom1, @geom2).ToString() AS 'Geometry in String';
+	,[dbo].[LRS_MergeGeometrySegments](@geom1, @geom2, @tolerance) AS 'Geometry'
+	,[dbo].[LRS_MergeGeometrySegments](@geom1, @geom2, @tolerance).ToString() AS 'Geometry in String';
 
 -- 9. OffsetGeometrySegment Function
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING(5 10 0, 20 5 30.628, 35 10 61.257, 55 10 100)', @srid);

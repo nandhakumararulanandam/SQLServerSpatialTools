@@ -27,7 +27,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Clipped Segment</returns>
         public static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance = Constants.Tolerance)
         {
-            return ClipGeometrySegment(geometry, clipStartMeasure, clipEndMeasure, tolerance, false);
+            return ClipAndRetainMeasure(geometry, clipStartMeasure, clipEndMeasure, tolerance, false);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="tolerance">Tolerance Value</param>
         /// <param name="retainClipMeasure">Flag to retain clip measures</param>
         /// <returns>Clipped Segment</returns>
-        private static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
+        private static SqlGeometry ClipAndRetainMeasure(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
         {
             Ext.ThrowIfNotLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
@@ -181,7 +181,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>SqlBoolean</returns>
         public static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence = Constants.Tolerance)
         {
-            return IsConnected(geometry1, geometry2, tolerence, out _);
+            return CheckConnected(geometry1, geometry2, tolerence, out _);
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="tolerence">Distance Threshold range; default 0.01F</param>
         /// <param name="mergeCoordinatePosition">Represents position of merge segments</param>
         /// <returns>SqlBoolean</returns>
-        private static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
+        private static SqlBoolean CheckConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
         {
             Ext.ThrowIfNotLineOrMultiLine(geometry1, geometry2);
             Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
@@ -313,7 +313,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
 
-            var isConnected = IsConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
+            var isConnected = CheckConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
 
             var mergeType = geometry1.GetMergeType(geometry2);
             if (isConnected)
@@ -357,7 +357,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry);
 
             // to retain clip measures on offset
-            geometry = ClipGeometrySegment(geometry, startMeasure, endMeasure, tolerance, true);
+            geometry = ClipAndRetainMeasure(geometry, startMeasure, endMeasure, tolerance, true);
 
             // if clipped segment is null; then return null.
             if (geometry == null)
