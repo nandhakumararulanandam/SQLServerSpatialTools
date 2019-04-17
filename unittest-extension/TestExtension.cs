@@ -77,14 +77,21 @@ namespace SQLSpatialTools.UnitTests.Extension
         /// <returns></returns>
         public static bool Compare(this string firstResult, string secondResult)
         {
+            // check for null words and assign null
+            if (!string.IsNullOrEmpty(firstResult))
+                firstResult = firstResult.ToLower(CultureInfo.CurrentCulture).Trim().Equals("null", StringComparison.CurrentCulture) ? null : firstResult.Trim();
+
+            if (!string.IsNullOrEmpty(secondResult))
+                secondResult = secondResult.ToLower(CultureInfo.CurrentCulture).Trim().Equals("null", StringComparison.CurrentCulture) ? null : secondResult.Trim();
+
             if (string.IsNullOrEmpty(firstResult) && string.IsNullOrEmpty(secondResult))
                 return true;
             if (string.IsNullOrEmpty(firstResult) || string.IsNullOrEmpty(secondResult))
                 return false;
 
-            firstResult = Regex.Replace(firstResult.ToLower(), @"\s+", string.Empty);
-            secondResult = Regex.Replace(secondResult.ToLower(), @"\s+", string.Empty);
-            return firstResult.Equals(secondResult);
+            firstResult = Regex.Replace(firstResult, @"\s+", string.Empty);
+            secondResult = Regex.Replace(secondResult, @"\s+", string.Empty);
+            return firstResult.Equals(secondResult, StringComparison.CurrentCulture);
         }
 
         /// <summary>

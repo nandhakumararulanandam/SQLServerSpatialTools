@@ -84,7 +84,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                     if (line.TrimStart().StartsWith(dataFileComment))
                         continue;
 
-                    var subDataSets = line.Split(dataParamSeperator, StringSplitOptions.RemoveEmptyEntries);
+                    var subDataSets = line.Split(dataParamSeperator, StringSplitOptions.None);
                     if (subDataSets.Length != paramCount)
                     {
                         logger.LogError(new Exception("Data Format Exception"), "Error in input data format:{0};\nLine:{1} Argument count mimatch, expected: {2}, obtained: {3}", fileName, lineCounter, paramCount, subDataSets.Length);

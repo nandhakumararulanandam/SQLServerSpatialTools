@@ -51,6 +51,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
@@ -65,16 +68,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.ClipGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure, test.Tolerance)?.ToString().TrimNullValue();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoClipGeometrySegment(test);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -82,6 +75,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoClipGeometrySegment(test);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update test results in DB
                 UpdateTestResults(test, LRSDataSet.ClipGeometrySegmentData.TableName);
@@ -104,6 +108,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
@@ -116,16 +123,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.GetEndMeasure(inputGeomSegment).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoGetEndMeasure(test);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -133,6 +130,18 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoGetEndMeasure(test);
+                OracleTimer.Stop();
+
+                #endregion
+
 
                 // Update test results in DB
                 UpdateTestResults(test, LRSDataSet.GetEndMeasureData.TableName);
@@ -155,6 +164,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
@@ -167,16 +179,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.GetStartMeasure(inputGeomSegment).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoGetStartMeasure(test);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -184,6 +186,18 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoGetStartMeasure(test);
+                OracleTimer.Stop();
+
+                #endregion
+
 
                 // Update test results in DB
                 UpdateTestResults(test, LRSDataSet.GetStartMeasureData.TableName);
@@ -206,6 +220,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment1 = test.InputGeom1.GetGeom();
@@ -229,6 +246,8 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Logger.LogError(ex);
                 }
 
+                #endregion
+
                 // Update results to database
                 UpdateSqlServerTestResults(test, LRSDataSet.InterpolateBetweenGeomData.TableName);
 
@@ -250,6 +269,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment1 = test.InputGeom1.GetGeom();
@@ -264,15 +286,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.IsConnected(inputGeomSegment1, inputGeomSegment2, test.Tolerance).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Point: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoIsConnectedGeomSegmentTest(test);
-                    OracleTimer.Stop();
-
-                    #endregion
                 }
                 catch (Exception ex)
                 {
@@ -280,6 +293,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoIsConnectedGeomSegmentTest(test);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update results to database
                 UpdateTestResults(test, LRSDataSet.IsConnectedData.TableName);
@@ -302,6 +326,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment1 = test.InputGeom.GetGeom();
@@ -314,17 +341,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.LocatePointAlongGeom(inputGeomSegment1, test.Measure).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoLocatePointAlongGeomTest(test);
-                    Logger.Log("Oracle Result: {0}", test.OracleResult1);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -332,6 +348,18 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoLocatePointAlongGeomTest(test);
+                Logger.Log("Oracle Result: {0}", test.OracleResult1);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update results to database
                 UpdateTestResults(test, LRSDataSet.LocatePointAlongGeomData.TableName);
@@ -353,6 +381,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var geom1 = test.InputGeom1.GetGeom();
@@ -365,20 +396,10 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    
+
                     test.ObtainedResult1 = Geometry.MergeGeometrySegments(geom1, geom2, test.Tolerance).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result : {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoMergeGeomTest(test);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -386,6 +407,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoMergeGeomTest(test);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update results to database
                 UpdateTestResults(test, LRSDataSet.MergeGeometrySegmentsData.TableName);
@@ -408,6 +440,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
@@ -423,16 +458,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.OffsetGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure, test.Offset, test.Tolerance)?.ToString().TrimNullValue();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoOffsetGeometrySegment(test);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -440,6 +465,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoOffsetGeometrySegment(test);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update test results in DB
                 UpdateTestResults(test, LRSDataSet.OffsetGeometrySegmentData.TableName);
@@ -462,6 +498,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
@@ -473,17 +512,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.PopulateGeometryMeasures(geom, test.StartMeasure, test.EndMeasure).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoPopulateMeasuresTest(test);
-                    OracleTimer.Stop();
-                    Logger.Log("Oracle Result: {0}", test.OracleResult1);
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -491,6 +519,18 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoPopulateMeasuresTest(test);
+                OracleTimer.Stop();
+                Logger.Log("Oracle Result: {0}", test.OracleResult1);
+
+                #endregion
 
                 // Update results to database
                 UpdateTestResults(test, LRSDataSet.PopulateGeometryMeasuresData.TableName);
@@ -554,6 +594,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
@@ -566,16 +609,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult1 = Geometry.ReverseLinearGeometry(geom).ToString();
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoReverseLinearGeomTest(test);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -583,6 +616,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoReverseLinearGeomTest(test);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update results to database
                 UpdateTestResults(test, LRSDataSet.ReverseLinearGeometryData.TableName);
@@ -605,6 +649,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
@@ -624,15 +671,6 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.ObtainedResult2 = obtainedGeom2.ToString();
                     Logger.LogLine("Obtained Result1: {0}", test.ObtainedResult1);
                     Logger.Log("Obtained Result2: {0}", test.ObtainedResult2);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.DoSplitGeometrySegmentTest(test);
-                    OracleTimer.Stop();
-
-                    #endregion
                 }
                 catch (Exception ex)
                 {
@@ -640,6 +678,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoSplitGeometrySegmentTest(test);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update results to database
                 UpdateTestResults(test, LRSDataSet.SplitGeometrySegmentData.TableName);
@@ -658,6 +707,9 @@ namespace SQLSpatialTools.UnitTests.DDD
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
                 try
                 {
                     var inputGeomSegment = test.InputGeom.GetGeom();
@@ -667,19 +719,9 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.ValidateLRSGeometry(inputGeomSegment).ToString();
+                    test.ObtainedResult1 = Geometry.ValidateLRSGeometry(inputGeomSegment).ToString(CultureInfo.CurrentCulture);
                     MSSQLTimer.Stop();
                     Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
-
-                    #region Run against Oracle
-
-                    OracleTimer.Restart();
-                    // Oracle Function Execution
-                    oracleConnector.ValidateLRSGeometry(test);
-                    OracleTimer.Stop();
-
-                    #endregion
-
                 }
                 catch (Exception ex)
                 {
@@ -687,6 +729,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     test.Error = ex.Message;
                     Logger.LogError(ex);
                 }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.ValidateLRSGeometry(test);
+                OracleTimer.Stop();
+
+                #endregion
 
                 // Update test results in DB
                 UpdateTestResults(test, LRSDataSet.ValidateLRSGeometryData.TableName);

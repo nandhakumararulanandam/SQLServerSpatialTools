@@ -27,7 +27,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Clipped Segment</returns>
         public static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance = Constants.Tolerance)
         {
-            return ClipGeometrySegment(geometry, clipStartMeasure, clipEndMeasure, tolerance, false);
+            return ClipAndRetainMeasure(geometry, clipStartMeasure, clipEndMeasure, tolerance, false);
         }
 
         /// <summary>
@@ -41,9 +41,9 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="tolerance">Tolerance Value</param>
         /// <param name="retainClipMeasure">Flag to retain clip measures</param>
         /// <returns>Clipped Segment</returns>
-        private static SqlGeometry ClipGeometrySegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
+        private static SqlGeometry ClipAndRetainMeasure(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
         {
-            Ext.ThrowIfNotLine(geometry);
+            Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
             bool startMeasureInvalid = false;
             bool endMeasureInvalid = false;
@@ -54,6 +54,24 @@ namespace SQLSpatialTools.Functions.LRS
                 var shiftObj = clipStartMeasure;
                 clipStartMeasure = clipEndMeasure;
                 clipEndMeasure = shiftObj;
+            }
+
+            // if point then compute here and return
+            if (geometry.IsPoint())
+            {
+                var pointMeasure = geometry.HasM ? geometry.M.Value : 0;
+                var isClipMeasureEqual = clipStartMeasure == clipEndMeasure;
+                // no tolerance check, if both start and end measure is point measure then return point
+                if (isClipMeasureEqual && pointMeasure == clipStartMeasure)
+                    return geometry;
+                else if (isClipMeasureEqual && (clipStartMeasure > pointMeasure || clipStartMeasure < pointMeasure))
+                    Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
+                // if clip measure fall behind or beyond point measure then return null
+                else if ((clipStartMeasure < pointMeasure && clipEndMeasure < pointMeasure) || (clipStartMeasure > pointMeasure && clipEndMeasure > pointMeasure))
+                    return null;
+                // else throw invalid LRS error.
+                else
+                    Ext.ThrowLRSError(LRSErrorCodes.InvalidLRS);
             }
 
             // Get the measure progress of linear geometry and reassign the start and end measures based upon the progression
@@ -181,7 +199,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>SqlBoolean</returns>
         public static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence = Constants.Tolerance)
         {
-            return IsConnected(geometry1, geometry2, tolerence, out _);
+            return CheckConnected(geometry1, geometry2, tolerence, out _);
         }
 
         /// <summary>
@@ -192,7 +210,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="tolerence">Distance Threshold range; default 0.01F</param>
         /// <param name="mergeCoordinatePosition">Represents position of merge segments</param>
         /// <returns>SqlBoolean</returns>
-        private static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
+        private static SqlBoolean CheckConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
         {
             Ext.ThrowIfNotLineOrMultiLine(geometry1, geometry2);
             Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
@@ -314,7 +332,8 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry2);
 
             double offsetMeasureDifference = 0;
-            var isConnected = IsConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
+
+            var isConnected = CheckConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
 
             var mergeType = geometry1.GetMergeType(geometry2);
             if (isConnected)
@@ -479,7 +498,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry);
 
             // to retain clip measures on offset
-            geometry = ClipGeometrySegment(geometry, startMeasure, endMeasure, tolerance, true);
+            geometry = ClipAndRetainMeasure(geometry, startMeasure, endMeasure, tolerance, true);
 
             // if clipped segment is null; then return null.
             if (geometry == null)
@@ -613,7 +632,7 @@ namespace SQLSpatialTools.Functions.LRS
             {
                 if (firtSegmentDirection == LinearMeasureProgress.Increasing && offsetM > 0)
                     doUpdateM = true;
-               
+
                 if (firtSegmentDirection == LinearMeasureProgress.Decreasing && offsetM < 0)
                     doUpdateM = true;
             }
@@ -829,27 +848,30 @@ namespace SQLSpatialTools.Functions.LRS
             // throw if type apart from POINT, LINESTRING, MULTILINESTRING is given as input.
             Ext.ThrowIfNotLRSType(geometry);
 
-            // If there is no measure value; return invalid.
+            // check for dimension
             if (geometry.STGetDimension() == DimensionalInfo._2D)
-                return LRSErrorCodes.MeasureNotDefined.Value();
+            {
+                // If there is no measure value; return invalid.
+                return LRSErrorCodes.InvalidLRS.Value();
+            }
 
             // convert to valid 3 point LRS co-ordinate.
             Ext.ValidateLRSDimensions(ref geometry);
 
             // return invalid if empty or is of geometry collection
             if (geometry.IsNull || geometry.STIsEmpty() || !geometry.STIsValid() || geometry.IsGeometryCollection())
-                return LRSErrorCodes.Invalid.Value();
+                return LRSErrorCodes.InvalidLRS.Value();
 
             // return invalid if geometry doesn't or have null values
             if (!geometry.STHasMeasureValues())
-                return LRSErrorCodes.MeasureNotDefined.Value();
+                return LRSErrorCodes.InvalidLRSMeasure.Value();
 
             // checks if the measures are in linear range.
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new ValidateLinearMeasureGeometrySink(geomBuilder, geometry.STLinearMeasureProgress());
             geometry.Populate(geomSink);
 
-            return geomSink.IsLinearMeasure() ? LRSErrorCodes.Valid.Value() : LRSErrorCodes.MeasureNotLinear.Value();
+            return geomSink.IsLinearMeasure() ? LRSErrorCodes.ValidLRS.Value() : LRSErrorCodes.InvalidLRSMeasure.Value();
         }
     }
 }
