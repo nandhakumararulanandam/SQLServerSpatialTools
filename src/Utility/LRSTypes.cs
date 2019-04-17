@@ -21,15 +21,31 @@ namespace SQLSpatialTools
         {
             Lines = new List<LRSLine>();
         }
+        /// <summary>
+        /// Srid of the geometry considered.
+        /// </summary>
+        /// <param name="srid"></param>
         public void SetSrid(int srid)
         {
             Srid = srid;
         }
-
+        /// <summary>
+        /// Scale the existing measure of geometry by multiplying existing measure with offsetMeasure
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
         public void ScaleMeasure(double offsetMeasure)
         {
             foreach (var line in Lines)
                 line.ScaleMeasure(offsetMeasure);
+        }
+        /// <summary>
+        /// Sum the existing measure with the offsetMeasure
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void TranslateMeasure(double offsetMeasure)
+        {
+            foreach (var line in Lines)
+                line.TranslateMeasure(offsetMeasure);
         }
         /// <summary>
         /// Adds the line.
@@ -60,6 +76,15 @@ namespace SQLSpatialTools
         public void ReversLines()
         {
             Lines.Reverse();
+        }
+        /// <summary>
+        /// Reverse both Line segments and its points
+        /// </summary>
+        public void ReverseLinesAndPoints()
+        {
+            ReversLines();
+            foreach (var line in Lines)
+                line.ReversePoints();
         }
 
         public LRSLine GetFirstLine()
@@ -150,10 +175,23 @@ namespace SQLSpatialTools
         {
             Srid = srid;
         }
+        /// <summary>
+        /// Scale the existing measure of geometry by multiplying existing measure with offsetMeasure
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
         public void ScaleMeasure(double offsetMeasure)
         {
             foreach (var point in Points)
                 point.ScaleMeasure(offsetMeasure);
+        }
+        /// <summary>
+        /// Sum the existing measure with the offsetMeasure
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void TranslateMeasure(double offsetMeasure)
+        {
+            foreach (var point in Points)
+                point.TranslateMeasure(offsetMeasure);
         }
         /// <summary>
         /// Adds the point.
@@ -321,10 +359,21 @@ namespace SQLSpatialTools
             this.z = m.HasValue ? z : null;
             this.m = m.HasValue ? m : z;
         }
-
-        public void ScaleMeasure(double offsetMeasure)
+        /// <summary>
+        /// Translating measure of LRSPoint
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void TranslateMeasure(double offsetMeasure)
         {
             m += offsetMeasure;
+        }
+        /// <summary>
+        /// Scalinng Measure of LRSPoint
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void ScaleMeasure(double offsetMeasure)
+        {
+            m *= offsetMeasure;
         }
         /// <summary>
         /// Implements the operator -.

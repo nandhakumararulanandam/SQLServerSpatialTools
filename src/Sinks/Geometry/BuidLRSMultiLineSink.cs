@@ -14,28 +14,28 @@ namespace SQLSpatialTools
     class BuildLRSMultiLineSink : IGeometrySink110
     {
         private LRSLine CurrentLine;
-        public LRSMultiLine Lines;
+        public LRSMultiLine MultiLine;
         private int Srid;
 
         public  void ScaleMeasure(double offsetMeasure)
         {
-            Lines.ScaleMeasure(offsetMeasure);
+            MultiLine.ScaleMeasure(offsetMeasure);
+        }
+        public void TranslateMeasure(double offsetMeasure)
+        {
+            MultiLine.TranslateMeasure(offsetMeasure);
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="MultiLineMergeGeometrySink"/> class.
         /// </summary>
         public BuildLRSMultiLineSink()
         {
-            Lines = new LRSMultiLine();
+            MultiLine = new LRSMultiLine();
         }
 
         public void SetSrid(int srid)
         {
             Srid = srid;
-        }
-        public int GetSrid()
-        {
-            return Srid;
         }
 
         // Start the geometry.
@@ -68,7 +68,7 @@ namespace SQLSpatialTools
         // This is a NO-OP
         public void EndFigure()
         {
-            Lines.AddLine(CurrentLine);
+            MultiLine.AddLine(CurrentLine);
         }
 
         // This is a NO-OP
@@ -77,7 +77,7 @@ namespace SQLSpatialTools
         }
         public SqlGeometry ToSqlGeometry()
         {
-            return Lines.ToSqlGeometry();
+            return MultiLine.ToSqlGeometry();
         }
     }
 }
