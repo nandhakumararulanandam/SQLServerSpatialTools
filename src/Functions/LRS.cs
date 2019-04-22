@@ -3,7 +3,10 @@
 ********************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Data.SqlTypes;
+using System.Linq;
+using System.Text;
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 using Ext = SQLSpatialTools.Utility.SpatialExtensions;
@@ -31,6 +34,61 @@ namespace SQLSpatialTools.Functions.LRS
         }
 
         /// <summary>
+        /// Clips the and retain measure.
+        /// </summary>
+        /// <param name="geometry">The geometry.</param>
+        /// <param name="clipStartMeasure">The clip start measure.</param>
+        /// <param name="clipEndMeasure">The clip end measure.</param>
+        /// <param name="tolerance">The tolerance.</param>
+        /// <param name="retainMeasure">if set to <c>true</c> [retain measure].</param>
+        /// <returns></returns>
+        private static SqlGeometry ClipAndRetainMeasure(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainMeasure)
+        {
+            Ext.ThrowIfNotLRSType(geometry);
+            Ext.ValidateLRSDimensions(ref geometry);
+
+            // if not multiline just return the line segment or point post clipping
+            if(!geometry.IsMultiLineString())
+                return ClipLineSegment(geometry, clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
+
+            // for multi line
+            var geomSink = new BuildLRSMultiLineSink();
+            geometry.Populate(geomSink);
+            var multiLine = geomSink.MultiLine;
+
+            var clippedSegments = new List<SqlGeometry>();
+            foreach (var line in geomSink.MultiLine)
+            {
+                var segment = ClipLineSegment(line.AsGeometry(), clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
+                // add only line segments
+                if (segment != null && !segment.IsNull && !segment.STIsEmpty())
+                    clippedSegments.Add(segment);
+            }
+
+            if (clippedSegments.Any())
+            {
+                // if one segment then it is a POINT or LINESTRING, so return straight away.
+                if (clippedSegments.Count == 1)
+                    return clippedSegments.First();
+
+                var geomBuilder = new SqlGeometryBuilder();
+                // count only LINESTRINGS
+                var multiLineGeomSink = new BuildMultiLineFromLinesSink(geomBuilder, clippedSegments.Count(segment => segment.IsLineString()));
+
+                foreach (var geom in clippedSegments)
+                {
+                    // ignore points
+                    if(geom.IsLineString())
+                        geom.Populate(multiLineGeomSink);
+                }
+
+                return geomBuilder.ConstructedGeometry;
+            }
+
+            return SqlGeometry.Null;
+        }
+
+        /// <summary>
         /// Clip a geometry segment based on specified measure.
         /// <br /> If the clipped start and end point is within tolerance of shape point then shape point is returned as start and end of clipped Geom segment.
         /// <br /> This function just hooks up and runs a pipeline using the sink.
@@ -41,10 +99,8 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="tolerance">Tolerance Value</param>
         /// <param name="retainClipMeasure">Flag to retain clip measures</param>
         /// <returns>Clipped Segment</returns>
-        private static SqlGeometry ClipAndRetainMeasure(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
+        private static SqlGeometry ClipLineSegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
         {
-            Ext.ThrowIfNotLRSType(geometry);
-            Ext.ValidateLRSDimensions(ref geometry);
             bool startMeasureInvalid = false;
             bool endMeasureInvalid = false;
 
@@ -55,12 +111,12 @@ namespace SQLSpatialTools.Functions.LRS
                 clipStartMeasure = clipEndMeasure;
                 clipEndMeasure = shiftObj;
             }
+            var isClipMeasureEqual = clipStartMeasure == clipEndMeasure;
 
             // if point then compute here and return
             if (geometry.IsPoint())
             {
                 var pointMeasure = geometry.HasM ? geometry.M.Value : 0;
-                var isClipMeasureEqual = clipStartMeasure == clipEndMeasure;
                 // no tolerance check, if both start and end measure is point measure then return point
                 if (isClipMeasureEqual && pointMeasure == clipStartMeasure)
                     return geometry;
@@ -79,7 +135,7 @@ namespace SQLSpatialTools.Functions.LRS
             var geomStartMeasure = measureProgress == LinearMeasureProgress.Increasing ? geometry.GetStartPointMeasure() : geometry.GetEndPointMeasure();
             var geomEndMeasure = measureProgress == LinearMeasureProgress.Increasing ? geometry.GetEndPointMeasure() : geometry.GetStartPointMeasure();
 
-            // clip start measure matches geom start measure and
+            // if clip start measure matches geom start measure and
             // clip end measure matches geom end measure then return the input geom
             if (clipStartMeasure == geomStartMeasure && clipEndMeasure == geomEndMeasure)
                 return geometry;
@@ -105,6 +161,7 @@ namespace SQLSpatialTools.Functions.LRS
                     startMeasureInvalid = true;
             }
 
+            // end point check
             if (!clipEndMeasure.IsWithinRange(geometry))
             {
                 if (isEndBeyond || isExtremeMeasuresMatch)
@@ -116,16 +173,29 @@ namespace SQLSpatialTools.Functions.LRS
                     endMeasureInvalid = true;
             }
 
-            // if both clip start and end measure are reassigned to 0 then return null
+            // if both clip start and end measure are reassigned to invalid then return null
             if (startMeasureInvalid || endMeasureInvalid)
                 return null;
 
-            // if both clip start and end point measure is same then don't check for distance tolerance
+            // Post adjusting if clip start measure matches geom start measure and
+            // clip end measure matches geom end measure then return the input geom
+            if (clipStartMeasure == geomStartMeasure && clipEndMeasure == geomEndMeasure)
+                return geometry;
+
+            // if clip start and end measure are equal post adjusting then we will return a shape point
+            if (clipStartMeasure == clipEndMeasure && (isStartBeyond || isEndBeyond))
+            {
+                if (isStartBeyond)
+                    return geometry.STStartPoint();
+                return geometry.STEndPoint();
+            }
+
+            // if both clip start and end measure is same then don't check for distance tolerance
             if (clipStartMeasure != clipEndMeasure)
             {
-                var startClipPoint = LocatePointWithTolerance(geometry, clipStartMeasure, tolerance);
-                var endClipPoint = LocatePointWithTolerance(geometry, clipEndMeasure, tolerance);
-                if (startClipPoint.STDistance(endClipPoint).IsTolerable(tolerance))
+                var clipStartPoint = LocatePointWithTolerance(geometry, clipStartMeasure, tolerance);
+                var clipEndPoint = LocatePointWithTolerance(geometry, clipEndMeasure, tolerance);
+                if (clipStartPoint.IsWithinTolerance(clipEndPoint, tolerance))
                     return null;
             }
 
@@ -313,6 +383,11 @@ namespace SQLSpatialTools.Functions.LRS
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new LocateMAlongGeometrySink(measure, geomBuilder, tolerance);
             geometry.Populate(geomSink);
+
+            // if point is not derived then the measure is not in range.
+            if (!geomSink.IsPointDerived)
+                Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
+
             return geomBuilder.ConstructedGeometry;
         }
 
@@ -516,13 +591,13 @@ namespace SQLSpatialTools.Functions.LRS
             else
                 doUpdateM = true;
 
-            var builder = new BuidLRSMultiLineSink();
+            var builder = new BuildLRSMultiLineSink();
             geometry1.Populate(builder);
-            var lrsMultiline1 = builder.Lines;
+            var lrsMultiline1 = builder.MultiLine;
 
-            builder = new BuidLRSMultiLineSink();
+            builder = new BuildLRSMultiLineSink();
             geometry2.Populate(builder);
-            var lrsMultiline2 = builder.Lines;
+            var lrsMultiline2 = builder.MultiLine;
 
             var geometryBuilder = new SqlGeometryBuilder();
             // Start Multiline
@@ -530,7 +605,7 @@ namespace SQLSpatialTools.Functions.LRS
             geometryBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
 
             // First Segment
-            foreach (var line in lrsMultiline1.Lines)
+            foreach (var line in lrsMultiline1)
             {
                 var pointCounter = 1;
                 geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);
@@ -548,7 +623,7 @@ namespace SQLSpatialTools.Functions.LRS
             }
 
             // Second Segment
-            foreach (var line in lrsMultiline2.Lines)
+            foreach (var line in lrsMultiline2)
             {
                 var pointCounter = 1;
                 geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);

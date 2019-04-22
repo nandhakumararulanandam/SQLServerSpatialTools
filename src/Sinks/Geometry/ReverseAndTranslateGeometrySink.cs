@@ -15,6 +15,7 @@ namespace SQLSpatialTools
         LRSLine currentLine;
         bool isMultiLine;
         int lineCounter;
+        int srid;
 
         /// <summary>
         /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse it accordingly.
@@ -32,6 +33,7 @@ namespace SQLSpatialTools
         public void SetSrid(int srid)
         {
             target.SetSrid(srid);
+            this.srid = srid;
         }
 
         // Check for types and begin geometry accordingly.
@@ -52,7 +54,7 @@ namespace SQLSpatialTools
         // Just add the points to the current line segment.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            currentLine = new LRSLine();
+            currentLine = new LRSLine(srid);
             currentLine.AddPoint(x, y, z, m);
         }
 
@@ -81,7 +83,7 @@ namespace SQLSpatialTools
             {
                 // reverse the line before constructing the geometry
                 lines.ReversLines();
-                foreach (LRSLine line in lines.Lines)
+                foreach (LRSLine line in lines)
                 {
                     target.BeginGeometry(OpenGisGeometryType.LineString);
 

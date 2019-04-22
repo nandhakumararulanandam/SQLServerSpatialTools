@@ -16,6 +16,7 @@ namespace SQLSpatialTools
         readonly SqlGeometryBuilder target;
         readonly LinearMeasureProgress progress;
 
+        int srid;
         LRSLine line, parallelLine;
 
         public OffsetGeometrySink(SqlGeometryBuilder target, double offset, LinearMeasureProgress progress)
@@ -23,14 +24,15 @@ namespace SQLSpatialTools
             this.target = target;
             this.offset = offset;
             this.progress = progress;
-            line = new LRSLine();
-            parallelLine = new LRSLine();
         }
 
         // This is a NOP.
         public void SetSrid(int srid)
         {
             target.SetSrid(srid);
+            line = new LRSLine(srid);
+            parallelLine = new LRSLine(srid);
+            this.srid = srid;
         }
 
         /// <summary>
@@ -48,13 +50,13 @@ namespace SQLSpatialTools
         // Just add the input points
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            line.AddPoint(new LRSPoint(x, y, z, m));
+            line.AddPoint(x, y, z, m);
         }
 
         // Just add the input points
         public void AddLine(double x, double y, double? z, double? m)
         {
-            line.AddPoint(new LRSPoint(x, y, z, m));
+            line.AddPoint(x, y, z, m);
         }
 
         // This is a NOP.

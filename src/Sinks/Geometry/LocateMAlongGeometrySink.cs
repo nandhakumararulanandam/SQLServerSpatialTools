@@ -20,7 +20,7 @@ namespace SQLSpatialTools
         SqlGeometry lastPoint;        // The last point in the LineString we have passed.
         SqlGeometry foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
         SqlGeometryBuilder target;    // Where we place our result.
-        bool isPointDerived = false;
+        public bool IsPointDerived;
 
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a measure, which is the point along the input linestring we will travel to.
@@ -30,6 +30,7 @@ namespace SQLSpatialTools
             this.target = target;
             this.measure = measure;
             this.tolerance = tolerance;
+            IsPointDerived = false;
         }
 
         // Save the SRID for later
@@ -69,9 +70,9 @@ namespace SQLSpatialTools
             {
                 // now we need to do the hard work and find the point in between these two
                 foundPoint = Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, measure);
-                if (lastPoint.IsTolerable(foundPoint, tolerance))
+                if (lastPoint.IsWithinTolerance(foundPoint, tolerance))
                     foundPoint = lastPoint;
-                else if (thisPoint.IsTolerable(foundPoint, tolerance))
+                else if (thisPoint.IsWithinTolerance(foundPoint, tolerance))
                     foundPoint = thisPoint;
             }
             else
@@ -95,7 +96,7 @@ namespace SQLSpatialTools
         // Here's also where we catch whether we've run off the end of our LineString.
         public void EndGeometry()
         {
-            if (foundPoint != null && !isPointDerived)
+            if (foundPoint != null && !IsPointDerived)
             {
                 // We could use a simple point constructor, but by targeting another sink we can use this
                 // class in a pipeline.
@@ -104,7 +105,7 @@ namespace SQLSpatialTools
                 target.BeginFigure(foundPoint.STX.Value, foundPoint.STY.Value, foundPoint.Z.IsNull ? (double?)null : foundPoint.Z.Value, foundPoint.M.Value);
                 target.EndFigure();
                 target.EndGeometry();
-                isPointDerived = true;
+                IsPointDerived = true;
             }
         }
     }

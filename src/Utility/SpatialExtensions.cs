@@ -289,7 +289,7 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
-        /// Determines whether the distance between start and point is tolerable.
+        /// Determines whether the x y distance between start and point is tolerable.
         /// </summary>
         /// <param name="startPoint">The start point.</param>
         /// <param name="endPoint">The end point.</param>
@@ -297,13 +297,13 @@ namespace SQLSpatialTools.Utility
         /// <returns>
         ///   <c>true</c> if the specified start and end point distance is tolerable; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsTolerable(this SqlGeometry startPoint, SqlGeometry endPoint, double tolerance)
+        public static bool IsWithinTolerance(this SqlGeometry startPoint, SqlGeometry endPoint, double tolerance)
         {
-            return IsTolerable(GetDistance(startPoint.STX.Value, startPoint.STY.Value, endPoint.STX.Value, endPoint.STY.Value), tolerance);
+            return IsXYWithinRange(startPoint, endPoint, tolerance);
         }
 
         /// <summary>
-        /// Determines whether the distance between 2 x,y points is within tolerance
+        /// Determines whether the x y distance between 2 x,y points is within tolerance
         /// </summary>
         /// <param name="x1">The x1.</param>
         /// <param name="y1">The y1.</param>
@@ -313,9 +313,9 @@ namespace SQLSpatialTools.Utility
         /// <returns>
         ///   <c>true</c> if distance between 2 points are within tolerance; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsTwoPointsWithinTolerance(double x1, double y1, double x2, double y2, double tolerance)
+        public static bool IsWithinTolerance(double x1, double y1, double x2, double y2, double tolerance)
         {
-            return GetDistance(x1, y1, x2, y2).IsTolerable(tolerance);
+            return IsXYWithinRange(x1, y1, x2, y2, tolerance);
         }
 
         #endregion
@@ -394,6 +394,12 @@ namespace SQLSpatialTools.Utility
         {
             return Math.Abs(sourcePoint.STX.Value - pointToCompare.STX.Value) <= tolerance &&
                    Math.Abs(sourcePoint.STY.Value - pointToCompare.STY.Value) <= tolerance;
+        }
+
+        public static bool IsXYWithinRange(double x1, double y1, double x2, double y2, double tolerance = 0.0F)
+        {
+            return Math.Abs(x1 - x2) <= tolerance &&
+                   Math.Abs(y1 - y2) <= tolerance;
         }
 
         /// <summary>
@@ -657,6 +663,17 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Throw if input geometry is not a Multiline string.
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        /// <param name="sqlGeometries">Sql Geometries</param>
+        internal static void ThrowIfNotMultiLine(SqlGeometry sqlGeometry, params SqlGeometry[] sqlGeometries)
+        {
+            // Multi line string contains line string internally
+            ThrowIfNotLineOrMultiLine(sqlGeometry, sqlGeometries);
+        }
+
+        /// <summary>
         /// Throw if input geometry is not a line string.
         /// </summary>
         /// <param name="sqlGeometry">Input Sql Geometry</param>
@@ -668,6 +685,21 @@ namespace SQLSpatialTools.Utility
             {
                 if (!geom.IsOfSupportedTypes(OpenGisGeometryType.LineString))
                     throw new ArgumentException(ErrorMessage.LineStringCompatible);
+            }
+        }
+
+        /// <summary>
+        /// Throw if input geometry is not a line string or point.
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        /// <param name="sqlGeometries">Sql Geometries</param>
+        internal static void ThrowIfNotLineOrPoint(SqlGeometry sqlGeometry, params SqlGeometry[] sqlGeometries)
+        {
+            var geoms = (new SqlGeometry[] { sqlGeometry }).Concat(sqlGeometries);
+            foreach (var geom in geoms)
+            {
+                if (!geom.IsOfSupportedTypes(OpenGisGeometryType.LineString, OpenGisGeometryType.Point))
+                    throw new ArgumentException(ErrorMessage.LineOrPointCompatible);
             }
         }
 

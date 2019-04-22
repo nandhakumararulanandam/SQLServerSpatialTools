@@ -14,12 +14,11 @@ namespace SQLSpatialTools
     {
         // Where we place our result
         readonly SqlGeometryBuilder target;
-        readonly double clipStartMeasure;
-        readonly double clipEndMeasure;
         readonly double tolerance;
-        readonly bool isPoint;
         readonly bool retainClipMeasure;
 
+        double clipStartMeasure;
+        double clipEndMeasure;
         double lastX;
         double lastY;
         double lastM;
@@ -46,7 +45,12 @@ namespace SQLSpatialTools
             clipEndMeasure = endMeasure;
             this.tolerance = tolerance;
             this.retainClipMeasure = retainClipMeasure;
-            isPoint = clipStartMeasure == clipEndMeasure;
+        }
+
+        internal void UpdateClipMeasures(double clipStartMeasure, double clipEndMeasure)
+        {
+            this.clipStartMeasure = clipStartMeasure;
+            this.clipEndMeasure = clipEndMeasure;
         }
 
         // Save the SRID for later
@@ -61,35 +65,25 @@ namespace SQLSpatialTools
         {
             if (type != OpenGisGeometryType.LineString)
                 throw new ArgumentException("This operation may only be executed on LineString instances.");
-            if (isPoint)
-                target.BeginGeometry(OpenGisGeometryType.Point);
-            else
-                target.BeginGeometry(OpenGisGeometryType.LineString);
+
+            target.BeginGeometry(OpenGisGeometryType.LineString);
         }
 
-        // Start the figure.  Note that since we only operate on LineStrings, this should only be executed
-        // once.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            // Memorize the starting point.
+            // Add the first shape point if either the start or end measure matches the clip start and end measure
             if (m == clipStartMeasure || m == clipEndMeasure)
             {
                 target.BeginFigure(x, y, z, m);
                 started = true;
             }
 
-            lastX = x;
-            lastY = y;
-            lastM = (double)m;
+            UpdateLastPoint(x, y, m);
         }
 
         // This is where the real work is done.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            // If geom is start and clip start and measure is same; then it is just a point; so return
-            if (started && isPoint)
-                return;
-
             // To unify code for ascending and descending measures - clipPointMeasure
             double? clipPointMeasure = GetClipPointMeasure(m);
             double newX, newY;
@@ -111,16 +105,17 @@ namespace SQLSpatialTools
                     if (m == clipPointMeasure)
                     {
                         target.BeginFigure(x, y, null, m);
+                        isShapePoint = true;
                     }
                     else
                     {
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
                         // if computed point is within tolerance of last point then begin figure with last point
-                        if (Ext.IsTwoPointsWithinTolerance(lastX, lastY, newX, newY, tolerance))
+                        if (Ext.IsWithinTolerance(lastX, lastY, newX, newY, tolerance))
                             target.BeginFigure(lastX, lastY, null, retainClipMeasure ? clipStartMeasure : lastM);
                         // check with current point against new computed point
-                        else if (Ext.IsTwoPointsWithinTolerance(x, y, newX, newY, tolerance))
+                        else if (Ext.IsWithinTolerance(x, y, newX, newY, tolerance))
                         {
                             target.BeginFigure(x, y, null, retainClipMeasure ? clipStartMeasure : m);
                             isShapePoint = true;
@@ -133,7 +128,7 @@ namespace SQLSpatialTools
                     started = true;
                     if (clipStartMeasure == clipEndMeasure || isShapePoint)
                     {
-                        UpdateAndReturn(x, y, m);
+                        UpdateLastPoint(x, y, m);
                         return;
                     }
 
@@ -152,10 +147,10 @@ namespace SQLSpatialTools
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
                         // if computed point is within tolerance of last point then begin figure with last point
-                        if (Ext.IsTwoPointsWithinTolerance(lastX, lastY, newX, newY, tolerance))
+                        if (Ext.IsWithinTolerance(lastX, lastY, newX, newY, tolerance))
                             target.BeginFigure(lastX, lastY, null, retainClipMeasure ? clipStartMeasure : lastM);
                         // check with current point against new computed point
-                        else if (Ext.IsTwoPointsWithinTolerance(x, y, newX, newY, tolerance))
+                        else if (Ext.IsWithinTolerance(x, y, newX, newY, tolerance))
                         {
                             target.BeginFigure(x, y, null, retainClipMeasure ? clipStartMeasure : m);
                             isShapePoint = true;
@@ -167,7 +162,7 @@ namespace SQLSpatialTools
                         started = true;
                         if (clipStartMeasure == clipEndMeasure || isShapePoint)
                         {
-                            UpdateAndReturn(x, y, m);
+                            UpdateLastPoint(x, y, m);
                             return;
                         }
                     }
@@ -181,8 +176,8 @@ namespace SQLSpatialTools
                     {
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
-                        var isWithinLastPoint = Ext.IsTwoPointsWithinTolerance(lastX, lastY, newX, newY, tolerance);
-                        var isWithinCurrentPoint = Ext.IsTwoPointsWithinTolerance(x, y, newX, newY, tolerance);
+                        var isWithinLastPoint = Ext.IsWithinTolerance(lastX, lastY, newX, newY, tolerance);
+                        var isWithinCurrentPoint = Ext.IsWithinTolerance(x, y, newX, newY, tolerance);
 
                         // if computed point is within tolerance of last point then skip
                         if (!isWithinLastPoint)
@@ -201,14 +196,14 @@ namespace SQLSpatialTools
             }
 
             // re-assign the current co-ordinates to match for next iteration.
-            UpdateAndReturn(x, y, m);
+            UpdateLastPoint(x, y, m);
         }
 
-        private void UpdateAndReturn(double x, double y, double? m)
+        private void UpdateLastPoint(double x, double y, double? m)
         {
-            lastM = (double)m;
             lastX = x;
             lastY = y;
+            lastM = m.HasValue ? (double)m : 0;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -227,6 +222,11 @@ namespace SQLSpatialTools
         public void EndGeometry()
         {
             target.EndGeometry();
+            started = false;
+            finished = false;
+            lastX = default(double);
+            lastY = default(double);
+            lastM = default(double);
         }
 
         /// <summary>

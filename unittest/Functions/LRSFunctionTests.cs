@@ -12,6 +12,46 @@ namespace SQLSpatialTools.Tests
     [TestClass]
     public class LRSFunctionTests : BaseUnitTest
     {
+
+        [TestMethod]
+        public void ClipMultiLineTest()
+        {
+            double startMeasure = 1;
+            double endMeasure = -5;
+            var geom = "MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12))".GetGeom();
+            var expected = "POINT (1 1 1)".GetGeom();
+            var result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure, 0.5);
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 2;
+            endMeasure = 10;
+            geom = "MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12))".GetGeom();
+            expected = "MULTILINESTRING ((2.0 2.0 2.0, 3.0 3.0 3.0), (4.0 4.0 4.0, 5.125 5.125 5.125, 6.0 6.0 6.0))".GetGeom();
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure, 0.5);
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 2;
+            endMeasure = 11.25;
+            geom = "MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12))".GetGeom();
+            expected = "MULTILINESTRING ((2 2 NULL 2, 2 2 NULL 2, 3 3 NULL 3), (4 4 NULL 4, 5.125 5.125 NULL 5.125, 6 6 NULL 6), (10 10 NULL 10, 11.25 11.25 NULL 11.25))".GetGeom();
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure, 0.5);
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 2.6;
+            endMeasure = 11;
+            geom = "MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12))".GetGeom();
+            expected = "MULTILINESTRING ((4 4 NULL 4, 5.125 5.125 NULL 5.125, 6 6 NULL 6), (10 10 NULL 10, 11.25 11.25 NULL 11.25))".GetGeom();
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure, 0.5);
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+
+            startMeasure = 2.6;
+            endMeasure = 10;
+            geom = "MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12))".GetGeom();
+            expected = "LINESTRING (4 4 NULL 4, 5.125 5.125 NULL 5.125, 6 6 NULL 6)".GetGeom();
+            result = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure, 0.5);
+            LogClipGeomSegments(startMeasure, endMeasure, geom, result, expected);
+        }
+
         [TestMethod]
         public void ClipGeometrySegmentExtensionTest()
         {
@@ -845,9 +885,10 @@ namespace SQLSpatialTools.Tests
         {
             Logger.LogLine("Input Clipped at measure : {0}, End Measure : {1}", startMeasure, endMeasure);
             Logger.Log("Input Geom : {0}", geom.ToString());
+            Logger.Log("Expected : {0}", expected?.ToString());
             Logger.Log("Clipped : {0}", result?.ToString());
-            
-            if(expected == null)
+
+            if (expected == null)
                 SqlAssert.IsTrue(result == null);
             else
                 SqlAssert.IsTrue(expected.STEquals(result));

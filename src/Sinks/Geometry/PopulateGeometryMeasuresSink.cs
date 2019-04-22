@@ -75,7 +75,7 @@ namespace SQLSpatialTools
         {
             // Memorize the starting point.
             lastPoint = SqlGeometry.Point(x, y, srid);
-            currentLine = new LRSLine();
+            currentLine = new LRSLine(srid);
             if (ispoint)
             {
                 currentLine.AddPoint(x, y, null, endMeasure);
@@ -121,7 +121,7 @@ namespace SQLSpatialTools
             // if 1 then it is linestring 
             if (lineCounter == 0 || !isMultiLine)
             {
-                foreach (LRSLine line in lines.Lines)
+                foreach (LRSLine line in lines)
                 {
                     // Point Check
                     if (line.Points.Count == 1)

@@ -89,8 +89,8 @@ namespace SQLSpatialTools.UnitTests.Extension
             if (string.IsNullOrEmpty(firstResult) || string.IsNullOrEmpty(secondResult))
                 return false;
 
-            firstResult = Regex.Replace(firstResult, @"\s+", string.Empty);
-            secondResult = Regex.Replace(secondResult, @"\s+", string.Empty);
+            firstResult = Regex.Replace(firstResult, @"\s+", string.Empty).ToLower(CultureInfo.CurrentCulture);
+            secondResult = Regex.Replace(secondResult, @"\s+", string.Empty).ToLower(CultureInfo.CurrentCulture);
             return firstResult.Equals(secondResult, StringComparison.CurrentCulture);
         }
 

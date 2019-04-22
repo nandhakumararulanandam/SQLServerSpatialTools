@@ -16,6 +16,7 @@ namespace SQLSpatialTools
         LRSLine currentLine;
         bool isMultiLine, isPoint;
         int lineCounter;
+        int srid;
 
         /// <summary>
         /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse and translate measure it accordingly.
@@ -35,6 +36,7 @@ namespace SQLSpatialTools
         public void SetSrid(int srid)
         {
             target.SetSrid(srid);
+            this.srid = srid;
         }
 
         // Check for types and begin geometry accordingly.
@@ -64,7 +66,7 @@ namespace SQLSpatialTools
                 target.BeginFigure(x, y, z, m + translateMeasure);
             else
             {
-                currentLine = new LRSLine();
+                currentLine = new LRSLine(srid);
                 currentLine.AddPoint(x, y, z, m);
             }
         }
@@ -103,7 +105,7 @@ namespace SQLSpatialTools
             {
                 // reverse the line before constructing the geometry
                 lines.ReversLines();
-                foreach (LRSLine line in lines.Lines)
+                foreach (LRSLine line in lines)
                 {
                     target.BeginGeometry(OpenGisGeometryType.LineString);
 

@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
+using System.Text;
+using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools
@@ -10,7 +14,7 @@ namespace SQLSpatialTools
     /// <summary>
     /// Data structure to capture MULTILINESTRING geometry type.
     /// </summary>
-    internal class LRSMultiLine
+    internal class LRSMultiLine : IEnumerable
     {
         public List<LRSLine> Lines;
 
@@ -29,7 +33,7 @@ namespace SQLSpatialTools
         }
 
         public bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
-        public int Count { get { return Lines.Any() ? Lines.Count : 0 ; } }
+        public int Count { get { return Lines.Any() ? Lines.Count : 0; } }
 
         /// <summary>
         /// Reverses the lines.
@@ -39,6 +43,10 @@ namespace SQLSpatialTools
             Lines.Reverse();
         }
 
+        /// <summary>
+        /// Gets the first LINESTRING in a MULTILINESTRING
+        /// </summary>
+        /// <returns></returns>
         public LRSLine GetFirstLine()
         {
             if (Lines.Any())
@@ -48,6 +56,10 @@ namespace SQLSpatialTools
             return null;
         }
 
+        /// <summary>
+        /// Gets the last LINESTRING in a MULTILINESTRING.
+        /// </summary>
+        /// <returns></returns>
         public LRSLine GetLastLine()
         {
             if (Lines.Any())
@@ -57,6 +69,10 @@ namespace SQLSpatialTools
             return null;
         }
 
+        /// <summary>
+        /// Gets the start point in a MULTILINESTRING
+        /// </summary>
+        /// <returns></returns>
         public LRSPoint GetStartPoint()
         {
             if (Lines.Any())
@@ -66,6 +82,10 @@ namespace SQLSpatialTools
             return null;
         }
 
+        /// <summary>
+        /// Gets the end point in a MULTILINESTRING
+        /// </summary>
+        /// <returns></returns>
         public LRSPoint GetEndPoint()
         {
             if (Lines.Any())
@@ -74,17 +94,68 @@ namespace SQLSpatialTools
             }
             return null;
         }
+
+        /// <summary>
+        /// Returns an enumerator that iterates through each LINESTRING in a MULTILINESTRING.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        /// <summary>
+        /// Gets the enumerator.
+        /// </summary>
+        /// <returns></returns>
+        public LRSEnumerator<LRSLine> GetEnumerator()
+        {
+            return new LRSEnumerator<LRSLine>(Lines);
+        }
     }
 
     /// <summary>
     /// Data structure to capture LINESTRING geometry type.
     /// </summary>
-    internal class LRSLine
+    internal class LRSLine : IEnumerable
     {
         public List<LRSPoint> Points;
+        public int SRID;
+        public bool IsInRange;
+        public bool IsCompletelyInRange;
+        private string wkt;
 
-        public LRSLine()
+        /// <summary>
+        /// Determines whether this instance is line.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if this instance is line; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsLine()
         {
+            return Points.Any() && Points.Count > 1;
+        }
+
+        /// <summary>
+        /// Determines whether this instance is point.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if this instance is point; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsPoint()
+        {
+            return Points.Any() && Points.Count == 1;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LRSLine"/> class.
+        /// </summary>
+        /// <param name="srid">The srid.</param>
+        public LRSLine(int srid)
+        {
+            SRID = srid;
             Points = new List<LRSPoint>();
         }
 
@@ -106,7 +177,75 @@ namespace SQLSpatialTools
         /// <param name="m">The m.</param>
         public void AddPoint(double x, double y, double? z, double? m)
         {
-            Points.Add(new LRSPoint(x, y, z, m));
+            Points.Add(new LRSPoint(x, y, z, m, SRID));
+        }
+
+        /// <summary>
+        /// Converts to WKT format.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(wkt))
+                return wkt;
+
+            if (!IsLine() && !IsPoint())
+            {
+                wkt = string.Empty;
+                return wkt;
+            }
+
+            var wktBuilder = new StringBuilder();
+
+            if (IsLine())
+                wktBuilder.Append("LINESTRING(");
+            else if (IsPoint())
+                wktBuilder.Append("POINT(");
+
+            var pointIterator = 1;
+
+            foreach (var point in Points)
+            {
+                wktBuilder.AppendFormat("{0} {1} {2}", point.x, point.y, point.m);
+                if (pointIterator != Points.Count)
+                    wktBuilder.Append(", ");
+                pointIterator++;
+            }
+            wktBuilder.Append(")");
+            wkt = wktBuilder.ToString();
+
+            return wkt;
+        }
+
+        /// <summary>
+        /// Convert to SqlGeometry.
+        /// </summary>
+        /// <returns></returns>
+        public SqlGeometry AsGeometry()
+        {
+            if (Points.Count < 2)
+                return SqlGeometry.Null;
+
+            if (Points.Count == 1)
+                return SpatialExtensions.GetPoint(Points.First().x, Points.First().y, Points.First().z, Points.First().m, SRID);
+
+            var geomBuilder = new SqlGeometryBuilder();
+            geomBuilder.SetSrid(SRID);
+            geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
+            var pointIterator = 1;
+            foreach (var point in Points)
+            {
+                if (pointIterator == 1)
+                    geomBuilder.BeginFigure(point.x, point.y, point.z, point.m);
+                else
+                    geomBuilder.AddLine(point.x, point.y, point.z, point.m);
+                pointIterator++;
+            }
+            geomBuilder.EndFigure();
+            geomBuilder.EndGeometry();
+            return geomBuilder.ConstructedGeometry;
         }
 
         /// <summary>
@@ -115,6 +254,103 @@ namespace SQLSpatialTools
         public void ReversePoints()
         {
             Points.Reverse();
+        }
+
+        /// <summary>
+        /// Gets the start point.
+        /// </summary>
+        /// <returns></returns>
+        public LRSPoint GetStartPoint()
+        {
+            if (Points.Any())
+            {
+                return Points.First();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the start point measure.
+        /// </summary>
+        /// <returns></returns>
+        public double GetStartPointM()
+        {
+            var currentPoint = GetStartPoint().m;
+            return currentPoint.HasValue ? (double)currentPoint : 0;
+        }
+
+        /// <summary>
+        /// Gets the end point.
+        /// </summary>
+        /// <returns></returns>
+        public LRSPoint GetEndPoint()
+        {
+            if (Points.Any())
+            {
+                return Points.Last();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the end point m.
+        /// </summary>
+        /// <returns></returns>
+        public double GetEndPointM()
+        {
+            var currentPoint = GetEndPoint().m;
+            return currentPoint.HasValue ? (double)currentPoint : 0;
+        }
+
+        /// <summary>
+        /// Returns an enumerator that iterates through each POINT in a LINESTRING.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        /// <summary>
+        /// Gets the enumerator.
+        /// </summary>
+        /// <returns></returns>
+        public LRSEnumerator<LRSPoint> GetEnumerator()
+        {
+            return new LRSEnumerator<LRSPoint>(Points);
+        }
+
+        /// <summary>
+        /// Determines whether the line is within the range of start and end measure.
+        /// </summary>
+        /// <param name="startMeasure">The start measure.</param>
+        /// <param name="endMeasure">The end measure.</param>
+        /// <returns>
+        ///   <c>true</c> if [is within range] [the specified start measure]; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsWithinRange(double startMeasure, double endMeasure, LRSPoint startPoint, LRSPoint endPoint)
+        {
+            int pointCounter = 0;
+
+            var lastLRSPoint = new LRSPoint(0, 0, null, null, SRID);
+
+            foreach (LRSPoint point in this)
+            {
+                var currentM = point.m.HasValue ? point.m : 0;
+
+                if (point == endPoint || point == startPoint || (startMeasure > lastLRSPoint.m && startMeasure < currentM))
+                    pointCounter++;
+                else if (currentM >= startMeasure && currentM <= endMeasure)
+                    pointCounter++;
+                lastLRSPoint = point;
+            }
+
+            IsInRange = pointCounter > 1;
+            IsCompletelyInRange = pointCounter == Points.Count;
+
+            return IsInRange;
         }
 
         /// <summary>
@@ -129,7 +365,7 @@ namespace SQLSpatialTools
                 if (i != pointCount - 1)
                 {
                     var nextPoint = Points[i + 1];
-                    currentPoint.SetOffsetBearing(nextPoint); 
+                    currentPoint.SetOffsetBearing(nextPoint);
                 }
                 else
                 {
@@ -199,12 +435,12 @@ namespace SQLSpatialTools
             CalculateOffsetAngle(progress);
             CalculateOffset(offset, progress);
 
-            var parallelLine = new LRSLine();
+            var parallelLine = new LRSLine(SRID);
 
-            foreach(var point in Points)
+            foreach (var point in Points)
             {
                 parallelLine.AddPoint(point.GetParallelPoint(offset));
-            }           
+            }
 
             return parallelLine;
         }
@@ -218,30 +454,113 @@ namespace SQLSpatialTools
         // Fields.
         public readonly double x, y;
         public readonly double? z, m;
+        public int SRID;
 
         public double? OffsetBearing;
         public double OffsetAngle;
         public double OffsetDistance;
 
         // Constructors.
-        public LRSPoint(double x, double y, double? z, double? m)
+        public LRSPoint(double x, double y, double? z, double? m, int srid)
         {
             this.x = x;
             this.y = y;
             this.z = m.HasValue ? z : null;
             this.m = m.HasValue ? m : z;
+            SRID = srid;
         }
+
+        public LRSPoint(SqlGeometry sqlGeometry)
+        {
+            if (sqlGeometry == null || sqlGeometry.STIsEmpty() || !sqlGeometry.IsPoint())
+                return;
+
+            this.x = sqlGeometry.STX.Value;
+            this.y = sqlGeometry.STY.Value;
+            this.z = sqlGeometry.HasZ ? sqlGeometry.Z.Value : (double?)null;
+            this.m = sqlGeometry.HasM ? sqlGeometry.M.Value : (double?)null;
+        }
+
+        #region Operator Overloading
 
         /// <summary>
         /// Implements the operator -.
         /// </summary>
-        /// <param name="a">a.</param>
-        /// <param name="b">The b.</param>
+        /// <param name="a">LRS Point 1.</param>
+        /// <param name="b">LRS Point 2.</param>
         /// <returns>The result of the operator.</returns>
         public static LRSPoint operator -(LRSPoint a, LRSPoint b)
         {
-            return new LRSPoint(b.x - a.x, b.y - a.y, null, null);
+            return new LRSPoint(b.x - a.x, b.y - a.y, null, null, a.SRID);
         }
+
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="a">LRS Point 1.</param>
+        /// <param name="b">LRS Point 2.</param>
+        /// <returns>The result of the operator.</returns>
+        public static bool operator ==(LRSPoint a, LRSPoint b)
+        {
+            return ReferenceEquals(b, null) ? false : a.x == b.x && a.y == b.y && EqualityComparer<double?>.Default.Equals(a.m, b.m);
+        }
+
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="a">LRS Point 1.</param>
+        /// <param name="b">LRS Point 2.</param>
+        /// <returns>The result of the operator.</returns>
+        public static bool operator !=(LRSPoint a, LRSPoint b)
+        {
+            return ReferenceEquals(b, null) ? true : a.x != b.x || a.y != b.y || a.m != b.m;
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            var point = obj as LRSPoint;
+            return point != null &&
+                   x == point.x &&
+                   y == point.y &&
+                   EqualityComparer<double?>.Default.Equals(m, point.m);
+        }
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
+        {
+            var hashCode = -1911090832;
+            hashCode = hashCode * -1521134295 + x.GetHashCode();
+            hashCode = hashCode * -1521134295 + y.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<double?>.Default.GetHashCode(z);
+            hashCode = hashCode * -1521134295 + EqualityComparer<double?>.Default.GetHashCode(m);
+            return hashCode;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Gets the offset point.
+        /// </summary>
+        /// <param name="nextPoint">The next point.</param>
+        /// <returns>Offset Point.</returns>
+        public double GetOffsetDistance(LRSPoint nextPoint)
+        {
+            return Math.Sqrt(Math.Pow(nextPoint.x - x, 2) + Math.Pow(nextPoint.y - y, 2));
+        }
+
+        #region Parallel Point Computation
 
         /// <summary>
         /// Gets the offset point.
@@ -334,10 +653,62 @@ namespace SQLSpatialTools
                     (x + (OffsetDistance * Math.Cos(Util.ToRadians(90 - OffsetAngle)))),
                     (y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - OffsetAngle)))),
                     null,
-                    m
+                    m,
+                    SRID
                     );
 
             return lrsPoint;
+        }
+
+        #endregion
+
+    }
+
+    public class LRSEnumerator<T> : IEnumerator
+    {
+        public List<T> ListOfItems;
+
+        // Enumerators are positioned before the first element
+        // until the first MoveNext() call.
+        int position = -1;
+
+        public LRSEnumerator(List<T> list)
+        {
+            ListOfItems = list;
+        }
+
+        public bool MoveNext()
+        {
+            position++;
+            return (position < ListOfItems.Count);
+        }
+
+        public void Reset()
+        {
+            position = -1;
+        }
+
+        object IEnumerator.Current
+        {
+            get
+            {
+                return Current;
+            }
+        }
+
+        public T Current
+        {
+            get
+            {
+                try
+                {
+                    return ListOfItems[position];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    throw new InvalidOperationException();
+                }
+            }
         }
     }
 }
