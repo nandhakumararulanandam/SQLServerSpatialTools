@@ -520,6 +520,37 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
+        public void OffsetGeometrySegmentCollinearPointsTest()
+        {
+            var geom = "LINESTRING (218000 104375 0, 218000 104875 500, 218000 105000 625)".GetGeom();
+            var offetGeom = "LINESTRING (217998 104375 0, 217998 105000 625)".GetGeom();
+            var startMeasure = 0;
+            var endMeasure = 625;
+            var offset = 2;
+            var tolerance = 0.5;
+            Logger.LogLine("Input Line : {0}", geom.ToString());
+            var result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+            Logger.Log("Offset Line : {0}", result.ToString());
+            SqlAssert.IsTrue(offetGeom.STEquals(result));
+
+            geom = "LINESTRING(2 2 0, 4 4 4, 10 5 5, 6 6 6)".GetGeom();
+            startMeasure = 0;
+            endMeasure = 6;
+            offset = 2;
+            tolerance = 0.5;
+            Logger.LogLine("Input Line : {0}", geom.ToString());
+            result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+
+            geom = "LINESTRING(2 2 0, 4 4 4, 6 6 6, 10 5 8)".GetGeom();
+            startMeasure = 0;
+            endMeasure = 6;
+            offset = 2;
+            tolerance = 0.5;
+            Logger.LogLine("Input Line : {0}", geom.ToString());
+            result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+        }
+
+        [TestMethod]
         public void PopulateGeometryMeasuresTest()
         {
             // 4 point line string

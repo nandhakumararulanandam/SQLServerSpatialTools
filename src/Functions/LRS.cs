@@ -717,9 +717,9 @@ namespace SQLSpatialTools.Functions.LRS
                 foreach (var point in line.Points)
                 {
                     if (pointCounter == 1)
-                        geometryBuilder.BeginFigure(point.x, point.y, point.z, point.m);
+                        geometryBuilder.BeginFigure(point.X, point.Y, point.Z, point.M);
                     else
-                        geometryBuilder.AddLine(point.x, point.y, point.z, point.m);
+                        geometryBuilder.AddLine(point.X, point.Y, point.Z, point.M);
                     pointCounter++;
                 }
                 geometryBuilder.EndFigure();
@@ -734,11 +734,11 @@ namespace SQLSpatialTools.Functions.LRS
 
                 foreach (var point in line.Points)
                 {
-                    var measure = doUpdateM ? point.m + offsetM : point.m;
+                    var measure = doUpdateM ? point.M + offsetM : point.M;
                     if (pointCounter == 1)
-                        geometryBuilder.BeginFigure(point.x, point.y, point.z, measure);
+                        geometryBuilder.BeginFigure(point.X, point.Y, point.Z, measure);
                     else
-                        geometryBuilder.AddLine(point.x, point.y, point.z, measure);
+                        geometryBuilder.AddLine(point.X, point.Y, point.Z, measure);
                     pointCounter++;
                 }
                 geometryBuilder.EndFigure();
@@ -763,24 +763,53 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Offset Geometry Segment</returns>
         public static SqlGeometry OffsetGeometrySegment(SqlGeometry geometry, double startMeasure, double endMeasure, double offset, double tolerance = Constants.Tolerance)
         {
-            Ext.ThrowIfNotLine(geometry);
+            Ext.ThrowIfNotLineOrMultiLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
             // to retain clip measures on offset
-            geometry = ClipAndRetainMeasure(geometry, startMeasure, endMeasure, tolerance, true);
+            var clippedGeometry = ClipAndRetainMeasure(geometry, startMeasure, endMeasure, tolerance, true);
 
             // if clipped segment is null; then return null.
-            if (geometry == null)
+            if (clippedGeometry == null)
                 return null;
-
-            // TODO:: To handle for point.
-            if (geometry.IsPoint())
-                return geometry;
 
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new OffsetGeometrySink(geomBuilder, offset, geometry.STLinearMeasureProgress());
-            geometry.Populate(geomSink);
+
+            // Explicit handle if clipped segment is Point
+            // As point has a single co-ordinate we need to consider the angle from input segment, not from the clipped segment
+            if (clippedGeometry.IsPoint())
+            {
+                // populate with input geom rather than clipped segment
+                geometry.Populate(geomSink);
+                return geomBuilder.ConstructedGeometry.GetPointAtMeasure(clippedGeometry.M.Value);
+            }
+
+            // remove collinear points
+            RemoveCollinearPoints(clippedGeometry).Populate(geomSink);
             return geomBuilder.ConstructedGeometry;
+        }
+
+        /// <summary>
+        /// Removes the collinear points.
+        /// </summary>
+        /// <param name="sqlGeometry">The SQL geometry.</param>
+        /// <returns></returns>
+        private static SqlGeometry RemoveCollinearPoints(SqlGeometry sqlGeometry)
+        {
+            // If the input segment has only two points; then there is no way of collinearity 
+            // so returning the input segment
+            if (sqlGeometry.STNumPoints() <= 2)
+                return sqlGeometry;
+
+            // populate the input segment
+            var lrsBuilder = new BuildLRSMultiLineSink();
+            sqlGeometry.Populate(lrsBuilder);
+
+            // remove collinear points
+            lrsBuilder.MultiLine.RemoveCollinearPoints();
+
+            return lrsBuilder.MultiLine.ToSqlGeometry();
         }
 
         /// <summary>
@@ -877,7 +906,7 @@ namespace SQLSpatialTools.Functions.LRS
             var geomSink = new ScaleMeasureGeometrySink(geometryBuilder, scaleMeasure);
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
-        }        
+        }
 
         /// <summary>
         /// Split a geometry into geometry segments based on split measure. 

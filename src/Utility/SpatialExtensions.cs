@@ -933,6 +933,24 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Gets the shape point at specified measure.
+        /// </summary>
+        /// <param name="sqlGeometry">The SQL geometry.</param>
+        /// <param name="measure">The measure.</param>
+        /// <returns></returns>
+        internal static SqlGeometry GetPointAtMeasure(this SqlGeometry sqlGeometry, double measure)
+        {
+            var points = sqlGeometry.STNumPoints();
+            for(var iterator = 1; iterator <= points; iterator++)
+            {
+                var currentPoint = sqlGeometry.STPointN(iterator);
+                if (currentPoint.HasM && currentPoint.M.Value == measure)
+                    return currentPoint;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Construct SqlGeometry Point from x, y, z, m values
         /// </summary>
         /// <param name="x">x Coordinate</param>

@@ -113,9 +113,9 @@ namespace SQLSpatialTools
                     foreach (LRSPoint point in line.Points)
                     {
                         if (pointIterator == 1)
-                            target.BeginFigure(point.x, point.y, point.z, point.m + translateMeasure);
+                            target.BeginFigure(point.X, point.Y, point.Z, point.M + translateMeasure);
                         else
-                            target.AddLine(point.x, point.y, point.z, point.m + translateMeasure);
+                            target.AddLine(point.X, point.Y, point.Z, point.M + translateMeasure);
                         pointIterator++;
                     }
                     target.EndFigure();

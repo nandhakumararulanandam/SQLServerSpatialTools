@@ -44,8 +44,8 @@ namespace SQLSpatialTools
             this.retainClipMeasure = retainClipMeasure;
             this.clipStartPoint = new LRSPoint(clipStartPoint);
             this.clipEndPoint = new LRSPoint(clipEndPoint);
-            clipStartMeasure = (double)this.clipStartPoint.m;
-            clipEndMeasure = (double)this.clipEndPoint.m;
+            clipStartMeasure = (double)this.clipStartPoint.M;
+            clipEndMeasure = (double)this.clipEndPoint.M;
             started = false;
             lineCounter = 0;
         }
@@ -139,11 +139,11 @@ namespace SQLSpatialTools
                         {
                             if (isFirst)
                             {
-                                mSink.BeginFigure(point.x, point.y, point.z, point.m);
+                                mSink.BeginFigure(point.X, point.Y, point.Z, point.M);
                                 isFirst = false;
                             }
                             else
-                                mSink.AddLine(point.x, point.y, point.z, point.m);
+                                mSink.AddLine(point.X, point.Y, point.Z, point.M);
                         }
                         mSink.EndFigure();
                         mSink.EndGeometry();
