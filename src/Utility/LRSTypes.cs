@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Types;
@@ -17,30 +16,92 @@ namespace SQLSpatialTools
     internal class LRSMultiLine : IEnumerable
     {
         public List<LRSLine> Lines;
+        private readonly int SRID;
+        private string wkt;
 
-        public LRSMultiLine()
+        public LRSMultiLine(int srid)
         {
+            SRID = srid;
             Lines = new List<LRSLine>();
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is MULTILINESTRING.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
+
+        /// <summary>
+        /// Gets the number of line segments in the MULTILINESTRING.
+        /// </summary>
+        /// <value>
+        /// The count.
+        /// </value>
+        public int Count { get { return Lines.Any() ? Lines.Count : 0; } }
+
+        #region Add Lines
 
         /// <summary>
         /// Adds the line.
         /// </summary>
         /// <param name="lrsLine">The LRS line.</param>
-        public void AddLine(LRSLine lrsLine)
+        public void AddLine(LRSLine line)
         {
-            Lines.Add(lrsLine);
+            Lines.Add(line);
         }
 
-        public bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
-        public int Count { get { return Lines.Any() ? Lines.Count : 0; } }
+        /// <summary>
+        /// Adds multiple lines.
+        /// </summary>
+        /// <param name="lineList">The line list.</param>
+        public void AddLines(List<LRSLine> lineList)
+        {
+            if (lineList != null && lineList.Any())
+                Lines.AddRange(lineList.ToArray());
+        }
+
+        #endregion
+
+        #region Line Manipulation
 
         /// <summary>
-        /// Reverses the lines.
+        /// Scale the existing measure of geometry by multiplying existing measure with offsetMeasure
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void ScaleMeasure(double offsetMeasure)
+        {
+            foreach (var line in Lines)
+                line.ScaleMeasure(offsetMeasure);
+        }
+
+        /// <summary>
+        /// Sum the existing measure with the offsetMeasure
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void TranslateMeasure(double offsetMeasure)
+        {
+            foreach (var line in Lines)
+                line.TranslateMeasure(offsetMeasure);
+        }
+
+        /// <summary>
+        /// Reverses only the LINESTRING segments order in a MULTILINESTRING
         /// </summary>
         public void ReversLines()
         {
             Lines.Reverse();
+        }
+
+        /// <summary>
+        /// Reverse both LINESTRING segment and its POINTS
+        /// </summary>
+        public void ReverseLinesAndPoints()
+        {
+            ReversLines();
+            foreach (var line in Lines)
+                line.ReversePoints();
         }
 
         /// <summary>
@@ -70,7 +131,7 @@ namespace SQLSpatialTools
         }
 
         /// <summary>
-        /// Gets the start point in a MULTILINESTRING
+        /// Gets the start POINT in a MULTILINESTRING
         /// </summary>
         /// <returns></returns>
         public LRSPoint GetStartPoint()
@@ -83,7 +144,7 @@ namespace SQLSpatialTools
         }
 
         /// <summary>
-        /// Gets the end point in a MULTILINESTRING
+        /// Gets the end POINT in a MULTILINESTRING
         /// </summary>
         /// <returns></returns>
         public LRSPoint GetEndPoint()
@@ -93,6 +154,116 @@ namespace SQLSpatialTools
                 return Lines.Last().Points.Last();
             }
             return null;
+        }
+
+        /// <summary>
+        /// Removes the first.
+        /// </summary>
+        /// <returns></returns>
+        public List<LRSLine> RemoveFirst()
+        {
+            if (Lines.Any())
+            {
+                Lines.RemoveAt(0);
+                return Lines;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Removes the last.
+        /// </summary>
+        /// <returns></returns>
+        public List<LRSLine> RemoveLast()
+        {
+            if (Lines.Any())
+            {
+                Lines.RemoveAt(Lines.Count - 1);
+                return Lines;
+            }
+            return null;
+        }
+
+        #endregion
+
+        #region Data Structure Conversion
+
+        /// <summary>
+        /// Converts to WKT format.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(wkt))
+                return wkt;
+
+            if(!Lines.Any())
+            {
+                wkt = string.Empty;
+                return "MULTILINESTRING EMPTY";
+            }
+
+            var wktBuilder = new StringBuilder();
+
+            if (IsMultiLine)
+                wktBuilder.Append("MULTILINESTRING(");
+
+            var lineIterator = 1;
+
+            foreach (var line in Lines)
+            {
+                if(line.IsLine)
+                 wktBuilder.Append(line.ToString());
+
+                if (lineIterator != Lines.Count)
+                    wktBuilder.Append(", ");
+                lineIterator++;
+            }
+            wktBuilder.Append(")");
+            wkt = wktBuilder.ToString();
+
+            return wkt;
+        }
+
+        /// <summary>
+        /// Method returns the SqlGeometry form of the MULTILINESTRING
+        /// </summary>
+        /// <param name="srid"></param>
+        /// <returns></returns>
+        public SqlGeometry ToSqlGeometry()
+        {
+            var geomBuilder = new SqlGeometryBuilder();
+            geomBuilder.SetSrid(SRID);
+
+            if (IsMultiLine)
+                geomBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
+
+            foreach (LRSLine line in Lines)
+            {
+                // ignore points
+                if (line.IsLine)
+                    line.BuildSqlGeometry(ref geomBuilder);
+            }
+
+            if (IsMultiLine)
+                geomBuilder.EndGeometry();
+
+            return geomBuilder.ConstructedGeometry;
+        }
+
+        #endregion
+
+        #region Enumeration
+
+        /// <summary>
+        /// Gets the enumerator.
+        /// </summary>
+        /// <returns></returns>
+        public LRSEnumerator<LRSLine> GetEnumerator()
+        {
+            return new LRSEnumerator<LRSLine>(Lines);
         }
 
         /// <summary>
@@ -106,14 +277,7 @@ namespace SQLSpatialTools
             return GetEnumerator();
         }
 
-        /// <summary>
-        /// Gets the enumerator.
-        /// </summary>
-        /// <returns></returns>
-        public LRSEnumerator<LRSLine> GetEnumerator()
-        {
-            return new LRSEnumerator<LRSLine>(Lines);
-        }
+        #endregion
     }
 
     /// <summary>
@@ -128,28 +292,6 @@ namespace SQLSpatialTools
         private string wkt;
 
         /// <summary>
-        /// Determines whether this instance is line.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if this instance is line; otherwise, <c>false</c>.
-        /// </returns>
-        public bool IsLine()
-        {
-            return Points.Any() && Points.Count > 1;
-        }
-
-        /// <summary>
-        /// Determines whether this instance is point.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if this instance is point; otherwise, <c>false</c>.
-        /// </returns>
-        public bool IsPoint()
-        {
-            return Points.Any() && Points.Count == 1;
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="LRSLine"/> class.
         /// </summary>
         /// <param name="srid">The srid.</param>
@@ -158,6 +300,24 @@ namespace SQLSpatialTools
             SRID = srid;
             Points = new List<LRSPoint>();
         }
+
+        /// <summary>
+        /// Determines whether this instance is line.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if this instance is line; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsLine { get { return Points.Any() && Points.Count > 1; } }
+
+        /// <summary>
+        /// Determines whether this instance is point.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if this instance is point; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsPoint { get { return Points.Any() && Points.Count == 1; } }
+
+        #region Add Points
 
         /// <summary>
         /// Adds the point.
@@ -180,73 +340,9 @@ namespace SQLSpatialTools
             Points.Add(new LRSPoint(x, y, z, m, SRID));
         }
 
-        /// <summary>
-        /// Converts to WKT format.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
-        /// </returns>
-        public override string ToString()
-        {
-            if (!string.IsNullOrEmpty(wkt))
-                return wkt;
+        #endregion
 
-            if (!IsLine() && !IsPoint())
-            {
-                wkt = string.Empty;
-                return wkt;
-            }
-
-            var wktBuilder = new StringBuilder();
-
-            if (IsLine())
-                wktBuilder.Append("LINESTRING(");
-            else if (IsPoint())
-                wktBuilder.Append("POINT(");
-
-            var pointIterator = 1;
-
-            foreach (var point in Points)
-            {
-                wktBuilder.AppendFormat("{0} {1} {2}", point.x, point.y, point.m);
-                if (pointIterator != Points.Count)
-                    wktBuilder.Append(", ");
-                pointIterator++;
-            }
-            wktBuilder.Append(")");
-            wkt = wktBuilder.ToString();
-
-            return wkt;
-        }
-
-        /// <summary>
-        /// Convert to SqlGeometry.
-        /// </summary>
-        /// <returns></returns>
-        public SqlGeometry AsGeometry()
-        {
-            if (Points.Count < 2)
-                return SqlGeometry.Null;
-
-            if (Points.Count == 1)
-                return SpatialExtensions.GetPoint(Points.First().x, Points.First().y, Points.First().z, Points.First().m, SRID);
-
-            var geomBuilder = new SqlGeometryBuilder();
-            geomBuilder.SetSrid(SRID);
-            geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
-            var pointIterator = 1;
-            foreach (var point in Points)
-            {
-                if (pointIterator == 1)
-                    geomBuilder.BeginFigure(point.x, point.y, point.z, point.m);
-                else
-                    geomBuilder.AddLine(point.x, point.y, point.z, point.m);
-                pointIterator++;
-            }
-            geomBuilder.EndFigure();
-            geomBuilder.EndGeometry();
-            return geomBuilder.ConstructedGeometry;
-        }
+        #region Point Manipulation
 
         /// <summary>
         /// Reverses the points of the line.
@@ -303,23 +399,23 @@ namespace SQLSpatialTools
         }
 
         /// <summary>
-        /// Returns an enumerator that iterates through each POINT in a LINESTRING.
+        /// Scale the existing measure of geometry by multiplying existing measure with offsetMeasure
         /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
+        /// <param name="offsetMeasure"></param>
+        public void ScaleMeasure(double offsetMeasure)
         {
-            return GetEnumerator();
+            foreach (var point in Points)
+                point.ScaleMeasure(offsetMeasure);
         }
 
         /// <summary>
-        /// Gets the enumerator.
+        /// Sum the existing measure with the offsetMeasure
         /// </summary>
-        /// <returns></returns>
-        public LRSEnumerator<LRSPoint> GetEnumerator()
+        /// <param name="offsetMeasure"></param>
+        public void TranslateMeasure(double offsetMeasure)
         {
-            return new LRSEnumerator<LRSPoint>(Points);
+            foreach (var point in Points)
+                point.TranslateMeasure(offsetMeasure);
         }
 
         /// <summary>
@@ -353,6 +449,89 @@ namespace SQLSpatialTools
             return IsInRange;
         }
 
+        #endregion
+
+        #region Data Structure Conversions
+
+        /// <summary>
+        /// Converts to WKT format.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(wkt))
+                return wkt;
+
+            if (!IsLine && !IsPoint)
+            {
+                wkt = string.Empty;
+                return wkt;
+            }
+
+            var wktBuilder = new StringBuilder();
+
+            if (IsLine)
+                wktBuilder.Append("LINESTRING(");
+            else if (IsPoint)
+                wktBuilder.Append("POINT(");
+
+            var pointIterator = 1;
+
+            foreach (var point in Points)
+            {
+                wktBuilder.AppendFormat("{0} {1} {2}", point.x, point.y, point.m);
+                if (pointIterator != Points.Count)
+                    wktBuilder.Append(", ");
+                pointIterator++;
+            }
+            wktBuilder.Append(")");
+            wkt = wktBuilder.ToString();
+
+            return wkt;
+        }
+
+        /// <summary>
+        /// Builds the SQL geometry.
+        /// </summary>
+        /// <param name="geomBuilder">The geom builder.</param>
+        internal void BuildSqlGeometry(ref SqlGeometryBuilder geomBuilder)
+        {
+            geomBuilder.SetSrid(SRID);
+            geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
+            var pointIterator = 1;
+            foreach (var point in Points)
+            {
+                if (pointIterator == 1)
+                    geomBuilder.BeginFigure(point.x, point.y, point.z, point.m);
+                else
+                    geomBuilder.AddLine(point.x, point.y, point.z, point.m);
+                pointIterator++;
+            }
+            geomBuilder.EndFigure();
+            geomBuilder.EndGeometry();
+        }
+
+        /// <summary>
+        /// Converts to SqlGeometry.
+        /// </summary>
+        /// <returns></returns>
+        public SqlGeometry ToSqlGeometry()
+        {
+            if (Points.Count < 2)
+                return SqlGeometry.Null;
+
+            if (Points.Count == 1)
+                return SpatialExtensions.GetPoint(Points.First().x, Points.First().y, Points.First().z, Points.First().m, SRID);
+            var geomBuilder = new SqlGeometryBuilder();
+            BuildSqlGeometry(ref geomBuilder);
+            return geomBuilder.ConstructedGeometry;
+        }
+
+        #endregion
+
+        #region Modules for Offset Angle Calculation
         /// <summary>
         /// Calculate offset bearings for all points.
         /// </summary>
@@ -444,6 +623,32 @@ namespace SQLSpatialTools
 
             return parallelLine;
         }
+
+        #endregion
+
+        #region Enumeration
+
+        /// <summary>
+        /// Returns an enumerator that iterates through each POINT in a LINESTRING.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.
+        /// </returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        /// <summary>
+        /// Gets the enumerator.
+        /// </summary>
+        /// <returns></returns>
+        public LRSEnumerator<LRSPoint> GetEnumerator()
+        {
+            return new LRSEnumerator<LRSPoint>(Points);
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -452,15 +657,24 @@ namespace SQLSpatialTools
     internal class LRSPoint
     {
         // Fields.
-        public readonly double x, y;
-        public readonly double? z, m;
+        public double x, y;
+        public double? z, m;
         public int SRID;
 
         public double? OffsetBearing;
         public double OffsetAngle;
         public double OffsetDistance;
 
-        // Constructors.
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LRSPoint"/> class.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="z">The z.</param>
+        /// <param name="m">The m.</param>
+        /// <param name="srid">The srid.</param>
         public LRSPoint(double x, double y, double? z, double? m, int srid)
         {
             this.x = x;
@@ -470,6 +684,10 @@ namespace SQLSpatialTools
             SRID = srid;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LRSPoint"/> class.
+        /// </summary>
+        /// <param name="sqlGeometry">The SQL geometry.</param>
         public LRSPoint(SqlGeometry sqlGeometry)
         {
             if (sqlGeometry == null || sqlGeometry.STIsEmpty() || !sqlGeometry.IsPoint())
@@ -480,6 +698,40 @@ namespace SQLSpatialTools
             this.z = sqlGeometry.HasZ ? sqlGeometry.Z.Value : (double?)null;
             this.m = sqlGeometry.HasM ? sqlGeometry.M.Value : (double?)null;
         }
+
+        #endregion
+
+        #region Point Manipulation
+
+        /// <summary>
+        /// Translating measure of LRSPoint
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void TranslateMeasure(double offsetMeasure)
+        {
+            m += offsetMeasure;
+        }
+
+        /// <summary>
+        /// Scalinng Measure of LRSPoint
+        /// </summary>
+        /// <param name="offsetMeasure"></param>
+        public void ScaleMeasure(double offsetMeasure)
+        {
+            m *= offsetMeasure;
+        }
+
+        /// <summary>
+        /// Gets the offset point.
+        /// </summary>
+        /// <param name="nextPoint">The next point.</param>
+        /// <returns>Offset Point.</returns>
+        public double GetOffsetDistance(LRSPoint nextPoint)
+        {
+            return Math.Sqrt(Math.Pow(nextPoint.x - x, 2) + Math.Pow(nextPoint.y - y, 2));
+        }
+
+        #endregion
 
         #region Operator Overloading
 
@@ -549,16 +801,6 @@ namespace SQLSpatialTools
         }
 
         #endregion
-
-        /// <summary>
-        /// Gets the offset point.
-        /// </summary>
-        /// <param name="nextPoint">The next point.</param>
-        /// <returns>Offset Point.</returns>
-        public double GetOffsetDistance(LRSPoint nextPoint)
-        {
-            return Math.Sqrt(Math.Pow(nextPoint.x - x, 2) + Math.Pow(nextPoint.y - y, 2));
-        }
 
         #region Parallel Point Computation
 
@@ -661,9 +903,13 @@ namespace SQLSpatialTools
         }
 
         #endregion
-
     }
 
+    /// <summary>
+    /// Enumerator for LRS Types
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <seealso cref="System.Collections.IEnumerator" />
     public class LRSEnumerator<T> : IEnumerator
     {
         public List<T> ListOfItems;

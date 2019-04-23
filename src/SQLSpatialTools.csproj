@@ -210,6 +210,11 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SQL Scripts\RegisterAndValidate.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -220,7 +225,9 @@
   <PropertyGroup>
     <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q
 powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'DLLPath', '$(TargetPath)' -join \"`r`n\"))
-powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'UnregisterScriptPath', '$(TargetDir)SQL Scripts\Unregister.sql' -join \"`r`n\"))</PostBuildEvent>
+powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'UnregisterScriptPath', '$(TargetDir)SQL Scripts\Unregister.sql' -join \"`r`n\"))
+powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\RegisterAndValidate.sql', ((gc '$(TargetDir)SQL Scripts\RegisterAndValidate.sql') -replace 'RegisterScriptPath', '$(TargetDir)SQL Scripts\Register.sql' -join \"`r`n\"))
+powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\RegisterAndValidate.sql', ((gc '$(TargetDir)SQL Scripts\RegisterAndValidate.sql') -replace 'ExampleScriptPath', '$(TargetDir)SQL Scripts\lrs_geometry_example.sql' -join \"`r`n\"))</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

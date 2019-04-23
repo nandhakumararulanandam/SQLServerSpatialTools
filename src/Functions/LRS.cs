@@ -34,7 +34,7 @@ namespace SQLSpatialTools.Functions.LRS
         }
 
         /// <summary>
-        /// Clips the and retain measure.
+        /// Clip a geometry segment and retains its measure.
         /// </summary>
         /// <param name="geometry">The geometry.</param>
         /// <param name="clipStartMeasure">The clip start measure.</param>
@@ -48,7 +48,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry);
 
             // if not multiline just return the line segment or point post clipping
-            if(!geometry.IsMultiLineString())
+            if (!geometry.IsMultiLineString())
                 return ClipLineSegment(geometry, clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
 
             // for multi line
@@ -59,7 +59,7 @@ namespace SQLSpatialTools.Functions.LRS
             var clippedSegments = new List<SqlGeometry>();
             foreach (var line in geomSink.MultiLine)
             {
-                var segment = ClipLineSegment(line.AsGeometry(), clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
+                var segment = ClipLineSegment(line.ToSqlGeometry(), clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
                 // add only line segments
                 if (segment != null && !segment.IsNull && !segment.STIsEmpty())
                     clippedSegments.Add(segment);
@@ -78,7 +78,7 @@ namespace SQLSpatialTools.Functions.LRS
                 foreach (var geom in clippedSegments)
                 {
                     // ignore points
-                    if(geom.IsLineString())
+                    if (geom.IsLineString())
                         geom.Populate(multiLineGeomSink);
                 }
 
@@ -111,12 +111,12 @@ namespace SQLSpatialTools.Functions.LRS
                 clipStartMeasure = clipEndMeasure;
                 clipEndMeasure = shiftObj;
             }
-            var isClipMeasureEqual = clipStartMeasure == clipEndMeasure;
 
             // if point then compute here and return
             if (geometry.IsPoint())
             {
                 var pointMeasure = geometry.HasM ? geometry.M.Value : 0;
+                var isClipMeasureEqual = clipStartMeasure == clipEndMeasure;
                 // no tolerance check, if both start and end measure is point measure then return point
                 if (isClipMeasureEqual && pointMeasure == clipStartMeasure)
                     return geometry;
@@ -269,7 +269,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>SqlBoolean</returns>
         public static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence = Constants.Tolerance)
         {
-            return CheckConnected(geometry1, geometry2, tolerence, out _);
+            return CheckIfConnected(geometry1, geometry2, tolerence, out _);
         }
 
         /// <summary>
@@ -280,7 +280,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="tolerence">Distance Threshold range; default 0.01F</param>
         /// <param name="mergeCoordinatePosition">Represents position of merge segments</param>
         /// <returns>SqlBoolean</returns>
-        private static SqlBoolean CheckConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
+        private static SqlBoolean CheckIfConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
         {
             Ext.ThrowIfNotLRSType(geometry1, geometry2);
             Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
@@ -401,37 +401,354 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Returns Merged Geometry Segments</returns>
         public static SqlGeometry MergeGeometrySegments(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = Constants.Tolerance)
         {
-            Ext.ThrowIfNotLine(geometry1, geometry2);
+            Ext.ThrowIfNotLRSType(geometry1, geometry2);
             Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
 
-            var isConnected = CheckConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
+            // If either of the input geom is point; then return the other geometry.
+            if (geometry1.IsPoint())
+                return geometry2;
 
+            if (geometry2.IsPoint())
+                return geometry1;
+
+            var isConnected = CheckIfConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
             var mergeType = geometry1.GetMergeType(geometry2);
+
             if (isConnected)
             {
                 switch (mergeType)
                 {
                     case MergeInputType.LSLS:
-                        return SimpleLineStringMerger(geometry1, geometry2, tolerance, mergePosition);
+                        return MergeConnectedLineStrings(geometry1, geometry2, tolerance, mergePosition, out _);
                     case MergeInputType.LSMLS:
-                        // have to implement logic of this combinations
-                        break;
                     case MergeInputType.MLSLS:
-                        // have to implement logic of this combinations
-                        break;
                     case MergeInputType.MLSMLS:
-                        // have to implement logic of this combinations
-                        break;
+                        return MergeConnectedMultiLineStrings(geometry1, geometry2, tolerance, mergePosition);
                 }
             }
             else
             {
                 // construct multi line
-                return MultiLineStringMerger(geometry1, geometry2);
+                return MergeDisconnectedLineSegments(geometry1, geometry2);
             }
             return null;
+        }
+
+        /// <summary>
+        /// Method will merge simple line strings with tolerance and returns the merged line segment by considering measure and direction of the first geometry.
+        /// </summary>
+        /// <param name="geometry1"></param>
+        /// <param name="geometry2"></param>
+        /// <param name="tolerance"></param>
+        /// <returns>SqlGeometry</returns>
+        private static SqlGeometry MergeConnectedLineStrings(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition, out double measureDifference)
+        {
+            // geometry 1 and geometry 2 to be 2D line strings with measure 'm'
+            Ext.ThrowIfNotLine(geometry1, geometry2);
+            // offset measure difference.
+            var offsetM = 0.0;
+
+            // references governs the order of geometries to get merge
+            SqlGeometry targetSegment = null, sourceSegment = null;
+
+            // check direction of measure.
+            var isSameDirection = geometry1.STSameDirection(geometry2);
+
+            // segments must be connected in any of the following position.
+            switch (mergePosition)
+            {
+                case MergePosition.EndStart:
+                case MergePosition.CrossEnds:
+                    {
+                        // Single negation of measure is needed for geometry 2,
+                        // if both segments are differ in measure variation
+                        if (!isSameDirection)
+                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+
+                        offsetM = geometry1.STEndPoint().GetPointOffset(geometry2.STStartPoint());
+                        geometry2 = TranslateMeasure(geometry2, offsetM);
+                        sourceSegment = geometry1;
+                        targetSegment = geometry2;
+                        break;
+                    }
+                case MergePosition.EndEnd:
+                case MergePosition.BothEnds:
+                    {
+                        // Double negation is needed for geometry 2, i.e., both segments differ from measure variation,
+                        // also, geometry 2 has been traversed from ending point to the starting point
+                        if (isSameDirection)
+                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+
+                        offsetM = geometry1.STEndPoint().GetPointOffset(geometry2.STEndPoint());
+                        // Reverse the geometry 2, since it has been traversed from ending point to the starting point
+                        // scale the measures of geometry 2 based on the offset measure difference between them
+                        geometry2 = ReverseAndTranslateGeometry(geometry2, offsetM);
+                        // start traversing from the geometry 1, hence g1 would be the source geometry
+                        sourceSegment = geometry1;
+                        targetSegment = geometry2;
+                        break;
+                    }
+                case MergePosition.StartStart:
+                    {
+                        // Double negation is needed for geometry 2, i.e., both segments differ from measure variation,
+                        // also, geometry 2 has been traversed from ending point to the starting point
+                        if (isSameDirection)
+                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+
+                        offsetM = geometry1.STStartPoint().GetPointOffset(geometry2.STStartPoint());
+                        // Reverse the geometry 2, since it has been traversed from ending point to the starting point
+                        // scale the measures of geometry 2 based on the offset measure difference between them
+                        geometry2 = ReverseAndTranslateGeometry(geometry2, offsetM);
+                        // the starting point of g1 will become the intermediate point of resultant, so source geometry would be geometry 2
+                        sourceSegment = geometry2;
+                        targetSegment = geometry1;
+                        break;
+                    }
+                case MergePosition.StartEnd:
+                    {
+                        // Single negation of measure is needed for geometry 2
+                        // if both segments are differ in measure variation
+                        if (!isSameDirection)
+                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+
+                        offsetM = (geometry1.STStartPoint().M.Value - geometry2.STEndPoint().M.Value);
+                        // scale the measures of geometry 2 based on the offset measure difference between them
+                        geometry2 = TranslateMeasure(geometry2, offsetM);
+                        // the starting point of g1 will become the intermediate point of resultant, so source geometry would be geometry 2
+                        sourceSegment = geometry2;
+                        targetSegment = geometry1;
+                        break;
+                    }
+                default:
+                    throw new Exception("Invalid Merge Coordinate position");
+            }
+            measureDifference = offsetM;    // gives the offset measure difference for the caller method consumption
+            // Builder for resultant merged geometry to store
+            var geomBuilder = new SqlGeometryBuilder();
+
+            // Building a line segment from the range of points by excluding the last point ( Merging point )
+            var segment1 = new LineStringMergeGeometrySink(geomBuilder, true, sourceSegment.STNumPoints());
+            sourceSegment.Populate(segment1);
+
+            // Continuing to build segment from the points of second geometry
+            var segment2 = new LineStringMergeGeometrySink(geomBuilder, false, targetSegment.STNumPoints());
+            targetSegment.Populate(segment2);
+
+            return geomBuilder.ConstructedGeometry;
+        }
+
+        /// <summary>
+        /// Merges the Multi line and line string combinations with connected structure
+        /// </summary>
+        /// <param name="geometry1"></param>
+        /// <param name="geometry2"></param>
+        /// <param name="tolerance"></param>
+        /// <param name="mergePosition"></param>
+        /// <returns>SqlGeometry of type MultiLineString</returns>
+        private static SqlGeometry MergeConnectedMultiLineStrings(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition)
+        {
+            // check direction of measure.
+            var isSameDirection = geometry1.STSameDirection(geometry2);
+
+            BuildLRSMultiLineSink geom1Line = new BuildLRSMultiLineSink();
+            geometry1.Populate(geom1Line);
+
+            BuildLRSMultiLineSink geom2Line = new BuildLRSMultiLineSink();
+            geometry2.Populate(geom2Line);
+
+            SqlGeometry sourceSegment, targetSegment, mergedSegment;
+
+            var segment1 = geom1Line.MultiLine;
+            var segment2 = geom2Line.MultiLine;
+
+            switch (mergePosition)
+            {
+                case MergePosition.EndEnd:
+                case MergePosition.BothEnds:
+                    {
+                        //  Double Negation of measure is needed, since geometry2 has been traversed from end point to the starting point also differ from measure variation
+                        if (isSameDirection)
+                            segment2.ScaleMeasure(-1);
+
+                        sourceSegment = segment1.GetLastLine().ToSqlGeometry();
+                        targetSegment = segment2.GetLastLine().ToSqlGeometry();
+                        //  Generating merged segment of geometry1 and geometry2
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+
+                        var mergedGeom = new BuildLRSMultiLineSink();
+                        mergedSegment.Populate(mergedGeom);
+
+                        segment1.RemoveLast();                          //  Removing merging line segment from the geometry1
+                        segment2.RemoveLast();                          //  Removing merging line segment from the geometry2
+
+                        segment2.ReverseLinesAndPoints();               //  Traversing from end to the start of geometry2. So reversing the 
+                        segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
+
+                        segment1.AddLines(mergedGeom.MultiLine.Lines);  //  appending merged segment line to the segment1 , since geometry1 would be the beginning geometry of the resultant geometry
+                        segment1.AddLines(segment2.Lines);              //  appending remaining segment of updated geometry2 with the segment1
+                        return segment1.ToSqlGeometry();                //  converting to SqlGeometry type
+                    }
+                case MergePosition.EndStart:
+                case MergePosition.CrossEnds:
+                    {
+                        //  Negation of measure is needed, since measure variation of geometry2 differs from that of geometry1
+                        if (!isSameDirection)
+                            segment2.ScaleMeasure(-1);
+
+                        sourceSegment = segment1.GetLastLine().ToSqlGeometry();
+                        targetSegment = segment2.GetFirstLine().ToSqlGeometry();
+                        //  Generating merged segment of geometry1 and geometry2
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+
+                        var mergedGeom = new BuildLRSMultiLineSink();
+                        mergedSegment.Populate(mergedGeom);
+
+                        segment1.RemoveLast();                          //  Removing merging line segment from the geometry1
+                        segment2.RemoveFirst();                         //  Removing merging line segment from the geometry2
+
+                        segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
+
+                        segment1.AddLines(mergedGeom.MultiLine.Lines);  //  Appending merged segment line to the segment1 , since geometry1 would be the beginning geometry of the resultant geometry
+                        segment1.AddLines(segment2.Lines);              //  Appending remaining segment of updated geometry2 with the segment1
+                        return segment1.ToSqlGeometry();                //  converting to SqlGeometry type
+                    }
+                case MergePosition.StartEnd:
+                    {
+                        //  Negation of measure is needed, since measure variation of geometry2 differs from that of geometry1
+                        if (!isSameDirection)
+                            segment2.ScaleMeasure(-1);
+
+                        sourceSegment = segment1.GetFirstLine().ToSqlGeometry();
+                        targetSegment = segment2.GetLastLine().ToSqlGeometry();
+                        //  Generating merged segment of geometry1 and geometry2
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+
+                        var mergedGeom = new BuildLRSMultiLineSink();
+                        mergedSegment.Populate(mergedGeom);
+
+                        segment1.RemoveFirst();                         //  Removing merging line segment from the geometry1
+                        segment2.RemoveLast();                          //  Removing merging line segment from the geometry2
+
+                        segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
+
+                        segment2.AddLines(mergedGeom.MultiLine.Lines);  //  Appending merged segment line to the segment2 ,since geometry1 would be the beginning geometry of the resultant geometry
+                        segment2.AddLines(segment1.Lines);              //  Appending remaining segments of geometry1 with the geometry2
+                        return segment2.ToSqlGeometry();                //  converting to SqlGeometry type
+                    }
+                case MergePosition.StartStart:
+                    {
+                        //  Double Negation of measure is needed, since geometry2 has been traversed from end point to the starting point also differ from measure variation
+                        if (isSameDirection)
+                            segment2.ScaleMeasure(-1);
+
+                        sourceSegment = segment1.GetFirstLine().ToSqlGeometry();
+                        targetSegment = segment2.GetFirstLine().ToSqlGeometry();
+                        //  Generating merged segment of geometry1 and geometry2
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+
+                        var mergedGeom = new BuildLRSMultiLineSink();
+                        mergedSegment.Populate(mergedGeom);
+
+                        segment1.RemoveFirst();                         //  Removing merging line segment from the geometry1
+                        segment2.RemoveFirst();                         //  Removing merging line segment from the geometry2
+
+                        segment2.ReverseLinesAndPoints();               //  Reversing the lines and its corresponding points of segment2, Since it has been traversed from end to start
+                        segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
+
+                        segment2.AddLines(mergedGeom.MultiLine.Lines);  //  Appending merged segment line to the segment2 ,since geometry1 would be the beginning geometry of the resultant geometry
+                        segment2.AddLines(segment1.Lines);              //  Appending remaining segments of geometry1 with the geometry2
+                        return segment2.ToSqlGeometry();                //  converting to SqlGeometry type
+                    }
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Build MULTILINESTRING from two input geometry segments [LINESTRING, MULTILINESTRING]
+        /// This should be called for merging geom segments when they are not connected.
+        /// Here the offset measure is updated with the measure of second segment.
+        /// </summary>
+        /// <param name="geometry1">The geometry1.</param>
+        /// <param name="geometry2">The geometry2.</param>
+        /// <returns></returns>
+        private static SqlGeometry MergeDisconnectedLineSegments(SqlGeometry geometry1, SqlGeometry geometry2)
+        {
+            var isSameDirection = geometry1.STSameDirection(geometry2);
+            var firtSegmentDirection = geometry1.STLinearMeasureProgress();
+            if (!isSameDirection)
+                geometry2 = ScaleGeometryMeasures(geometry2, -1);
+
+            var offsetM = geometry1.GetOffset(geometry2);
+            var doUpdateM = false;
+
+            if (isSameDirection)
+            {
+                if (firtSegmentDirection == LinearMeasureProgress.Increasing && offsetM > 0)
+                    doUpdateM = true;
+
+                if (firtSegmentDirection == LinearMeasureProgress.Decreasing && offsetM < 0)
+                    doUpdateM = true;
+            }
+            else
+                doUpdateM = true;
+
+            var builder = new BuildLRSMultiLineSink();
+            geometry1.Populate(builder);
+            var lrsMultiline1 = builder.MultiLine;
+
+            builder = new BuildLRSMultiLineSink();
+            geometry2.Populate(builder);
+            var lrsMultiline2 = builder.MultiLine;
+
+            var geometryBuilder = new SqlGeometryBuilder();
+            // Start Multiline
+            geometryBuilder.SetSrid((int)geometry1.STSrid);
+            geometryBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
+
+            // First Segment
+            foreach (var line in lrsMultiline1)
+            {
+                var pointCounter = 1;
+                geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);
+
+                foreach (var point in line.Points)
+                {
+                    if (pointCounter == 1)
+                        geometryBuilder.BeginFigure(point.x, point.y, point.z, point.m);
+                    else
+                        geometryBuilder.AddLine(point.x, point.y, point.z, point.m);
+                    pointCounter++;
+                }
+                geometryBuilder.EndFigure();
+                geometryBuilder.EndGeometry();
+            }
+
+            // Second Segment
+            foreach (var line in lrsMultiline2)
+            {
+                var pointCounter = 1;
+                geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);
+
+                foreach (var point in line.Points)
+                {
+                    var measure = doUpdateM ? point.m + offsetM : point.m;
+                    if (pointCounter == 1)
+                        geometryBuilder.BeginFigure(point.x, point.y, point.z, measure);
+                    else
+                        geometryBuilder.AddLine(point.x, point.y, point.z, measure);
+                    pointCounter++;
+                }
+                geometryBuilder.EndFigure();
+                geometryBuilder.EndGeometry();
+            }
+
+            // End Multiline
+            geometryBuilder.EndGeometry();
+
+            return geometryBuilder.ConstructedGeometry;
         }
 
         /// <summary>
@@ -560,195 +877,7 @@ namespace SQLSpatialTools.Functions.LRS
             var geomSink = new ScaleMeasureGeometrySink(geometryBuilder, scaleMeasure);
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
-        }
-
-        /// <summary>
-        /// BuildMULTILINESTRING from two input geometry segments [LINESTRING, MULTILINESTRING]
-        /// This should be called for merging geom segments when they are not connected.
-        /// Here the offset measure is updated with the measure of second segment.
-        /// </summary>
-        /// <param name="geometry1">The geometry1.</param>
-        /// <param name="geometry2">The geometry2.</param>
-        /// <returns></returns>
-        private static SqlGeometry MultiLineStringMerger(SqlGeometry geometry1, SqlGeometry geometry2)
-        {
-            var isSameDirection = geometry1.STSameDirection(geometry2);
-            var firtSegmentDirection = geometry1.STLinearMeasureProgress();
-            if (!isSameDirection)
-                geometry2 = ScaleGeometryMeasures(geometry2, -1);
-
-            var offsetM = geometry1.GetOffset(geometry2);
-            var doUpdateM = false;
-
-            if (isSameDirection)
-            {
-                if (firtSegmentDirection == LinearMeasureProgress.Increasing && offsetM > 0)
-                    doUpdateM = true;
-
-                if (firtSegmentDirection == LinearMeasureProgress.Decreasing && offsetM < 0)
-                    doUpdateM = true;
-            }
-            else
-                doUpdateM = true;
-
-            var builder = new BuildLRSMultiLineSink();
-            geometry1.Populate(builder);
-            var lrsMultiline1 = builder.MultiLine;
-
-            builder = new BuildLRSMultiLineSink();
-            geometry2.Populate(builder);
-            var lrsMultiline2 = builder.MultiLine;
-
-            var geometryBuilder = new SqlGeometryBuilder();
-            // Start Multiline
-            geometryBuilder.SetSrid((int)geometry1.STSrid);
-            geometryBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
-
-            // First Segment
-            foreach (var line in lrsMultiline1)
-            {
-                var pointCounter = 1;
-                geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);
-
-                foreach (var point in line.Points)
-                {
-                    if (pointCounter == 1)
-                        geometryBuilder.BeginFigure(point.x, point.y, point.z, point.m);
-                    else
-                        geometryBuilder.AddLine(point.x, point.y, point.z, point.m);
-                    pointCounter++;
-                }
-                geometryBuilder.EndFigure();
-                geometryBuilder.EndGeometry();
-            }
-
-            // Second Segment
-            foreach (var line in lrsMultiline2)
-            {
-                var pointCounter = 1;
-                geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);
-
-                foreach (var point in line.Points)
-                {
-                    var measure = doUpdateM ? point.m + offsetM : point.m;
-                    if (pointCounter == 1)
-                        geometryBuilder.BeginFigure(point.x, point.y, point.z, measure);
-                    else
-                        geometryBuilder.AddLine(point.x, point.y, point.z, measure);
-                    pointCounter++;
-                }
-                geometryBuilder.EndFigure();
-                geometryBuilder.EndGeometry();
-            }
-
-            // End Multiline
-            geometryBuilder.EndGeometry();
-
-            return geometryBuilder.ConstructedGeometry;
-        }
-
-        /// <summary>
-        /// Method will merge simple line strings with tolerance and returns the merged line segment by considering measure and direction of the first geometry.
-        /// </summary>
-        /// <param name="geometry1"></param>
-        /// <param name="geometry2"></param>
-        /// <param name="tolerance"></param>
-        /// <returns>SqlGeometry</returns>
-        private static SqlGeometry SimpleLineStringMerger(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition)
-        {
-            // geometry 1 and geometry 2 to be 2D line strings with measure 'm'
-            Ext.ThrowIfNotLine(geometry1, geometry2);
-            // offset measure difference.
-            var offsetM = 0.0;
-
-            // references governs the order of geometries to get merge
-            SqlGeometry targetSegment = null, sourceSegment = null;
-
-            // check direction of measure.
-            var isSameDirection = geometry1.STSameDirection(geometry2);
-
-            // segments must be connected in any of the following position.
-            switch (mergePosition)
-            {
-                case MergePosition.EndStart:
-                case MergePosition.CrossEnds:
-                    {
-                        // Single negation of measure is needed for geometry 2,
-                        // if both segments are differ in measure variation
-                        if (!isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
-
-                        offsetM = geometry1.STEndPoint().GetPointOffset(geometry2.STStartPoint());
-                        geometry2 = TranslateMeasure(geometry2, offsetM);
-                        sourceSegment = geometry1;
-                        targetSegment = geometry2;
-                        break;
-                    }
-                case MergePosition.EndEnd:
-                case MergePosition.BothEnds:
-                    {
-                        // Double negation is needed for geometry 2, i.e., both segments differ from measure variation,
-                        // also, geometry 2 has been traversed from ending point to the starting point
-                        if (isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
-
-                        offsetM = geometry1.STEndPoint().GetPointOffset(geometry2.STEndPoint());
-                        // Reverse the geometry 2, since it has been traversed from ending point to the starting point
-                        // scale the measures of geometry 2 based on the offset measure difference between them
-                        geometry2 = ReverseAndTranslateGeometry(geometry2, offsetM);
-                        // start traversing from the geometry 1, hence g1 would be the source geometry
-                        sourceSegment = geometry1;
-                        targetSegment = geometry2;
-                        break;
-                    }
-                case MergePosition.StartStart:
-                    {
-                        // Double negation is needed for geometry 2, i.e., both segments differ from measure variation,
-                        // also, geometry 2 has been traversed from ending point to the starting point
-                        if (isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
-
-                        offsetM = geometry1.STStartPoint().GetPointOffset(geometry2.STStartPoint());
-                        // Reverse the geometry 2, since it has been traversed from ending point to the starting point
-                        // scale the measures of geometry 2 based on the offset measure difference between them
-                        geometry2 = ReverseAndTranslateGeometry(geometry2, offsetM);
-                        // the starting point of g1 will become the intermediate point of resultant, so source geometry would be geometry 2
-                        sourceSegment = geometry2;
-                        targetSegment = geometry1;
-                        break;
-                    }
-                case MergePosition.StartEnd:
-                    {
-                        // Single negation of measure is needed for geometry 2
-                        // if both segments are differ in measure variation
-                        if (!isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
-
-                        offsetM = (geometry1.STStartPoint().M.Value - geometry2.STEndPoint().M.Value);
-                        // scale the measures of geometry 2 based on the offset measure difference between them
-                        geometry2 = TranslateMeasure(geometry2, offsetM);
-                        // the starting point of g1 will become the intermediate point of resultant, so source geometry would be geometry 2
-                        sourceSegment = geometry2;
-                        targetSegment = geometry1;
-                        break;
-                    }
-                default:
-                    throw new Exception("Invalid Merge Coordinate position");
-            }
-
-            // Builder for resultant merged geometry to store
-            var geomBuilder = new SqlGeometryBuilder();
-
-            // Building a line segment from the range of points by excluding the last point ( Merging point )
-            var segment1 = new LineStringMergeGeometrySink(geomBuilder, true, sourceSegment.STNumPoints());
-            sourceSegment.Populate(segment1);
-
-            // Continuing to build segment from the points of second geometry
-            var segment2 = new LineStringMergeGeometrySink(geomBuilder, false, targetSegment.STNumPoints());
-            targetSegment.Populate(segment2);
-
-            return geomBuilder.ConstructedGeometry;
-        }
+        }        
 
         /// <summary>
         /// Split a geometry into geometry segments based on split measure. 

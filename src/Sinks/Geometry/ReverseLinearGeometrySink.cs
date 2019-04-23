@@ -26,15 +26,15 @@ namespace SQLSpatialTools
         {
             this.target = target;
             this.translateMeasure = translateMeasure;
-            lines = new LRSMultiLine();
             isMultiLine = false;
             isPoint = false;
             lineCounter = 0;
         }
 
-        // This is a NOP.
+        // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
         {
+            lines = new LRSMultiLine(srid);
             target.SetSrid(srid);
             this.srid = srid;
         }

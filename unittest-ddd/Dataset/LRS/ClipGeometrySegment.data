@@ -372,6 +372,7 @@ POINT(5 5 10) ||10  ||10    ||0.5   ||POINT(5 5 10)     ||
 POINT(5 5 10) ||9   ||9     ||0.5   ||NULL              ||
 POINT(5 5 10) ||11  ||11    ||0.5   ||NULL              ||
 POINT(5 5 10) ||11  ||14    ||0.5   ||NULL              ||
+## MULTILINESTRING Types
 MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12)) ||0      ||15    ||0.5   ||NULL  ||Multiline start and end measure beyond range
 MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12)) ||-5     ||-1    ||0.5   ||NULL  ||Multiline start and end measure less than start measure of segment
 MULTILINESTRING((1 1 1, 2 2 2, 3 3 3), (4 4 4, 5.125 5.125 5.125, 6 6 6), (10 10 10, 11.25 11.25 11.25, 12 12 12)) ||-1     ||-5    ||0.5   ||NULL  ||Multiline start and end measure less than start measure of segment

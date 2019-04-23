@@ -38,15 +38,15 @@ namespace SQLSpatialTools
             this.startMeasure = startMeasure;
             this.endMeasure = endMeasure;
             totalLength = length;
-            lines = new LRSMultiLine();
             isMultiLine = false;
             isLinestring = false;
             lineCounter = 0;
         }
 
-        // Save the SRID for later
+        // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
         {
+            lines = new LRSMultiLine(srid);
             this.srid = srid;
             target.SetSrid(srid);
         }

@@ -46,13 +46,13 @@ namespace SQLSpatialTools
             this.clipEndPoint = new LRSPoint(clipEndPoint);
             clipStartMeasure = (double)this.clipStartPoint.m;
             clipEndMeasure = (double)this.clipEndPoint.m;
-            multiLines = new LRSMultiLine();
             started = false;
             lineCounter = 0;
         }
 
         public void SetSrid(int srid)
         {
+            multiLines = new LRSMultiLine(srid);
             this.srid = srid;
         }
 

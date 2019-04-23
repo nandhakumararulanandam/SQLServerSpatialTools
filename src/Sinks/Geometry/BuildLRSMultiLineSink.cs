@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using Microsoft.SqlServer.Types;
-using SQLSpatialTools.Utility;
 using System;
 
 namespace SQLSpatialTools
@@ -16,17 +15,10 @@ namespace SQLSpatialTools
         private LRSLine currentLine;
         public LRSMultiLine MultiLine;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MultiLineMergeGeometrySink"/> class.
-        /// </summary>
-        public BuildLRSMultiLineSink()
-        {
-            MultiLine = new LRSMultiLine();
-        }
-
-        // This is a NO-OP
+        // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
         {
+            MultiLine = new LRSMultiLine(srid);
             this.srid = srid;
         }
 
@@ -37,7 +29,7 @@ namespace SQLSpatialTools
                 currentLine = new LRSLine(srid);
         }
 
-        // Start the figure.  
+        // Just add the points to the current line.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
             currentLine.AddPoint(x, y, z, m);
@@ -54,7 +46,7 @@ namespace SQLSpatialTools
             throw new Exception("AddCircularArc is not implemented yet in this class");
         }
 
-        // Add the current line to the MULTINESTRING collection
+        // Add the current line to the MULTILINESTRING collection
         public void EndFigure()
         {
             MultiLine.AddLine(currentLine);
