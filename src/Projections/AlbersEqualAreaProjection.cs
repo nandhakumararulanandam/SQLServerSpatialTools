@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Projections
 {
 	// EPSG Code:    9822
 	// OGC WKT Name: Albers_Conic_Equal_Area

@@ -4,7 +4,7 @@
 using System;
 using Microsoft.SqlServer.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// Sink which extracts points from a geometry instance and forwards them to a geography sink.

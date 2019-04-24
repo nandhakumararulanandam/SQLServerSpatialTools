@@ -2,12 +2,12 @@
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// Converts Z co-ordinate as measure.
     /// </summary>
-    class ConvertXYZ2XYM : SqlGeometryBuilder
+    class ConvertXYZ2XYMGeometrySink : SqlGeometryBuilder
     {
         public override void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
         {

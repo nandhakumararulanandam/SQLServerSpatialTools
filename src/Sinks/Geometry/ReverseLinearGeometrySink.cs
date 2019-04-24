@@ -2,8 +2,9 @@
 
 using System;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that reverses the input geometry and translate the measure

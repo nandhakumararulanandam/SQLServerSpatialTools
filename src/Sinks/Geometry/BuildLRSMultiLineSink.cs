@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
-using Microsoft.SqlServer.Types;
 using System;
+using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that builds LRS multiline.

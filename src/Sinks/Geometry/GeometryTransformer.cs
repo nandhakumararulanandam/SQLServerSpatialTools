@@ -3,8 +3,9 @@
 //------------------------------------------------------------------------------
 
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types.SQL;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
 	public sealed class GeometryTransformer : IGeometrySink110
 	{

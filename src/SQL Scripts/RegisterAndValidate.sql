@@ -6,8 +6,13 @@
 -- To run sql script inside another SQLCMD Mode should be enabled
 -- To enable SQLCMD Mode: Query -> SQLCMD Mode
 -- Register Script Path will be replaced in run time
-:r "RegisterScriptPath"
+:r "ScriptDirPath\Register.sql"
 
+-- Run LRS Functions 
+:r "ScriptDirPath\lrs_geometry_example.sql"
 
--- Example Script Path will be replaced in run time
-:r "ExampleScriptPath"
+-- Run Sample Projections
+:r "ScriptDirPath\projection_example.sql"
+
+-- Run Sample Transforms
+:r "ScriptDirPath\transform_example.sql"

@@ -8,6 +8,7 @@ using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Sinks.Geometry;
 using SQLSpatialTools.Utility;
 using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 

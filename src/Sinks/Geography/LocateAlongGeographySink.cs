@@ -2,9 +2,8 @@
 
 using System;
 using Microsoft.SqlServer.Types;
-using SQLSpatialTools.Functions.General;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geography
 {
     /// <summary>
     /// This class implements a geography sink that finds a point along a geography linestring instance and pipes
@@ -70,7 +69,7 @@ namespace SQLSpatialTools
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                foundPoint = Geography.InterpolateBetweenGeog(lastPoint, thisPoint, distance);
+                foundPoint = Functions.General.Geography.InterpolateBetweenGeog(lastPoint, thisPoint, distance);
             }
         }
 
@@ -90,7 +89,7 @@ namespace SQLSpatialTools
         {
             if (foundPoint != null)
             {
-                // We could use a simple point constructor, but by targetting another sink we can use this
+                // We could use a simple point constructor, but by targeting another sink we can use this
                 // class in a pipeline.
                 target.SetSrid(srid);
                 target.BeginGeography(OpenGisGeographyType.Point);
@@ -100,7 +99,7 @@ namespace SQLSpatialTools
             }
             else
             {
-                throw new ArgumentException("Distance provided is greated then the length of the LineString.");
+                throw new ArgumentException("Distance provided is greater then the length of the LineString.");
             }
         }
     }

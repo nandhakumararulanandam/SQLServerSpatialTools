@@ -4,7 +4,7 @@ using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 using System;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that builds Multiline from Line String

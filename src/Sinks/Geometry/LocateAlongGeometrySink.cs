@@ -2,9 +2,8 @@
 
 using System;
 using Microsoft.SqlServer.Types;
-using SQLSpatialTools.Functions.General;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that finds a point along a geometry linestring instance and pipes
@@ -71,7 +70,7 @@ namespace SQLSpatialTools
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                foundPoint = Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, distance);
+                foundPoint = Functions.General.Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, distance);
             }
         }
 

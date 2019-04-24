@@ -3,8 +3,9 @@
 //------------------------------------------------------------------------------
 using System;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types.SQL;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geography
 {
     /// <summary>
     /// This class projects a geography segment based on specified project to a geometry segment.

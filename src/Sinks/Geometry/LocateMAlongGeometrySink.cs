@@ -6,7 +6,7 @@ using SQLSpatialTools.Functions.LRS;
 using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that finds a point along a geometry linestring instance and pipes
@@ -69,7 +69,7 @@ namespace SQLSpatialTools
             if (measure.IsWithinRange(lastPoint.M.Value, (double)m))
             {
                 // now we need to do the hard work and find the point in between these two
-                foundPoint = Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, measure);
+                foundPoint = Functions.LRS.Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, measure);
                 if (lastPoint.IsWithinTolerance(foundPoint, tolerance))
                     foundPoint = lastPoint;
                 else if (thisPoint.IsWithinTolerance(foundPoint, tolerance))

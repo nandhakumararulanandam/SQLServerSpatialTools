@@ -5,8 +5,9 @@
 //------------------------------------------------------------------------------
 using System;
 using System.Globalization;
+using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Projections
 {
 	internal static class MathX
 	{

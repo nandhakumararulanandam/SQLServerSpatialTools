@@ -7,8 +7,10 @@ using System.IO;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Utility;
+using SQLSpatialTools.Sinks.Geometry;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Types.SQL
 {
 	[Serializable]
 	[SqlUserDefinedType(Format.UserDefined, IsByteOrdered = false, MaxByteSize = -1, IsFixedLength = false)]

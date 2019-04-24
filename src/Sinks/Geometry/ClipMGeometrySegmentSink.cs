@@ -5,7 +5,7 @@ using SQLSpatialTools.Utility;
 using System;
 using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that clips a line segment based on measure.

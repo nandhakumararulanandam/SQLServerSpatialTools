@@ -2,9 +2,10 @@
 
 using System;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
 using static SQLSpatialTools.Utility.SQLTypeConversions;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that populate measures for each point in a geometry .

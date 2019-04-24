@@ -3,7 +3,7 @@
 using System;
 using Microsoft.SqlServer.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geography
 {
     /// <summary>
     /// This class implements a completely trivial conversion from geography to geometry, simply taking each

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Projections
 {
 	internal sealed class LambertConformalConicProjection : Projection
 	{

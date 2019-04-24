@@ -3,7 +3,7 @@
 using Microsoft.SqlServer.Types;
 using static SQLSpatialTools.Utility.SQLTypeConversions;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// Class implements a geometry sink that builds a line string by reducing from the _geometry in the range of points represented by indexes

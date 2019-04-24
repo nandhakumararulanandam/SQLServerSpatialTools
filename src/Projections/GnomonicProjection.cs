@@ -3,16 +3,16 @@
 //
 // References: http://mathworld.wolfram.com/GnomonicProjection.html
 //
-// Note: The gnomonic projction is the only projection that maps SqlGeography
+// Note: The gnomonic projection is the only projection that maps SqlGeography
 //       Polygons and LineString exactly to their SqlGeometry counterparts.
 //
 //------------------------------------------------------------------------------
 using System;
-using System.Diagnostics;
-using System.Globalization;
 using System.Collections.Generic;
+using SQLSpatialTools.Types;
+using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Projections
 {
 	// EPSG Code:    None
 	// OGC WKT Name: Gnomonic

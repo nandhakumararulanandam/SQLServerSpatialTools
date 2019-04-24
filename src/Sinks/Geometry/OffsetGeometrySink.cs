@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
-using Microsoft.SqlServer.Types;
-using SQLSpatialTools.Utility;
 using System;
 using System.Linq;
+using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
+using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that returns the offset geom segment from a clipped segment.

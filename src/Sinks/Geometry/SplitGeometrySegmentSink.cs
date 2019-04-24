@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
-using Microsoft.SqlServer.Types;
 using System;
+using Microsoft.SqlServer.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that split the geometry linestring into two segments based on point.

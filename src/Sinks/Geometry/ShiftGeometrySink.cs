@@ -2,7 +2,7 @@
 
 using Microsoft.SqlServer.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that will shift an input geometry by a given amount in the x and

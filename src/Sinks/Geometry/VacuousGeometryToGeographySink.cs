@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a completely trivial conversion from geometry to geography, simply taking each

@@ -3,7 +3,7 @@
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that checks whether the geometry collection is of supported types.

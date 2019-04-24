@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Types;
 using System.Globalization;
+using SQLSpatialTools.Sinks.Geometry;
 
 namespace SQLSpatialTools.Utility
 {
@@ -927,7 +928,7 @@ namespace SQLSpatialTools.Utility
         /// <returns></returns>
         internal static SqlGeometry ConvertTo2DM(this SqlGeometry sqlGeometry)
         {
-            var sqlBuilder = new ConvertXYZ2XYM();
+            var sqlBuilder = new ConvertXYZ2XYMGeometrySink();
             sqlGeometry.Populate(sqlBuilder);
             return sqlBuilder.ConstructedGeometry;
         }

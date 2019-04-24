@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Types
 {
     /// <summary>
     /// Data structure to capture MULTILINESTRING geometry type.
@@ -592,7 +592,7 @@ namespace SQLSpatialTools
             if (Points.Count == 1)
                 return SpatialExtensions.GetPoint(Points.First().X, Points.First().Y, Points.First().Z, Points.First().M, SRID);
             var geomBuilder = new SqlGeometryBuilder();
-            BuildSqlGeometry(ref geomBuilder, true);
+            BuildSqlGeometry(ref geomBuilder);
             return geomBuilder.ConstructedGeometry;
         }
 

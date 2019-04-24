@@ -135,10 +135,11 @@
     <Compile Include="Sinks\Geometry\SplitGeometrySegmentSink.cs" />
     <Compile Include="Sinks\Geography\VacuousGeographyToGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\VacuousGeometryToGeographySink.cs" />
+    <Compile Include="Types\Vertex.cs" />
     <Compile Include="Utility\EnumsAndConstants.cs" />
     <Compile Include="Utility\ErrorMessage.cs" />
     <Compile Include="Utility\SpatialExtensions.cs" />
-    <Compile Include="Types\AffineTransform.cs" />
+    <Compile Include="Types\SQL\AffineTransform.cs" />
     <Compile Include="Aggregates\GeometryEnvelopeAggregate.cs" />
     <Compile Include="Aggregates\GeographyUnionAggregate.cs" />
     <Compile Include="Projections\AlbersEqualAreaProjection.cs" />
@@ -150,7 +151,7 @@
     <Compile Include="Projections\Projection.cs" />
     <Compile Include="Resource\Resource.Designer.cs" />
     <Compile Include="Sinks\Geometry\GeometryTransformer.cs" />
-    <Compile Include="Types\SqlProjection.cs" />
+    <Compile Include="Types\SQL\SqlProjection.cs" />
     <Compile Include="Projections\TranverseMercatorProjection.cs" />
     <Compile Include="Sinks\Geography\DensifyGeographySink.cs" />
     <Compile Include="Sinks\Geometry\LocateAlongGeometrySink.cs" />
@@ -160,10 +161,10 @@
     <Compile Include="Sinks\Geography\Projector.cs" />
     <Compile Include="Sinks\Geometry\ShiftGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\Unprojector.cs" />
-    <Compile Include="Utility\ConvertXYZ2XYM.cs" />
+    <Compile Include="Sinks\Geometry\ConvertXYZ2XYMGeometrySink.cs" />
     <Compile Include="Utility\Util.cs" />
-    <Compile Include="Utility\LRSTypes.cs" />
-    <Compile Include="Utility\Vector3.cs" />
+    <Compile Include="Types\LRSTypes.cs" />
+    <Compile Include="Types\Vector3.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -226,8 +227,7 @@
     <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q
 powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'DLLPath', '$(TargetPath)' -join \"`r`n\"))
 powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'UnregisterScriptPath', '$(TargetDir)SQL Scripts\Unregister.sql' -join \"`r`n\"))
-powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\RegisterAndValidate.sql', ((gc '$(TargetDir)SQL Scripts\RegisterAndValidate.sql') -replace 'RegisterScriptPath', '$(TargetDir)SQL Scripts\Register.sql' -join \"`r`n\"))
-powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\RegisterAndValidate.sql', ((gc '$(TargetDir)SQL Scripts\RegisterAndValidate.sql') -replace 'ExampleScriptPath', '$(TargetDir)SQL Scripts\lrs_geometry_example.sql' -join \"`r`n\"))</PostBuildEvent>
+powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\RegisterAndValidate.sql', ((gc '$(TargetDir)SQL Scripts\RegisterAndValidate.sql') -replace 'ScriptDirPath', '$(TargetDir)SQL Scripts' -join \"`r`n\"))</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

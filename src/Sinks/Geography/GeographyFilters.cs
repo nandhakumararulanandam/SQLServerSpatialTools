@@ -4,8 +4,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geography
 {
 	public class GeographyEmptyShapeFilter : IGeographySink110
 	{

@@ -2,8 +2,9 @@
 // Copyright (c) 2008 Microsoft Corporation.
 //------------------------------------------------------------------------------
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types.SQL;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
 	public sealed class Unprojector : IGeometrySink110
 	{

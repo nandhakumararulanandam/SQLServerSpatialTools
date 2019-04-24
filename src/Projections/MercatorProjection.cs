@@ -5,8 +5,9 @@
 //------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Projections
 {
 	internal sealed class MercatorProjection : Projection
 	{

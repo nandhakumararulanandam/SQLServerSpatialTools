@@ -28,15 +28,16 @@ CREATE assembly SQLSpatialTools
 FROM 'DLLPath'
 GO
 
--- Create types
-CREATE TYPE Projection EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.SqlProjection]
+-- Create User Defined SQL Types
+CREATE TYPE Projection EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Types.SQL.SqlProjection]
 GO
 
-CREATE TYPE AffineTransform EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.AffineTransform]
+CREATE TYPE AffineTransform EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Types.SQL.AffineTransform]
 GO
 
 -- Register the functions...
---#region General GEOMETRY Functions
+
+--#region General Geometry Functions
 CREATE FUNCTION FilterArtifactsGeometry (
     @g GEOMETRY
     ,@filterEmptyShapes BIT
@@ -109,7 +110,9 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].Vacuo
 GO
 
 --#endregion
+
 --#region General Geography Functions
+
 CREATE FUNCTION ConvexHullGeographyFromText (
     @inputWKT NVARCHAR(max)
     ,@srid INT
@@ -205,6 +208,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].Vacu
 GO
 
 --#endregion
+
 --#region LRS Geometric Functions
 CREATE FUNCTION LRS_ClipGeometrySegment (
     @g GEOMETRY
@@ -324,15 +328,17 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ValidateLRSGeometry
 GO
 
+--#endregion
+
 -- Create aggregates.
 CREATE AGGREGATE GEOMETRYEnvelopeAggregate (@geom GEOMETRY)
-RETURNS GEOMETRY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.GeometryEnvelopeAggregate]
+RETURNS GEOMETRY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Aggregates.GeometryEnvelopeAggregate]
 GO
 
 CREATE AGGREGATE GeographyCollectionAggregate (@geog GEOGRAPHY)
-RETURNS GEOGRAPHY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.GeographyCollectionAggregate]
+RETURNS GEOGRAPHY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Aggregates.GeographyCollectionAggregate]
 GO
 
 CREATE AGGREGATE GeographyUnionAggregate (@geog GEOGRAPHY)
-RETURNS GEOGRAPHY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.GeographyUnionAggregate]
+RETURNS GEOGRAPHY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Aggregates.GeographyUnionAggregate]
 GO

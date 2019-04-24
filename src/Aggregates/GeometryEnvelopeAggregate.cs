@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using Microsoft.SqlServer.Server;
 using Microsoft.SqlServer.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Aggregates
 {
 	[Serializable]
 	[StructLayout(LayoutKind.Sequential)]

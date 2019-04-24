@@ -2,8 +2,10 @@
 
 using System;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
+using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geography
 {
     /// <summary>
     /// This class is used for generating a new geography object where additional points are inserted
@@ -59,7 +61,7 @@ namespace SQLSpatialTools
                 // Calculating how many points we need.
                 int count = Convert.ToInt32(Math.Ceiling(angle / Util.ToRadians(this.angle)));
 
-                // Scaling the angle so that points are equaly placed.
+                // Scaling the angle so that points are equally placed.
                 double exactAngle = angle / count;
 
                 double cosine = Math.Cos(exactAngle);

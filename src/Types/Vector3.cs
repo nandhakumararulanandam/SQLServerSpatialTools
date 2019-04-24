@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
+using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Types
 {
     internal class Vector3
     {

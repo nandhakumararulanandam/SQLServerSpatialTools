@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Projections
 {
 	internal abstract class Projection
 	{

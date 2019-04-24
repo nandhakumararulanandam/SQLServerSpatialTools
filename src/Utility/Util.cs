@@ -2,8 +2,9 @@
 
 using System;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Utility
 {
     /// <summary>
     /// This class contains functions that are meant to be used internally in this library.

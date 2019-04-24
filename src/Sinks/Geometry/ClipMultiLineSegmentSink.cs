@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
-using Microsoft.SqlServer.Types;
-using SQLSpatialTools.Utility;
 using System;
-using Ext = SQLSpatialTools.Utility.SpatialExtensions;
+using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that clips a line segment based on measure.

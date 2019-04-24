@@ -10,8 +10,12 @@ using System.IO;
 using System.Reflection;
 using Microsoft.SqlServer.Server;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Projections;
+using SQLSpatialTools.Sinks.Geography;
+using SQLSpatialTools.Sinks.Geometry;
+using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Types.SQL
 {
 	[Serializable]
 	[SqlUserDefinedType(Format.UserDefined, IsByteOrdered = false, MaxByteSize = -1, IsFixedLength = false)]

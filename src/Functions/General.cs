@@ -3,6 +3,10 @@
 using System;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Sinks.Geography;
+using SQLSpatialTools.Sinks.Geometry;
+using SQLSpatialTools.Types;
+using SQLSpatialTools.Types.SQL;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Functions.General
@@ -64,7 +68,7 @@ namespace SQLSpatialTools.Functions.General
         /// <returns></returns>
         public static SqlGeometry GeomFromXYMText(string wktXYM, int srid)
         {
-            var res = new ConvertXYZ2XYM();
+            var res = new ConvertXYZ2XYMGeometrySink();
             var geom = wktXYM.GetGeom(srid);
             geom.Populate(res);
             return res.ConstructedGeometry;

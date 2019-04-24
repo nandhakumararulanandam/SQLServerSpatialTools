@@ -3,7 +3,7 @@
 using Microsoft.SqlServer.Types;
 using System;
 
-namespace SQLSpatialTools
+namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
     /// This class implements a geometry sink that clips a line segment based on start and end point.
