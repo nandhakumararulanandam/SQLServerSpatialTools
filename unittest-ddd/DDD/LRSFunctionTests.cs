@@ -655,8 +655,8 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
-                    var expectedGeom1 = test.ExpectedResult1.GetGeom();
-                    var expectedGeom2 = test.ExpectedResult2.GetGeom();
+                    var expectedGeom1 = test.ExpectedResult1?.GetGeom();
+                    var expectedGeom2 = test.ExpectedResult2?.GetGeom();
 
                     Logger.LogLine("Splitting Input geom: {0} at a measure of : {1}", geom, test.Measure);
                     Logger.Log("Expected Split Geom Segment 1: {0}", expectedGeom1);
@@ -667,8 +667,9 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Geometry.SplitGeometrySegment(geom, test.Measure, out SqlGeometry obtainedGeom1, out SqlGeometry obtainedGeom2);
                     MSSQLTimer.Stop();
 
-                    test.ObtainedResult1 = obtainedGeom1.ToString();
-                    test.ObtainedResult2 = obtainedGeom2.ToString();
+                    test.ObtainedResult1 = obtainedGeom1?.ToString();
+                    test.ObtainedResult2 = obtainedGeom2?.ToString();
+
                     Logger.LogLine("Obtained Result1: {0}", test.ObtainedResult1);
                     Logger.Log("Obtained Result2: {0}", test.ObtainedResult2);
                 }
@@ -804,9 +805,9 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             if (!string.IsNullOrEmpty(test.ObtainedResult2))
             {
-                test.ObtainedResult2 = test.ObtainedResult1?.TrimNullValue();
-                test.ExpectedResult2 = test.ExpectedResult1?.TrimNullValue();
-                test.OracleResult2 = test.OracleResult1?.TrimDecimalPoints()?.TrimNullValue();
+                test.ObtainedResult2 = test.ObtainedResult2?.TrimNullValue();
+                test.ExpectedResult2 = test.ExpectedResult2?.TrimNullValue();
+                test.OracleResult2 = test.OracleResult2?.TrimDecimalPoints()?.TrimNullValue();
 
                 test.OutputComparison = test.OutputComparison && test.ObtainedResult2.Compare(test.OracleResult2);
                 test.Result = (test.Result.Equals("Passed", StringComparison.CurrentCulture) && test.ObtainedResult2.Compare(test.ExpectedResult2)).GetResult();

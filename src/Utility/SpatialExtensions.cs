@@ -750,7 +750,7 @@ namespace SQLSpatialTools.Utility
         internal static void ThrowIfMeasureIsNotInRange(double measure, SqlGeometry sqlGeometry)
         {
             if (!measure.IsWithinRange(sqlGeometry))
-                throw new ArgumentException(ErrorMessage.MeasureRange);
+                ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
         }
 
         /// <summary>
@@ -942,7 +942,7 @@ namespace SQLSpatialTools.Utility
         internal static SqlGeometry GetPointAtMeasure(this SqlGeometry sqlGeometry, double measure)
         {
             var points = sqlGeometry.STNumPoints();
-            for(var iterator = 1; iterator <= points; iterator++)
+            for (var iterator = 1; iterator <= points; iterator++)
             {
                 var currentPoint = sqlGeometry.STPointN(iterator);
                 if (currentPoint.HasM && currentPoint.M.Value == measure)
@@ -1029,6 +1029,8 @@ namespace SQLSpatialTools.Utility
         /// <returns>SqlGeometry</returns>
         public static SqlGeometry GetGeom(this string geomWKT, int srid = Constants.DefaultSRID)
         {
+            if (string.IsNullOrEmpty(geomWKT))
+                return null;
             return SqlGeometry.STGeomFromText(new SqlChars(geomWKT), srid);
         }
 

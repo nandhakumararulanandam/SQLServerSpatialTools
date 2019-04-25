@@ -5,11 +5,45 @@
 ## [Measure] float NOT NULL
 ## [ExpectedGoem1] nvarchar(1000) NOT NULL
 ## [ExpectedGeom2] nvarchar(1000) NOT NULL
+## [Comments] nvarchar(1000)
 
 ## Each line represents one test data to be inserted in DB
 ## Parameter Separator ||
 ## Should follow the same order of parameter; white space at the start and end of each param will be truncated
-## [InputGeom]                                                                                                      ||[Measure]     ||[ExpectedGoem1]                           ||[ExpectedGoem2]                                                                              ||[Comments]
-LINESTRING (10 1 NULL 10, 25 1 NULL 25 )                                                                            ||15            ||LINESTRING (10 1 NULL 10, 15 1 NULL 15 )  ||LINESTRING (15 1 NULL 15, 25 1 NULL 25 )                                                     ||
-LINESTRING (0 2 5, 2 2 7)                                                                                           ||6             ||LINESTRING (0 2 NULL 5, 1 2 NULL 6)       ||LINESTRING (1 2 NULL 6, 2 2 NULL 7)                                                          ||
-LINESTRING (2 2 NULL 0, 2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27)            ||2             ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||
+## [InputGeom]                                                            ||[Measure]     ||[ExpectedGoem1]                           ||[ExpectedGoem2]                                                                              ||[Comments]
+##
+## POINT TYPES
+##
+POINT (2 2 7)                                                             ||1            ||                                           ||                                                                                             ||POINT
+POINT (2 2 7)                                                             ||7            ||                                           ||                                                                                             ||POINT
+POINT (2 2 7)                                                             ||9            ||                                           ||                                                                                             ||POINT
+##
+## LINESTRING TYPES
+##
+LINESTRING (10 1 NULL 10, 25 1 NULL 25 )                                  ||15           ||LINESTRING (10 1 NULL 10, 15 1 NULL 15 )   ||LINESTRING (15 1 NULL 15, 25 1 NULL 25 )                                                     ||LINESTRING
+LINESTRING (0 2 5, 2 2 7)                                                 ||6            ||LINESTRING (0 2 NULL 5, 1 2 NULL 6)        ||LINESTRING (1 2 NULL 6, 2 2 NULL 7)                                                          ||LINESTRING
+LINESTRING (2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 18, 8 10 22, 5 14 27)     ||2            ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)        ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||3            ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||2            ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||4            ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||5            ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||8            ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||12           ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||29           ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||30           ||                                           ||                                                                                             ||LINESTRING
+LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)                       ||-5           ||                                           ||                                                                                             ||LINESTRING
+##
+## MULTILINESTRING Types
+##
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||8             ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||4             ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||16            ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||3             ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||2             ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||0             ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||-3            ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||5             ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||12            ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||29            ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||32            ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING
+MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))              ||40            ||LINESTRING (2 2 NULL 0, 2 4 NULL 2)       ||LINESTRING (2 4 NULL 2, 8 4 NULL 8, 12 4 NULL 12, 12 10 NULL 18, 8 10 NULL 22, 5 14 NULL 27) ||MULTILINESTRING

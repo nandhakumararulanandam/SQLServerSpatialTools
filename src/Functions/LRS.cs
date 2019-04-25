@@ -939,17 +939,33 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="geometry2">Second Geometry Segment</param>
         public static void SplitGeometrySegment(SqlGeometry geometry, double splitMeasure, out SqlGeometry geometry1, out SqlGeometry geometry2)
         {
-            Ext.ThrowIfNotLine(geometry);
-            Ext.ValidateLRSDimensions(ref geometry);
-            Ext.ThrowIfMeasureIsNotInRange(splitMeasure, geometry);
+            if (splitMeasure == 0)
+                Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
 
+            Ext.ThrowIfNotLRSType(geometry);
+            Ext.ValidateLRSDimensions(ref geometry);
+            
+            // if point then check if measure is equal to split measure
+            // if not equal then throw invalid measure exception
+            // if equal return both the segments as null.
+            if (geometry.IsPoint())
+            {
+                var pointMeasure = geometry.HasM ? geometry.M.Value : 0;
+                if (pointMeasure != splitMeasure)
+                    Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
+
+                geometry1 = null;
+                geometry2 = null;
+                return;
+            }
+
+            // measure range validation is handled inside LocatePoint
             var splitPoint = LocatePointAlongGeom(geometry, splitMeasure);
-            var geometryBuilder1 = new SqlGeometryBuilder();
-            var geometryBuilder2 = new SqlGeometryBuilder();
-            var geomSink = new SplitGeometrySegmentSink(splitPoint, geometryBuilder1, geometryBuilder2);
+
+            var geomSink = new SplitGeometrySegmentSink(splitPoint);
             geometry.Populate(geomSink);
-            geometry1 = geometryBuilder1.ConstructedGeometry;
-            geometry2 = geometryBuilder2.ConstructedGeometry;
+            geometry1 = geomSink.Segment1;
+            geometry2 = geomSink.Segment2;
         }
 
         /// <summary>

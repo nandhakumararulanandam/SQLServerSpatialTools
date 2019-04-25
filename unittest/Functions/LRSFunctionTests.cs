@@ -722,64 +722,59 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
-        public void SplitGeometrySegmentTest()
+        public void SplitGeometryExperimentalTest()
         {
-            SqlGeometry geomSegment1, geomSegment2;
+            var geom = "MULTILINESTRING ((2 2 2, 2 4 4), (8 4 8, 12 4 12, 12 10 29))".GetGeom();
+            Logger.LogLine("Input Geom : {0}\n-------------------------------------\n", geom.ToString());
 
-            var geom = "MULTILINESTRING((100 100, 200 200), (3 4, 7 8, 10 10))".GetGeom();
-            Logger.Log("Input Geom : {0}", geom.ToString());
+            DoSplitTest(1, geom);
+            DoSplitTest(2, geom);
+            DoSplitTest(3, geom);
+            DoSplitTest(4, geom);
+            DoSplitTest(5, geom);
+            DoSplitTest(8, geom);
+            DoSplitTest(12, geom);
+            DoSplitTest(15, geom);
+            DoSplitTest(29, geom);
+            DoSplitTest(30, geom);
+
+            geom = "POINT(2 2 7)".GetGeom();
+            Logger.LogLine("Input Geom : {0}\n-------------------------------------\n", geom.ToString());
+
+            DoSplitTest(1, geom);
+            DoSplitTest(7, geom);
+            DoSplitTest(8, geom);
+
+            geom = "LINESTRING (2 2 2, 2 4 4, 8 4 8, 12 4 12, 12 10 29)".GetGeom();
+            Logger.LogLine("Input Geom : {0}\n-------------------------------------\n", geom.ToString());
+
+            DoSplitTest(1, geom);
+            DoSplitTest(2, geom);
+            DoSplitTest(3, geom);
+            DoSplitTest(4, geom);
+            DoSplitTest(5, geom);
+            DoSplitTest(8, geom);
+            DoSplitTest(12, geom);
+            DoSplitTest(15, geom);
+            DoSplitTest(29, geom);
+            DoSplitTest(30, geom);
+        }
+
+        private void DoSplitTest(double measure, SqlGeometry geom)
+        {
             try
             {
-                Geometry.SplitGeometrySegment(geom, 15, out geomSegment1, out geomSegment2);
+                SqlGeometry geomSegment1, geomSegment2;
+
+                Logger.LogLine("Splitting for measure Geom : {0}", measure);
+                Geometry.SplitGeometrySegment(geom, measure, out geomSegment1, out geomSegment2);
+                Logger.Log("Segment 1 Geom : {0}", geomSegment1);
+                Logger.Log("Segment 2 Geom : {0}", geomSegment2);
             }
-            catch (ArgumentException e)
+            catch (Exception ex)
             {
-                Assert.AreEqual(e.Message, ErrorMessage.LineStringCompatible);
-                TestContext.WriteLine(ErrorMessage.LineStringCompatible);
+                Logger.Log("Error : {0}", ex.Message);
             }
-
-            // line string with null z value
-            geom = "LINESTRING (10 1 NULL 10, 25 1 NULL 25 )".GetGeom();
-            Logger.Log("Input Geom : {0}", geom.ToString());
-            var splitedGeom1 = "LINESTRING (10 1 NULL 10, 15 1 NULL 15 )".GetGeom();
-            var splitedGeom2 = "LINESTRING (15 1 NULL 15, 25 1 NULL 25 )".GetGeom();
-
-            var distance = 5;
-            Logger.Log("Split input geom at a distance of {0} Measure", distance);
-            try
-            {
-                Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.AreEqual(e.Message, ErrorMessage.MeasureRange);
-                Logger.Log(ErrorMessage.MeasureRange);
-            }
-
-            distance = 27;
-            Logger.Log("Split input geom at a distance of {0} Measure", distance);
-            try
-            {
-                Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.AreEqual(e.Message, ErrorMessage.MeasureRange);
-                Logger.Log(ErrorMessage.MeasureRange);
-            }
-
-            distance = 15;
-            Logger.Log("Split input geom at a distance of {0} Measure", distance);
-
-            Geometry.SplitGeometrySegment(geom, distance, out geomSegment1, out geomSegment2);
-            Logger.Log("Split Geom 1 : {0}", geomSegment1);
-            Logger.Log("Split Geom 2 : {0}", geomSegment2);
-
-            SqlAssert.IsTrue(geomSegment1.STIsValid());
-            SqlAssert.IsTrue(geomSegment2.STIsValid());
-
-            SqlAssert.IsTrue(geomSegment1.STEquals(splitedGeom1));
-            SqlAssert.IsTrue(geomSegment2.STEquals(splitedGeom2));
         }
 
         [TestMethod]

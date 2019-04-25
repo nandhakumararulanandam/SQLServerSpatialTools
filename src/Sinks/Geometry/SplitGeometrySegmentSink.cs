@@ -2,69 +2,106 @@
 
 using System;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Types;
 
 namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
-    /// This class implements a geometry sink that split the geometry linestring into two segments based on point.
+    /// This class implements a geometry sink that split the geometry LINESTRING and MULTILINESTRING into two segments based on split point.
     /// </summary>
     class SplitGeometrySegmentSink : IGeometrySink110
     {
-        SqlGeometry splitPoint;
-        int srid;                      // The _srid we are working in.
-        SqlGeometryBuilder target1;    // Where we place our result.
-        SqlGeometryBuilder target2;    // Where we place our result.
+        readonly double splitPointMeasure;
+        readonly SqlGeometry splitPoint;
 
-        // We target another builder, to which we will send a point representing the point we find.
-        // We also take a distance, which is the point along the input linestring we will travel.
-        // Note that we only operate on LineString instances: anything else will throw an exception.
-        public SplitGeometrySegmentSink(SqlGeometry splitPoint, SqlGeometryBuilder target1, SqlGeometryBuilder target2)
+        public SqlGeometry Segment1;    // Where we place our result.
+        public SqlGeometry Segment2;    // Where we place our result.
+
+        LRSMultiLine segment1;
+        LRSMultiLine segment2;
+        LRSLine currentLineForSegment1;
+        LRSLine currentLineForSegment2;
+
+        int srid, lineCounter;
+        bool isMultiLine;
+        double lastM;
+
+        // Intialize Split Geom Sink with split point
+        public SplitGeometrySegmentSink(SqlGeometry splitPoint)
         {
-            this.target1 = target1;
-            this.target2 = target2;
             this.splitPoint = splitPoint;
+            isMultiLine = false;
+            lineCounter = 0;
+            splitPointMeasure = splitPoint.HasM ? splitPoint.M.Value : 0;
         }
 
         // Save the SRID for later
         public void SetSrid(int srid)
         {
+            segment1 = new LRSMultiLine(srid);
+            segment2 = new LRSMultiLine(srid);
             this.srid = srid;
-            target1.SetSrid(this.srid);
-            target2.SetSrid(this.srid);
         }
 
-        // Start the geometry.  Throw if it isn't a LineString.
+        private bool IsEqualToSplitMeasure(double? currentMeasure)
+        {
+            return (double)currentMeasure == splitPoint.M.Value;
+        }
+
+        // Start the geometry.
         public void BeginGeometry(OpenGisGeometryType type)
         {
-            if (type != OpenGisGeometryType.LineString)
-                throw new ArgumentException("This operation may only be executed on LineString instances.");
-            
-            target1.BeginGeometry(OpenGisGeometryType.LineString);
-            target2.BeginGeometry(OpenGisGeometryType.LineString);
+            if (type == OpenGisGeometryType.MultiLineString)
+                isMultiLine = true;
+            if (type == OpenGisGeometryType.LineString)
+                lineCounter++;
         }
 
-        // Start the figure.  Note that since we only operate on LineStrings, this should only be executed
-        // once.
+        // Start the figure.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            // Memorize the starting point.
-            target1.BeginFigure(x, y, z, m);
-            target2.BeginFigure(splitPoint.STX.Value, splitPoint.STY.Value, splitPoint.Z.IsNull?(double?)null: splitPoint.Z.Value, splitPoint.M.Value);
+            currentLineForSegment1 = new LRSLine(srid);
+            currentLineForSegment2 = new LRSLine(srid);
+
+            if (m < splitPointMeasure)
+                currentLineForSegment1.AddPoint(x, y, null, m);
+            else if (m > splitPointMeasure || IsEqualToSplitMeasure(m))
+                currentLineForSegment2.AddPoint(x, y, null, m);
+            lastM = (double)m;
         }
 
         // This is where the real work is done.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            // If current measure is between start measure and end measure, we should add segment to the first result linestring
-            if (m < splitPoint.M.Value)
+            // If current measure is less than split measure; then add it to the first segment.
+            if (m < splitPointMeasure)
             {
-                target1.AddLine(x, y, z, m);
+                currentLineForSegment1.AddPoint(x, y, z, m);
             }
 
-            if (m > splitPoint.M.Value)
+            // split measure in between last point measure and current point measure.
+            else if (splitPointMeasure > lastM && splitPointMeasure < m)
             {
-                target2.AddLine(x, y, z, m);
+                currentLineForSegment1.AddPoint(splitPoint);
+                currentLineForSegment2.AddPoint(splitPoint);
+                currentLineForSegment2.AddPoint(x, y, z, m);
             }
+
+            // if current measure is equal to split measure; then it is ashape point
+            else if (IsEqualToSplitMeasure(m))
+            {
+                currentLineForSegment1.AddPoint(x, y, z, m);
+                currentLineForSegment2.AddPoint(x, y, z, m);
+            }
+
+            // If current measure is greater than split measure; then add it to the second segment.
+            else if (m > splitPointMeasure)
+            {
+                currentLineForSegment2.AddPoint(x, y, z, m);
+            }
+
+            // reassign current measure to last measure
+            lastM = (double)m;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -75,18 +112,36 @@ namespace SQLSpatialTools.Sinks.Geometry
         // This is a NOP.
         public void EndFigure()
         {
-            target1.AddLine(splitPoint.STX.Value, splitPoint.STY.Value, null, splitPoint.M.Value);
-            target1.EndFigure();
-            target2.EndFigure();
         }
 
-        // When we end, we'll make all of our output calls to our target.
-        // Here's also where we catch whether we've run off the end of our LineString.
+        // add segments to target
         public void EndGeometry()
         {
-            target1.EndGeometry();
-            target2.EndGeometry();
-        }
+            // if not multi line then add the current line to the collection.
+            if (!isMultiLine)
+            {
+                segment1.AddLine(currentLineForSegment1);
+                segment2.AddLine(currentLineForSegment2);
+            }
 
+            // if line counter is 0 then it is multiline
+            // if 1 then it is linestring 
+            if (lineCounter == 0 || !isMultiLine)
+            {
+                Segment1 = segment1.ToSqlGeometry();
+                Segment2 = segment2.ToSqlGeometry();
+            }
+            else
+            {
+                if (currentLineForSegment1.IsLine)
+                    segment1.AddLine(currentLineForSegment1);
+
+                if (currentLineForSegment2.IsLine)
+                    segment2.AddLine(currentLineForSegment2);
+
+                // reset the line counter so that the child line strings chaining is done and return to base multiline type
+                lineCounter--;
+            }
+        }
     }
 }
