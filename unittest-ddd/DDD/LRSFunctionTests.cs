@@ -655,12 +655,10 @@ namespace SQLSpatialTools.UnitTests.DDD
                 try
                 {
                     var geom = test.InputGeom.GetGeom();
-                    var expectedGeom1 = test.ExpectedResult1?.GetGeom();
-                    var expectedGeom2 = test.ExpectedResult2?.GetGeom();
 
                     Logger.LogLine("Splitting Input geom: {0} at a measure of : {1}", geom, test.Measure);
-                    Logger.Log("Expected Split Geom Segment 1: {0}", expectedGeom1);
-                    Logger.Log("Expected Split Geom Segment 2: {0}", expectedGeom2);
+                    Logger.Log("Expected Split Geom Segment 1: {0}", test.ExpectedResult1);
+                    Logger.Log("Expected Split Geom Segment 2: {0}", test.ExpectedResult2);
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution

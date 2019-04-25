@@ -968,6 +968,42 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Gets the point.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="z">The z.</param>
+        /// <param name="m">The m.</param>
+        /// <param name="srid">The srid.</param>
+        /// <returns></returns>
+        private static SqlGeometry GetPoint(SqlDouble x, SqlDouble y, SqlDouble z, SqlDouble m, SqlInt32 srid)
+        {
+            double? zCoordinate = z.IsNull ? (double?)null : z.Value;
+            return GetPoint((double)x, (double)y, zCoordinate, (double?)m, (int)srid);
+        }
+
+        /// <summary>
+        /// Gets the point.
+        /// </summary>
+        /// <param name="sqlGeometry">The SQL geometry.</param>
+        /// <returns></returns>
+        public static SqlGeometry GetPoint(SqlGeometry sqlGeometry)
+        {
+            return GetPoint(sqlGeometry.STX, sqlGeometry.STY, sqlGeometry.Z, sqlGeometry.M, sqlGeometry.STSrid);
+        }
+
+        /// <summary>
+        /// Gets the point with updated m.
+        /// </summary>
+        /// <param name="sqlGeometry">The SQL geometry.</param>
+        /// <param name="updatedMeasure">The updated measure.</param>
+        /// <returns></returns>
+        public static SqlGeometry GetPointWithUpdatedM(SqlGeometry sqlGeometry, double updatedMeasure)
+        {
+            return GetPoint(sqlGeometry.STX, sqlGeometry.STY, sqlGeometry.Z, updatedMeasure, sqlGeometry.STSrid);
+        }
+
+        /// <summary>
         /// Gets the type of the merge.
         /// </summary>
         /// <param name="geometry1">The geometry1.</param>

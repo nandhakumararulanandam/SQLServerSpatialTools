@@ -845,6 +845,18 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
+            // check for point type
+            if (geometry.IsPoint())
+            {
+                // if anyone measure is null; then point measure is 0 else point measure is end measure
+                var pointMeasure = startMeasure == null || endMeasure == null ? 0 : (double)endMeasure;
+                return Ext.GetPointWithUpdatedM(geometry, pointMeasure);
+            }
+
+            // if anyone is null then assign null to other
+            if (startMeasure == null || endMeasure == null)
+                startMeasure = endMeasure = null;
+
             // As per requirement; 
             // the default value of start point is 0 when null is specified
             // the default value of end point is cartographic length of the segment when null is specified
@@ -852,10 +864,9 @@ namespace SQLSpatialTools.Functions.LRS
             var localEndMeasure = endMeasure ?? geometry.STLength();
 
             var length = geometry.STLength().Value;
-            var geomBuilder = new SqlGeometryBuilder();
-            var geomSink = new PopulateGeometryMeasuresSink(localStartMeasure, localEndMeasure, length, geomBuilder);
+            var geomSink = new PopulateGeometryMeasuresSink(localStartMeasure, localEndMeasure, length);
             geometry.Populate(geomSink);
-            return geomBuilder.ConstructedGeometry;
+            return geomSink.GetConstructedGeom();
         }
 
         /// <summary>
@@ -941,7 +952,7 @@ namespace SQLSpatialTools.Functions.LRS
         {
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
-            
+
             // if point then check if measure is equal to split measure
             // if not equal then throw invalid measure exception
             // if equal return both the segments as null.

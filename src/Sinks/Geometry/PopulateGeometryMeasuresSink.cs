@@ -17,31 +17,38 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         LRSMultiLine lines;
         LRSLine currentLine;
-        
+
         readonly double startMeasure;
         readonly double endMeasure;
         readonly double totalLength;
 
         bool isMultiLine;
-        bool isLinestring;
         int lineCounter;
         int srid;                     // The _srid we are working in.
         double currentLength;
-        bool ispoint = false;
-        SqlGeometryBuilder target;    // Where we place our result.
+        double currentPointM;
+        SqlGeometry target;    // Where we place our result.
+
+        /// <summary>
+        /// Gets the constructed geometry.
+        /// </summary>
+        /// <returns></returns>
+        public SqlGeometry GetConstructedGeom()
+        {
+            return target;
+        }
 
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a distance, which is the point along the input linestring we will travel.
         // Note that we only operate on LineString instances: anything else will throw an exception.
-        public PopulateGeometryMeasuresSink(double startMeasure, DecimalValue endMeasure, double length, SqlGeometryBuilder target)
+        public PopulateGeometryMeasuresSink(double startMeasure, DecimalValue endMeasure, double length)
         {
-            this.target = target;
             this.startMeasure = startMeasure;
             this.endMeasure = endMeasure;
             totalLength = length;
             isMultiLine = false;
-            isLinestring = false;
             lineCounter = 0;
+            currentPointM = startMeasure;
         }
 
         // Initialize MultiLine and sets srid.
@@ -49,47 +56,26 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             lines = new LRSMultiLine(srid);
             this.srid = srid;
-            target.SetSrid(srid);
         }
 
         // Start geometry and check if the type is of the supported types
         public void BeginGeometry(OpenGisGeometryType type)
         {
             if (type == OpenGisGeometryType.MultiLineString)
-            {
                 isMultiLine = true;
-                target.BeginGeometry(OpenGisGeometryType.MultiLineString);
-            }
             else if (type == OpenGisGeometryType.LineString)
-            {
                 lineCounter++;
-            }
-            else if (type == OpenGisGeometryType.Point)
-            {
-                ispoint = true;
-            }
         }
 
 
-        // This operates on LineStrings, multi linestring and point these should only be executed
+        // This operates on LineStrings, multi linestring
         public void BeginFigure(double x, double y, double? z, double? m)
         {
+            currentLine = new LRSLine(srid);
+            currentLine.AddPoint(x, y, null, currentPointM);
+
             // Memorize the starting point.
             lastPoint = SqlGeometry.Point(x, y, srid);
-            currentLine = new LRSLine(srid);
-            if (ispoint)
-            {
-                currentLine.AddPoint(x, y, null, endMeasure);
-            }
-            else if (!isLinestring)
-            {
-                currentLine.AddPoint(x, y, null, startMeasure);
-                isLinestring = true;
-            }
-            else
-            {
-                currentLine.AddPoint(x, y, null, GetCurrentMeasure());
-            }
         }
 
         // This is where the real work is done.
@@ -98,6 +84,8 @@ namespace SQLSpatialTools.Sinks.Geometry
             thisPoint = SqlGeometry.Point(x, y, srid);
             currentLength += lastPoint.STDistance(thisPoint).Value;
             currentLine.AddPoint(x, y, null, GetCurrentMeasure());
+
+            // reset the last point with the current point.
             lastPoint = thisPoint;
         }
 
@@ -109,6 +97,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         // This is a NOP.
         public void EndFigure()
         {
+            
         }
 
         // When we end, we'll make all of our output calls to our target.
@@ -122,28 +111,7 @@ namespace SQLSpatialTools.Sinks.Geometry
             // if 1 then it is linestring 
             if (lineCounter == 0 || !isMultiLine)
             {
-                foreach (LRSLine line in lines)
-                {
-                    // Point Check
-                    if (line.Points.Count == 1)
-                        target.BeginGeometry(OpenGisGeometryType.Point);
-                    else
-                        target.BeginGeometry(OpenGisGeometryType.LineString);
-
-                    var pointIterator = 1;
-                    foreach (LRSPoint point in line.Points)
-                    {
-                        if (pointIterator == 1)
-                            target.BeginFigure(point.X, point.Y, point.Z, point.M);
-                        else
-                            target.AddLine(point.X, point.Y, point.Z, point.M);
-                        pointIterator++;
-                    }
-                    target.EndFigure();
-                    target.EndGeometry();
-                }
-                if (isMultiLine)
-                    target.EndGeometry();
+                target = lines.ToSqlGeometry();
             }
             else
             {
@@ -155,7 +123,8 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         private double GetCurrentMeasure()
         {
-           return startMeasure + (currentLength / totalLength) * (endMeasure - startMeasure);
+            currentPointM = startMeasure + (currentLength / totalLength) * (endMeasure - startMeasure);
+            return currentPointM;
         }
     }
 }

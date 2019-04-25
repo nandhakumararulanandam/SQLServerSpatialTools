@@ -26,7 +26,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         bool isMultiLine;
         double lastM;
 
-        // Intialize Split Geom Sink with split point
+        // Initialize Split Geom Sink with split point
         public SplitGeometrySegmentSink(SqlGeometry splitPoint)
         {
             this.splitPoint = splitPoint;
@@ -87,7 +87,7 @@ namespace SQLSpatialTools.Sinks.Geometry
                 currentLineForSegment2.AddPoint(x, y, z, m);
             }
 
-            // if current measure is equal to split measure; then it is ashape point
+            // if current measure is equal to split measure; then it is a shape point
             else if (IsEqualToSplitMeasure(m))
             {
                 currentLineForSegment1.AddPoint(x, y, z, m);

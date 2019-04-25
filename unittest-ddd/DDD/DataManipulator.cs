@@ -87,14 +87,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                     var subDataSets = line.Split(dataParamSeperator, StringSplitOptions.None);
                     if (subDataSets.Length != paramCount)
                     {
-                        logger.LogError(new Exception("Data Format Exception"), "Error in input data format:{0};\nLine:{1} Argument count mimatch, expected: {2}, obtained: {3}", fileName, lineCounter, paramCount, subDataSets.Length);
+                        logger.LogError(new Exception("Data Format Exception"), "Error in input data format:{0};\nLine:{1} Argument count mismatch, expected: {2}, obtained: {3}", fileName, lineCounter, paramCount, subDataSets.Length);
                         continue;
                     }
 
                     var queryContent = queryFormat;
                     for (var param = 0; param < paramCount; param++)
                     {
-                        queryContent = queryContent.Replace(string.Format(CultureInfo.CurrentCulture, "[{0}]", param), subDataSets[param].Trim());
+                        var paramValue = subDataSets[param].Trim();
+                        var dataContent = string.IsNullOrWhiteSpace(paramValue) ? "NULL" : paramValue;
+                       
+                        queryContent = queryContent.Replace(string.Format(CultureInfo.CurrentCulture, "[{0}]", param), dataContent);
                     }
 
                     queryList.Add(queryContent);

@@ -281,6 +281,8 @@ namespace SQLSpatialTools.Types
         /// <returns>SqlGeometry</returns>
         internal SqlGeometry ToSqlGeometry(ref SqlGeometryBuilder geomBuilder)
         {
+            if (IsEmpty)
+                return SqlGeometry.Null;
             BuildSqlGeometry(ref geomBuilder);
             return geomBuilder.ConstructedGeometry;
         }
@@ -296,14 +298,16 @@ namespace SQLSpatialTools.Types
 
             if (geomBuilder != null)
                 geomBuilder = new SqlGeometryBuilder();
-            geomBuilder.SetSrid(SRID);
 
             if (IsMultiLine)
+            {
+                geomBuilder.SetSrid(SRID);
                 geomBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
+            }
 
             // ignore points
             foreach (var line in Lines.Where(line => line.IsLine).ToList())
-                line.BuildSqlGeometry(ref geomBuilder, true);
+                line.BuildSqlGeometry(ref geomBuilder, IsMultiLine);
 
             if (IsMultiLine)
                 geomBuilder.EndGeometry();

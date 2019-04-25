@@ -7,9 +7,9 @@ CREATE TABLE [LRS_ClipGeometrySegmentData] (
 , [StartMeasure] float NOT NULL
 , [EndMeasure] float NOT NULL
 , [Tolerance] float NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -29,9 +29,9 @@ GO
 CREATE TABLE [LRS_GetEndMeasureData] (
   [Id] int IDENTITY (1,1) NOT NULL
 , [InputGeom] nvarchar(1000) NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -51,9 +51,9 @@ GO
 CREATE TABLE [LRS_GetStartMeasureData] (
   [Id] int IDENTITY (1,1) NOT NULL
 , [InputGeom] nvarchar(1000) NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -94,9 +94,9 @@ CREATE TABLE [LRS_IsConnectedData] (
 , [InputGeom1] nvarchar(1000) NOT NULL
 , [InputGeom2] nvarchar(1000) NOT NULL
 , [Tolerance] float NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] bit
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -117,9 +117,9 @@ CREATE TABLE [LRS_LocatePointAlongGeomData] (
  [Id] int IDENTITY (1,1) NOT NULL
 , [InputGeom] nvarchar(1000) NOT NULL
 , [Measure] float NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -141,9 +141,9 @@ CREATE TABLE [LRS_MergeGeometrySegmentsData] (
 , [InputGeom1] nvarchar(1000) NOT NULL
 , [InputGeom2] nvarchar(1000) NOT NULL
 , [Tolerance] float NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [OracleError] nvarchar(1000)
 , [SqlError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -167,9 +167,9 @@ CREATE TABLE [LRS_OffsetGeometrySegmentData] (
 , [EndMeasure] float NOT NULL
 , [Offset] float NOT NULL
 , [Tolerance] float NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -191,9 +191,9 @@ CREATE TABLE [LRS_PopulateGeometryMeasuresData] (
 , [InputGeom] nvarchar(1000) NOT NULL
 , [StartMeasure] float
 , [EndMeasure] float
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -229,9 +229,9 @@ GO
 CREATE TABLE [LRS_ReverseLinearGeometryData] (
  [Id] int IDENTITY (1,1) NOT NULL
 , [InputGeom] nvarchar(1000) NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [OracleError] nvarchar(1000)
 , [SqlError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -252,12 +252,12 @@ CREATE TABLE [LRS_SplitGeometrySegmentData] (
  [Id] int IDENTITY (1,1) NOT NULL
 , [InputGeom] nvarchar(1000) NOT NULL
 , [Measure] float NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
+, [OutputComparison2] bit
 , [SqlObtainedResult2] nvarchar(1000)
 , [OracleResult2] nvarchar(1000)
-, [OutputComparison2] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -277,9 +277,9 @@ GO
 CREATE TABLE [LRS_ValidateLRSGeometryData] (
   [Id] int IDENTITY (1,1) NOT NULL
 , [InputGeom] nvarchar(1000) NOT NULL
+, [OutputComparison1] bit
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
