@@ -188,15 +188,16 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             public string ExpectedResult1 { get; set; }
             public string ExpectedResult2 { get; set; }
-            public string ObtainedResult1 { get; set; }
-            public string ObtainedResult2 { get; set; }
+            public string SqlObtainedResult1 { get; set; }
+            public string SqlObtainedResult2 { get; set; }
 
             public int Id { get; set; }
             public string Result { get; set; }
-            public string Error { get; set; }
-            public string ElapsedTime { get; private set; }
+            public string SqlError { get; set; }
+            public string SqlElapsedTime { get; private set; }
             public string OracleResult1 { get; set; }
-            public bool OutputComparison { get; set; }
+            public bool OutputComparison1 { get; set; }
+            public bool OutputComparison2 { get; set; }
             public string OracleResult2 { get; set; }
             public string OracleElapsedTime { get; private set; }
             public string OracleError { get; set; }
@@ -207,7 +208,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             public string OracleQuery { get; set; }
             internal void SetElapsedTime(TimeSpan elapsed)
             {
-                ElapsedTime = elapsed.ToString();
+                SqlElapsedTime = elapsed.ToString();
             }
 
             internal void SetOracleElapsedTime(TimeSpan elapsed)

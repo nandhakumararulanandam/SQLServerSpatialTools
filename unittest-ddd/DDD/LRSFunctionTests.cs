@@ -65,14 +65,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.ClipGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure, test.Tolerance)?.ToString().TrimNullValue();
+                    test.SqlObtainedResult1 = Geometry.ClipGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure, test.Tolerance)?.ToString().TrimNullValue();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -120,14 +120,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.GetEndMeasure(inputGeomSegment).ToString();
+                    test.SqlObtainedResult1 = Geometry.GetEndMeasure(inputGeomSegment).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -176,14 +176,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.GetStartMeasure(inputGeomSegment).ToString();
+                    test.SqlObtainedResult1 = Geometry.GetStartMeasure(inputGeomSegment).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -234,15 +234,15 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.InterpolateBetweenGeom(inputGeomSegment1, inputGeomSegment2, test.Measure).ToString();
+                    test.SqlObtainedResult1 = Geometry.InterpolateBetweenGeom(inputGeomSegment1, inputGeomSegment2, test.Measure).ToString();
                     MSSQLTimer.Stop();
                     test.SetElapsedTime(MSSQLTimer.Elapsed);
-                    Logger.Log("Obtained Point: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Point: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -283,14 +283,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.IsConnected(inputGeomSegment1, inputGeomSegment2, test.Tolerance).ToString();
+                    test.SqlObtainedResult1 = Geometry.IsConnected(inputGeomSegment1, inputGeomSegment2, test.Tolerance).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Point: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Point: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -338,14 +338,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.LocatePointAlongGeom(inputGeomSegment1, test.Measure).ToString();
+                    test.SqlObtainedResult1 = Geometry.LocatePointAlongGeom(inputGeomSegment1, test.Measure).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -397,14 +397,14 @@ namespace SQLSpatialTools.UnitTests.DDD
                     MSSQLTimer.Restart();
                     // OSS Function Execution
 
-                    test.ObtainedResult1 = Geometry.MergeGeometrySegments(geom1, geom2, test.Tolerance).ToString();
+                    test.SqlObtainedResult1 = Geometry.MergeGeometrySegments(geom1, geom2, test.Tolerance).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result : {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result : {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -455,14 +455,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.OffsetGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure, test.Offset, test.Tolerance)?.ToString().TrimNullValue();
+                    test.SqlObtainedResult1 = Geometry.OffsetGeometrySegment(inputGeomSegment, test.StartMeasure, test.EndMeasure, test.Offset, test.Tolerance)?.ToString().TrimNullValue();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -509,14 +509,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.PopulateGeometryMeasures(geom, test.StartMeasure, test.EndMeasure).ToString();
+                    test.SqlObtainedResult1 = Geometry.PopulateGeometryMeasures(geom, test.StartMeasure, test.EndMeasure).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -562,14 +562,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.ResetMeasure(inputGeomSegment).ToString();
+                    test.SqlObtainedResult1 = Geometry.ResetMeasure(inputGeomSegment).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -606,14 +606,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.ReverseLinearGeometry(geom).ToString();
+                    test.SqlObtainedResult1 = Geometry.ReverseLinearGeometry(geom).ToString();
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -667,16 +667,16 @@ namespace SQLSpatialTools.UnitTests.DDD
                     Geometry.SplitGeometrySegment(geom, test.Measure, out SqlGeometry obtainedGeom1, out SqlGeometry obtainedGeom2);
                     MSSQLTimer.Stop();
 
-                    test.ObtainedResult1 = obtainedGeom1?.ToString();
-                    test.ObtainedResult2 = obtainedGeom2?.ToString();
+                    test.SqlObtainedResult1 = obtainedGeom1?.ToString();
+                    test.SqlObtainedResult2 = obtainedGeom2?.ToString();
 
-                    Logger.LogLine("Obtained Result1: {0}", test.ObtainedResult1);
-                    Logger.Log("Obtained Result2: {0}", test.ObtainedResult2);
+                    Logger.LogLine("Obtained Result1: {0}", test.SqlObtainedResult1);
+                    Logger.Log("Obtained Result2: {0}", test.SqlObtainedResult2);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -692,7 +692,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateTestResults(test, LRSDataSet.SplitGeometrySegmentData.TableName);
+                UpdateTestResults(test, LRSDataSet.SplitGeometrySegmentData.TableName, true);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -720,14 +720,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                     MSSQLTimer.Restart();
                     // OSS Function Execution
-                    test.ObtainedResult1 = Geometry.ValidateLRSGeometry(inputGeomSegment).ToString(CultureInfo.CurrentCulture);
+                    test.SqlObtainedResult1 = Geometry.ValidateLRSGeometry(inputGeomSegment).ToString(CultureInfo.CurrentCulture);
                     MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result: {0}", test.ObtainedResult1);
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
                 }
                 catch (Exception ex)
                 {
                     test.Result = "Failed";
-                    test.Error = ex.Message;
+                    test.SqlError = ex.Message;
                     Logger.LogError(ex);
                 }
 
@@ -768,15 +768,15 @@ namespace SQLSpatialTools.UnitTests.DDD
         {
             test.SetElapsedTime(MSSQLTimer.Elapsed);
 
-            test.ObtainedResult1 = test.ObtainedResult1.TrimNullValue();
+            test.SqlObtainedResult1 = test.SqlObtainedResult1.TrimNullValue();
             test.ExpectedResult1 = test.ExpectedResult1.TrimNullValue();
 
-            test.Result = test.ObtainedResult1.Compare(test.ExpectedResult1).GetResult();
-            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ObtainedResult1), test.ObtainedResult1));
+            test.Result = test.SqlObtainedResult1.Compare(test.ExpectedResult1).GetResult();
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlObtainedResult1), test.SqlObtainedResult1));
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Result), test.Result));
-            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ElapsedTime), test.ElapsedTime));
-            if (!string.IsNullOrWhiteSpace(test.Error))
-                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Error), test.Error));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlElapsedTime), test.SqlElapsedTime));
+            if (!string.IsNullOrWhiteSpace(test.SqlError))
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlError), test.SqlError));
 
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExecutionTime), test.ExecutionTime));
         }
@@ -784,50 +784,51 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <summary>
         /// Update Test Results.
         /// </summary>
-        /// <param name="test"></param>
-        /// <param name="tableName"></param>
-        /// <param name="obtainedResults"></param>
-        private void UpdateTestResults(LRSDataSet.BaseDataSet test, string tableName)
+        /// <param name="test">Test Obj.</param>
+        /// <param name="tableName">Table name.</param>
+        /// <param name="isMultiResult">Is result singular</param>
+        private void UpdateTestResults(LRSDataSet.BaseDataSet test, string tableName, bool isMultiResult = false)
         {
             test.SetElapsedTime(MSSQLTimer.Elapsed);
             test.SetOracleElapsedTime(OracleTimer.Elapsed);
 
-            test.ObtainedResult1 = test.ObtainedResult1?.TrimNullValue();
+            test.SqlObtainedResult1 = test.SqlObtainedResult1?.TrimNullValue();
             test.ExpectedResult1 = test.ExpectedResult1?.TrimNullValue();
             test.OracleResult1 = test.OracleResult1?.TrimDecimalPoints()?.TrimNullValue();
 
-            test.OutputComparison = test.ObtainedResult1.Compare(test.OracleResult1);
-            test.Result = test.ObtainedResult1.Compare(test.ExpectedResult1).GetResult();
+            test.OutputComparison1 = test.SqlObtainedResult1.Compare(test.OracleResult1);
+            test.Result = test.SqlObtainedResult1.Compare(test.ExpectedResult1).GetResult();
 
-            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ObtainedResult1), test.ObtainedResult1));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlObtainedResult1), test.SqlObtainedResult1));
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExpectedResult1), test.ExpectedResult1));
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleResult1), test.OracleResult1));
 
-            if (!string.IsNullOrEmpty(test.ObtainedResult2))
+            if (isMultiResult)
             {
-                test.ObtainedResult2 = test.ObtainedResult2?.TrimNullValue();
+                test.SqlObtainedResult2 = test.SqlObtainedResult2?.TrimNullValue();
                 test.ExpectedResult2 = test.ExpectedResult2?.TrimNullValue();
                 test.OracleResult2 = test.OracleResult2?.TrimDecimalPoints()?.TrimNullValue();
 
-                test.OutputComparison = test.OutputComparison && test.ObtainedResult2.Compare(test.OracleResult2);
-                test.Result = (test.Result.Equals("Passed", StringComparison.CurrentCulture) && test.ObtainedResult2.Compare(test.ExpectedResult2)).GetResult();
+                test.OutputComparison2 = test.SqlObtainedResult2.Compare(test.OracleResult2);
+                test.Result = (test.Result.Equals("Passed", StringComparison.CurrentCulture) && test.SqlObtainedResult2.Compare(test.ExpectedResult2)).GetResult();
 
-                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ObtainedResult2), test.ObtainedResult2));
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlObtainedResult2), test.SqlObtainedResult2));
                 dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExpectedResult2), test.ExpectedResult2));
                 dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleResult2), test.OracleResult2));
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OutputComparison2), test.OutputComparison2));
             }
 
             // comparison of result with expected against obtained results from MSSQL OSS extension functions
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Result), test.Result));
             // comparison of obtained results from MSSQL OSS extension functions against results from competitive Oracle functions.
-            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OutputComparison), test.OutputComparison));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OutputComparison1), test.OutputComparison1));
 
-            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ElapsedTime), test.ElapsedTime));
+            dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlElapsedTime), test.SqlElapsedTime));
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleElapsedTime), test.OracleElapsedTime));
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleQuery), test.OracleQuery.EscapeQueryString()));
 
-            if (!string.IsNullOrWhiteSpace(test.Error))
-                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Error), test.Error));
+            if (!string.IsNullOrWhiteSpace(test.SqlError))
+                dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlError), test.SqlError));
 
             if (!string.IsNullOrWhiteSpace(test.OracleError))
                 dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleError), test.OracleError));

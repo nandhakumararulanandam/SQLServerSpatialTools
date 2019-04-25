@@ -939,9 +939,6 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="geometry2">Second Geometry Segment</param>
         public static void SplitGeometrySegment(SqlGeometry geometry, double splitMeasure, out SqlGeometry geometry1, out SqlGeometry geometry2)
         {
-            if (splitMeasure == 0)
-                Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
-
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
             
