@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Sinks.Geometry;
+using SQLSpatialTools.Types;
 using SQLSpatialTools.Utility;
 using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 
@@ -754,7 +755,7 @@ namespace SQLSpatialTools.Functions.LRS
 
         /// <summary>
         /// Returns the geometric segment at a specified offset from a geometric segment.
-        /// Works only for LineString Geometry.
+        /// Works only for LineString and MultiLineString Geometry; Point is not supported.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
         /// <param name="startMeasure">Start Measure</param>
@@ -764,6 +765,10 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Offset Geometry Segment</returns>
         public static SqlGeometry OffsetGeometrySegment(SqlGeometry geometry, double startMeasure, double endMeasure, double offset, double tolerance = Constants.Tolerance)
         {
+            // If point throw invalid LRS Segment error.
+            if (geometry.IsPoint())
+                Ext.ThrowLRSError(LRSErrorCodes.InvalidLRS);
+
             Ext.ThrowIfNotLineOrMultiLine(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
@@ -787,7 +792,22 @@ namespace SQLSpatialTools.Functions.LRS
             }
 
             // remove collinear points
-            RemoveCollinearPoints(clippedGeometry).Populate(geomSink);
+            var trimmedGeom = RemoveCollinearPoints(clippedGeometry);
+
+            // for multi line
+            if (trimmedGeom.IsMultiLine)
+            {
+                geomSink = new OffsetGeometrySink(geomBuilder, offset, geometry.STLinearMeasureProgress(), true, trimmedGeom.Count);
+
+                foreach (var line in trimmedGeom)
+                    line.ToSqlGeometry().Populate(geomSink);
+            }
+            // else it should be line string
+            else
+            {
+                trimmedGeom.ToSqlGeometry().Populate(geomSink);
+            }
+
             return geomBuilder.ConstructedGeometry;
         }
 
@@ -796,21 +816,21 @@ namespace SQLSpatialTools.Functions.LRS
         /// </summary>
         /// <param name="sqlGeometry">The SQL geometry.</param>
         /// <returns></returns>
-        private static SqlGeometry RemoveCollinearPoints(SqlGeometry sqlGeometry)
+        private static LRSMultiLine RemoveCollinearPoints(SqlGeometry sqlGeometry)
         {
-            // If the input segment has only two points; then there is no way of collinearity 
-            // so returning the input segment
-            if (sqlGeometry.STNumPoints() <= 2)
-                return sqlGeometry;
-
             // populate the input segment
             var lrsBuilder = new BuildLRSMultiLineSink();
             sqlGeometry.Populate(lrsBuilder);
 
+            // If the input segment has only two points; then there is no way of collinearity 
+            // so returning the input segment
+            if (sqlGeometry.STNumPoints() <= 2)
+                return lrsBuilder.MultiLine;
+
             // remove collinear points
             lrsBuilder.MultiLine.RemoveCollinearPoints();
 
-            return lrsBuilder.MultiLine.ToSqlGeometry();
+            return lrsBuilder.MultiLine;
         }
 
         /// <summary>

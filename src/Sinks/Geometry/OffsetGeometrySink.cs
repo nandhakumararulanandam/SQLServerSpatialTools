@@ -16,21 +16,32 @@ namespace SQLSpatialTools.Sinks.Geometry
         readonly double offset;
         readonly SqlGeometryBuilder target;
         readonly LinearMeasureProgress progress;
+        readonly bool isMultiLineBuilder;
+        
 
-        int srid;
+        int srid, lineCounter, totalLines;
         LRSLine line, parallelLine;
 
-        public OffsetGeometrySink(SqlGeometryBuilder target, double offset, LinearMeasureProgress progress)
+        public OffsetGeometrySink(SqlGeometryBuilder target, double offset, LinearMeasureProgress progress, bool isMultiLineBuilder = false, int noOfLinesInMultine = 0)
         {
             this.target = target;
             this.offset = offset;
             this.progress = progress;
+            this.isMultiLineBuilder = isMultiLineBuilder;
+            lineCounter = 1;
+            totalLines = noOfLinesInMultine;
         }
 
-        // This is a NOP.
         public void SetSrid(int srid)
         {
-            target.SetSrid(srid);
+            // This should be called only once for multi line.
+            if (!isMultiLineBuilder || lineCounter == 1)
+                target.SetSrid(srid);
+
+            // for multiline and only for first line
+            if (isMultiLineBuilder && lineCounter == 1)
+                target.BeginGeometry(OpenGisGeometryType.MultiLineString);
+            
             line = new LRSLine(srid);
             parallelLine = new LRSLine(srid);
             this.srid = srid;
@@ -85,10 +96,15 @@ namespace SQLSpatialTools.Sinks.Geometry
             }
         }
 
-        // This is a NOP.
         public void EndGeometry()
         {
             target.EndGeometry();
+
+            // for multi line string
+            if (isMultiLineBuilder && totalLines == lineCounter)
+                target.EndGeometry();
+
+            lineCounter++;
         }
     }
 }

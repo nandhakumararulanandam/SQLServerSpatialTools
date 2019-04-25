@@ -447,6 +447,7 @@ namespace SQLSpatialTools.Types
                 var previousPoint = Points[pointCounter - 1];
                 var nextPoint = Points[pointCounter + 1];
 
+                // for each point previous and next point slope is compared
                 // if slope of AB = BC = CA then they are collinear
                 if (previousPoint.Slope == point.Slope && point.Slope == nextPoint.Slope)
                     pointsToRemove.Add(point);
