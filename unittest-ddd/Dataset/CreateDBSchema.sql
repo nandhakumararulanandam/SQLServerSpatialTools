@@ -7,9 +7,9 @@ CREATE TABLE [LRS_ClipGeometrySegmentData] (
 , [StartMeasure] float NOT NULL
 , [EndMeasure] float NOT NULL
 , [Tolerance] float NOT NULL
-, [qlSqlObtainedResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -31,7 +31,7 @@ CREATE TABLE [LRS_GetEndMeasureData] (
 , [InputGeom] nvarchar(1000) NOT NULL
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -53,7 +53,7 @@ CREATE TABLE [LRS_GetStartMeasureData] (
 , [InputGeom] nvarchar(1000) NOT NULL
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -96,7 +96,7 @@ CREATE TABLE [LRS_IsConnectedData] (
 , [Tolerance] float NOT NULL
 , [SqlObtainedResult1] bit
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -119,7 +119,7 @@ CREATE TABLE [LRS_LocatePointAlongGeomData] (
 , [Measure] float NOT NULL
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -143,7 +143,7 @@ CREATE TABLE [LRS_MergeGeometrySegmentsData] (
 , [Tolerance] float NOT NULL
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [OracleError] nvarchar(1000)
 , [SqlError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -167,10 +167,9 @@ CREATE TABLE [LRS_OffsetGeometrySegmentData] (
 , [EndMeasure] float NOT NULL
 , [Offset] float NOT NULL
 , [Tolerance] float NOT NULL
-
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -194,7 +193,7 @@ CREATE TABLE [LRS_PopulateGeometryMeasuresData] (
 , [EndMeasure] float
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -232,7 +231,7 @@ CREATE TABLE [LRS_ReverseLinearGeometryData] (
 , [InputGeom] nvarchar(1000) NOT NULL
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [OracleError] nvarchar(1000)
 , [SqlError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
@@ -280,7 +279,7 @@ CREATE TABLE [LRS_ValidateLRSGeometryData] (
 , [InputGeom] nvarchar(1000) NOT NULL
 , [SqlObtainedResult1] nvarchar(1000)
 , [OracleResult1] nvarchar(1000)
-, [OutputComparison] bit
+, [OutputComparison1] bit
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
 , [OracleQuery] nvarchar(1000)
