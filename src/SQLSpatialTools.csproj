@@ -135,6 +135,10 @@
     <Compile Include="Sinks\Geometry\SplitGeometrySegmentSink.cs" />
     <Compile Include="Sinks\Geography\VacuousGeographyToGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\VacuousGeometryToGeographySink.cs" />
+    <Compile Include="Types\LRSEnumerator.cs" />
+    <Compile Include="Types\LRSLine.cs" />
+    <Compile Include="Types\LRSMultiLine.cs" />
+    <Compile Include="Types\LRSPoint.cs" />
     <Compile Include="Types\Vertex.cs" />
     <Compile Include="Utility\EnumsAndConstants.cs" />
     <Compile Include="Utility\ErrorMessage.cs" />
@@ -163,7 +167,6 @@
     <Compile Include="Sinks\Geometry\Unprojector.cs" />
     <Compile Include="Sinks\Geometry\ConvertXYZ2XYMGeometrySink.cs" />
     <Compile Include="Utility\Util.cs" />
-    <Compile Include="Types\LRSTypes.cs" />
     <Compile Include="Types\Vector3.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -226,7 +229,6 @@
   <PropertyGroup>
     <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q
 powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'DLLPath', '$(TargetPath)' -join \"`r`n\"))
-powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\Register.sql', ((gc '$(TargetDir)SQL Scripts\Register.sql') -replace 'UnregisterScriptPath', '$(TargetDir)SQL Scripts\Unregister.sql' -join \"`r`n\"))
 powershell.exe -ExecutionPolicy Unrestricted [io.file]::WriteAllText('$(TargetDir)SQL Scripts\RegisterAndValidate.sql', ((gc '$(TargetDir)SQL Scripts\RegisterAndValidate.sql') -replace 'ScriptDirPath', '$(TargetDir)SQL Scripts' -join \"`r`n\"))</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

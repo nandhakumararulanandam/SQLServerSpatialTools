@@ -5,6 +5,10 @@
 -- First unregister should be called
 -- To run sql script inside another SQLCMD Mode should be enabled
 -- To enable SQLCMD Mode: Query -> SQLCMD Mode
+
+-- First Unregister existing functions
+:r "ScriptDirPath\Unregister.sql"
+
 -- Register Script Path will be replaced in run time
 :r "ScriptDirPath\Register.sql"
 
