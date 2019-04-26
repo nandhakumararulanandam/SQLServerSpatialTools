@@ -22,7 +22,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         int srid, lineCounter, totalLines;
         LRSLine line, parallelLine;
 
-        public OffsetGeometrySink(SqlGeometryBuilder target, double offset, LinearMeasureProgress progress, bool isMultiLineBuilder = false, int noOfLinesInMultine = 0)
+        public OffsetGeometrySink(SqlGeometryBuilder target, double offset, LinearMeasureProgress progress, int noOfLinesInMultine)
         {
             this.target = target;
             this.offset = offset;

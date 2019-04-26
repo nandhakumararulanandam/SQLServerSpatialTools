@@ -779,58 +779,29 @@ namespace SQLSpatialTools.Functions.LRS
             if (clippedGeometry == null)
                 return null;
 
-            var geomBuilder = new SqlGeometryBuilder();
-            var geomSink = new OffsetGeometrySink(geomBuilder, offset, geometry.STLinearMeasureProgress());
-
             // Explicit handle if clipped segment is Point
             // As point has a single co-ordinate we need to consider the angle from input segment, not from the clipped segment
+            var lrsSegment = clippedGeometry.IsPoint() ? geometry.GetLRSMultiLine() : clippedGeometry.GetLRSMultiLine();
+
             if (clippedGeometry.IsPoint())
             {
-                // populate with input geom rather than clipped segment
-                geometry.Populate(geomSink);
-                return geomBuilder.ConstructedGeometry.GetPointAtMeasure(clippedGeometry.M.Value);
+                // Computing offset
+                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress());
+
+                // get the offset point at clipped measure
+                var offsetPoint = parallelSegment.GetPointAtM(clippedGeometry.M.Value);
+                return offsetPoint?.ToSqlGeometry();
             }
-
-            // remove collinear points
-            var trimmedGeom = RemoveCollinearPoints(clippedGeometry);
-
-            // for multi line
-            if (trimmedGeom.IsMultiLine)
-            {
-                geomSink = new OffsetGeometrySink(geomBuilder, offset, geometry.STLinearMeasureProgress(), true, trimmedGeom.Count);
-
-                foreach (var line in trimmedGeom)
-                    line.ToSqlGeometry().Populate(geomSink);
-            }
-            // else it should be line string
             else
             {
-                trimmedGeom.ToSqlGeometry().Populate(geomSink);
+                // removing collinear points
+                lrsSegment.RemoveCollinearPoints();
+
+                // Computing offset
+                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress());
+
+                return parallelSegment.ToSqlGeometry();
             }
-
-            return geomBuilder.ConstructedGeometry;
-        }
-
-        /// <summary>
-        /// Removes the collinear points.
-        /// </summary>
-        /// <param name="sqlGeometry">The SQL geometry.</param>
-        /// <returns></returns>
-        private static LRSMultiLine RemoveCollinearPoints(SqlGeometry sqlGeometry)
-        {
-            // populate the input segment
-            var lrsBuilder = new BuildLRSMultiLineSink();
-            sqlGeometry.Populate(lrsBuilder);
-
-            // If the input segment has only two points; then there is no way of collinearity 
-            // so returning the input segment
-            if (sqlGeometry.STNumPoints() <= 2)
-                return lrsBuilder.MultiLine;
-
-            // remove collinear points
-            lrsBuilder.MultiLine.RemoveCollinearPoints();
-
-            return lrsBuilder.MultiLine;
         }
 
         /// <summary>

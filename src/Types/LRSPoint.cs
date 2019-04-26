@@ -13,6 +13,7 @@ namespace SQLSpatialTools.Types
     internal class LRSPoint
     {
         // Fields.
+        private string wkt;
         internal double X, Y;
         internal double? Z, M;
         internal int SRID;
@@ -111,7 +112,11 @@ namespace SQLSpatialTools.Types
         /// <returns>The result of the operator.</returns>
         public static bool operator ==(LRSPoint a, LRSPoint b)
         {
-            return ReferenceEquals(b, null) ? false : a.X == b.X && a.Y == b.Y && EqualityComparer<double?>.Default.Equals(a.M, b.M);
+            if (ReferenceEquals(b, null) && ReferenceEquals(a, null))
+                return true;
+            if (ReferenceEquals(b, null) || ReferenceEquals(a, null))
+                return false;
+            return a.X == b.X && a.Y == b.Y && EqualityComparer<double?>.Default.Equals(a.M, b.M);
         }
 
         /// <summary>
@@ -122,7 +127,7 @@ namespace SQLSpatialTools.Types
         /// <returns>The result of the operator.</returns>
         public static bool operator !=(LRSPoint a, LRSPoint b)
         {
-            return ReferenceEquals(b, null) ? true : a.X != b.X || a.Y != b.Y || a.M != b.M;
+            return !(a==b);
         }
 
         /// <summary>
@@ -155,6 +160,35 @@ namespace SQLSpatialTools.Types
             hashCode = hashCode * -1521134295 + EqualityComparer<double?>.Default.GetHashCode(Z);
             hashCode = hashCode * -1521134295 + EqualityComparer<double?>.Default.GetHashCode(M);
             return hashCode;
+        }
+
+        #endregion
+
+        #region Data Structure Conversions
+
+        /// <summary>
+        /// Converts to WKT format.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(wkt))
+                return wkt;
+
+            wkt =  string.Format("POINT ({0} {1} {2})", X, Y, M);
+
+            return wkt;
+        }
+
+        /// <summary>
+        /// Converts to SqlGeometry.
+        /// </summary>
+        /// <returns></returns>
+        internal SqlGeometry ToSqlGeometry()
+        {
+            return SpatialExtensions.GetPoint(X, Y, Z, M);
         }
 
         #endregion

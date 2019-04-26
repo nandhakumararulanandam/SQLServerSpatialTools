@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Types;
 using System.Globalization;
 using SQLSpatialTools.Sinks.Geometry;
+using SQLSpatialTools.Types;
 
 namespace SQLSpatialTools.Utility
 {
@@ -990,6 +991,20 @@ namespace SQLSpatialTools.Utility
         public static SqlGeometry GetPoint(SqlGeometry sqlGeometry)
         {
             return GetPoint(sqlGeometry.STX, sqlGeometry.STY, sqlGeometry.Z, sqlGeometry.M, sqlGeometry.STSrid);
+        }
+
+        /// <summary>
+        /// Gets the LRS multi line from Sql Geometry.
+        /// </summary>
+        /// <param name="sqlGeometry">The SQL geometry.</param>
+        /// <returns></returns>
+        internal static LRSMultiLine GetLRSMultiLine(this SqlGeometry sqlGeometry)
+        {
+            SpatialExtensions.ThrowIfNotLineOrMultiLine(sqlGeometry);
+            // populate the input segment
+            var lrsBuilder = new BuildLRSMultiLineSink();
+            sqlGeometry.Populate(lrsBuilder);
+            return lrsBuilder.MultiLine;
         }
 
         /// <summary>

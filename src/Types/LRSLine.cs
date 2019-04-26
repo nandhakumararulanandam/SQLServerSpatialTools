@@ -161,6 +161,15 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
+        /// Gets the point at m.
+        /// </summary>
+        /// <returns></returns>
+        internal LRSPoint GetPointAtM(double measure)
+        {
+            return Points.FirstOrDefault(e => e.M == measure);
+        }
+
+        /// <summary>
         /// Scale the existing measure of geometry by multiplying existing measure with offsetMeasure
         /// </summary>
         /// <param name="offsetMeasure"></param>
@@ -183,6 +192,11 @@ namespace SQLSpatialTools.Types
         /// </summary>
         internal void RemoveCollinearPoints()
         {
+            // If the input segment has only two points; then there is no way of collinearity 
+            // so its no-op
+            if (Points.Count <= 2)
+                return;
+
             var pointCounter = 0;
             var pointsToRemove = new List<LRSPoint>();
 

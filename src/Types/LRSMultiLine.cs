@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Sinks.Geometry;
+using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Types
 {
@@ -130,6 +132,18 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
+        /// Computes the offset.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        /// <param name="progress">The progress.</param>
+        internal LRSMultiLine ComputeOffset(double offset, LinearMeasureProgress progress)
+        {
+            var parallelMultiLine = new LRSMultiLine(SRID);
+            Lines.ForEach(line => parallelMultiLine.Lines.Add(line.ComputeParallelLine(offset, progress)));
+            return parallelMultiLine;
+        }
+
+        /// <summary>
         /// Reverse both LINESTRING segment and its POINTS
         /// </summary>
         internal void ReverseLinesAndPoints()
@@ -186,6 +200,24 @@ namespace SQLSpatialTools.Types
             if (Lines.Any())
             {
                 return Lines.Last().Points.Last();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the POINT in a MULTILINESTRING at a specified measure
+        /// </summary>
+        /// <returns></returns>
+        internal LRSPoint GetPointAtM(double measure)
+        {
+            if (Lines.Any())
+            {
+                foreach(var line in Lines)
+                {
+                    LRSPoint point = line.GetPointAtM(measure);
+                    if (point != null)
+                        return point;
+                }
             }
             return null;
         }
