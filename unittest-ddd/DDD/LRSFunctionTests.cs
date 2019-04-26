@@ -9,6 +9,7 @@ using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
 using System.Globalization;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
@@ -21,6 +22,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         private static string connectionString;
         private const string DatabaseFile = "SpatialTestData.sdf";
         private const string SchemaFile = "Dataset\\CreateDBSchema.sql";
+        private int passCount, failCount;
 
         [ClassInitialize()]
         public static void Intialize(TestContext testContext)
@@ -47,7 +49,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -88,7 +90,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update test results in DB
-                UpdateTestResults(test, LRSDataSet.ClipGeometrySegmentData.TableName);
+                UpdateTestResults(test, LRSDataSet.ClipGeometrySegmentData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -104,7 +106,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -144,7 +146,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
 
                 // Update test results in DB
-                UpdateTestResults(test, LRSDataSet.GetEndMeasureData.TableName);
+                UpdateTestResults(test, LRSDataSet.GetEndMeasureData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -160,7 +162,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -200,7 +202,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
 
                 // Update test results in DB
-                UpdateTestResults(test, LRSDataSet.GetStartMeasureData.TableName);
+                UpdateTestResults(test, LRSDataSet.GetStartMeasureData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -216,7 +218,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -249,7 +251,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateSqlServerTestResults(test, LRSDataSet.InterpolateBetweenGeomData.TableName);
+                UpdateSqlServerTestResults(test, LRSDataSet.InterpolateBetweenGeomData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -265,7 +267,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -306,7 +308,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateTestResults(test, LRSDataSet.IsConnectedData.TableName);
+                UpdateTestResults(test, LRSDataSet.IsConnectedData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -322,7 +324,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -362,7 +364,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateTestResults(test, LRSDataSet.LocatePointAlongGeomData.TableName);
+                UpdateTestResults(test, LRSDataSet.LocatePointAlongGeomData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -377,7 +379,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -420,7 +422,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateTestResults(test, LRSDataSet.MergeGeometrySegmentsData.TableName);
+                UpdateTestResults(test, LRSDataSet.MergeGeometrySegmentsData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -436,7 +438,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -478,7 +480,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update test results in DB
-                UpdateTestResults(test, LRSDataSet.OffsetGeometrySegmentData.TableName);
+                UpdateTestResults(test, LRSDataSet.OffsetGeometrySegmentData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -494,7 +496,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -533,7 +535,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateTestResults(test, LRSDataSet.PopulateGeometryMeasuresData.TableName);
+                UpdateTestResults(test, LRSDataSet.PopulateGeometryMeasuresData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -549,7 +551,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -574,7 +576,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 }
 
                 // Update results to database
-                UpdateSqlServerTestResults(test, LRSDataSet.ResetMeasureData.TableName);
+                UpdateSqlServerTestResults(test, LRSDataSet.ResetMeasureData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -590,7 +592,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -629,7 +631,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateTestResults(test, LRSDataSet.ReverseLinearGeometryData.TableName);
+                UpdateTestResults(test, LRSDataSet.ReverseLinearGeometryData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -645,7 +647,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (dataSet == null || !dataSet.Any())
                 Logger.Log("No test cases found");
 
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -690,7 +692,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update results to database
-                UpdateTestResults(test, LRSDataSet.SplitGeometrySegmentData.TableName, true);
+                UpdateTestResults(test, LRSDataSet.SplitGeometrySegmentData.TableName, testIterator, true);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -702,7 +704,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         {
             Logger.LogLine("Clip Geometry Segments Tests");
             var dataSet = dbConnection.Query<LRSDataSet.ValidateLRSGeometryData>(LRSDataSet.ValidateLRSGeometryData.SelectQuery);
-            int testIterator = 1;
+            int testIterator = 1; passCount = 0; failCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -741,7 +743,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 #endregion
 
                 // Update test results in DB
-                UpdateTestResults(test, LRSDataSet.ValidateLRSGeometryData.TableName);
+                UpdateTestResults(test, LRSDataSet.ValidateLRSGeometryData.TableName, testIterator);
 
                 Logger.Log("Test Result : {0}", test.Result);
                 testIterator++;
@@ -750,7 +752,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 Logger.Log("No test cases found");
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void Cleanup()
         {
             if (dbConnection != null)
@@ -762,7 +764,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// </summary>
         /// <param name="test"></param>
         /// <param name="tableName"></param>
-        private void UpdateSqlServerTestResults(LRSDataSet.BaseDataSet test, string tableName)
+        private void UpdateSqlServerTestResults(LRSDataSet.BaseDataSet test, string tableName, int count)
         {
             test.SetElapsedTime(MSSQLTimer.Elapsed);
 
@@ -777,6 +779,15 @@ namespace SQLSpatialTools.UnitTests.DDD
                 dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlError), test.SqlError));
 
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExecutionTime), test.ExecutionTime));
+
+            if (test.Result.Equals("Passed", StringComparison.CurrentCulture))
+                passCount++;
+            else
+                failCount++;
+
+            if (count == 1)
+                dataManipulator.ExecuteQuery(test.InsertOverallStatusQuery(tableName));
+            dataManipulator.ExecuteQuery(test.UpdateOverallStatusCountQuery(tableName, count, passCount, failCount));
         }
 
         /// <summary>
@@ -785,7 +796,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="test">Test Obj.</param>
         /// <param name="tableName">Table name.</param>
         /// <param name="isMultiResult">Is result singular</param>
-        private void UpdateTestResults(LRSDataSet.BaseDataSet test, string tableName, bool isMultiResult = false)
+        private void UpdateTestResults(LRSDataSet.BaseDataSet test, string tableName, int count, bool isMultiResult = false)
         {
             test.SetElapsedTime(MSSQLTimer.Elapsed);
             test.SetOracleElapsedTime(OracleTimer.Elapsed);
@@ -832,6 +843,76 @@ namespace SQLSpatialTools.UnitTests.DDD
                 dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleError), test.OracleError));
 
             dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExecutionTime), test.ExecutionTime));
+
+            //update test results
+            if (isMultiResult)
+            {
+                if (test.OutputComparison1 && test.OutputComparison2)
+                    passCount++;
+                else
+                    failCount++;
+            }
+            else
+            {
+                if (test.OutputComparison1)
+                    passCount++;
+                else
+                    failCount++;
+            }
+
+            if (count == 1)
+                dataManipulator.ExecuteQuery(test.InsertOverallStatusQuery(tableName));
+            dataManipulator.ExecuteQuery(test.UpdateOverallStatusCountQuery(tableName, count, passCount, failCount));
+        }
+    }
+
+    [TestClass]
+    public class LRSFunctionsOverallTests : BaseUnitTest
+    {
+        private static SqlCeConnection dbConnection;
+        private static DataManipulator dataManipulator;
+        private static string connectionString;
+        private const string DatabaseFile = "SpatialTestData.sdf";
+
+        [ClassInitialize()]
+        public static void Intialize(TestContext testContext)
+        {
+            connectionString = string.Format(CultureInfo.CurrentCulture, "Data Source=|DataDirectory|\\{0}", DatabaseFile);
+            dbConnection = new SqlCeConnection(connectionString);
+            dataManipulator = new DataManipulator(connectionString, "", dbConnection, new TestLogger(testContext));
+            dbConnection.Open();
+        }
+
+        [TestMethod]
+        public void OverallResultTest()
+        {
+            Logger.LogLine("Overall Result Tests");
+            Logger.LogLine("This should be run separately after all tests as MS test doesn't support test priority order.");
+            var dataSet = dbConnection.Query<LRSDataSet.OverallResult>(LRSDataSet.OverallResult.SelectQuery);
+            var testIterator = 1;
+
+            var failedCases = new List<string>();
+            foreach (var test in dataSet)
+            {
+                Logger.LogLine("{0}. Function : {1}", testIterator, test.FunctionName);
+                Logger.Log("Total : {0}", test.TotalCount);
+                Logger.Log("Passed : {0} / {1}", test.PassCount, test.TotalCount);
+                Logger.Log("Failed : {0} / {1}", test.FailCount, test.TotalCount);
+
+                if (test.FailCount > 0)
+                    failedCases.Add(string.Format("In {0}; {1} failed out {2}", test.FunctionName, test.FailCount, test.TotalCount));
+                testIterator++;
+            }
+
+            if (failedCases.Any())
+                throw new Exception(string.Join("\n", failedCases.ToArray()));
+        }
+
+        [ClassCleanup]
+        public static void Cleanup()
+        {
+            if (dbConnection != null)
+                dbConnection.Close();
         }
     }
 }

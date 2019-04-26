@@ -1,5 +1,17 @@
 ﻿-- LRS Functions Test Data Table
 
+-- Overall Results Table
+CREATE TABLE [_LRS_OverallResult] (
+  [Id] int IDENTITY (1,1) NOT NULL
+, [FunctionName] nvarchar(1000) NOT NULL
+, [TotalCount] int
+, [PassCount] int
+, [FailCount] int
+);
+GO
+ALTER TABLE [_LRS_OverallResult] ADD CONSTRAINT [PK_LRS_OverallResult] PRIMARY KEY ([Id]);
+GO
+
 -- ClipGeometrySegment
 CREATE TABLE [LRS_ClipGeometrySegmentData] (
   [Id] int IDENTITY (1,1) NOT NULL

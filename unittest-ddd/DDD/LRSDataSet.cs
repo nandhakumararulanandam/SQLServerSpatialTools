@@ -179,6 +179,24 @@ namespace SQLSpatialTools.UnitTests.DDD
             public string InputGeom { get; set; }
         }
 
+        public class OverallResult
+        {
+            public const string TableName = "_LRS_OverallResult";
+            public static readonly string SelectQuery = string.Format(CultureInfo.CurrentCulture, "SELECT [Id], [FunctionName], [TotalCount], [PassCount], [FailCount] FROM [{0}];", TableName);
+            private static readonly string InsertPart1 = string.Format(CultureInfo.CurrentCulture, "INSERT INTO[{0}] ([FunctionName]) ", TableName);
+            private static readonly string InsertPart2 = "VALUES (N'{0}');";
+            public static readonly string InsertQuery = string.Concat(InsertPart1, InsertPart2);
+
+            private static readonly string UpdatePart1 = string.Format(CultureInfo.CurrentCulture, "UPDATE [{0}] SET ", TableName);
+            private static readonly string UpdatePart2 = "[TotalCount] = {0}, [PassCount] = {1}, [FailCount] = {2} WHERE [FunctionName] = '{3}';";
+            public static readonly string UpdateQuery = string.Concat(UpdatePart1, UpdatePart2);
+
+            public string FunctionName { get; set; }
+            public int TotalCount { get; set; }
+            public int PassCount { get; set; }
+            public int FailCount { get; set; }
+        }
+
         abstract public class BaseDataSet
         {
             public const string UpdateResultQuery = "UPDATE [{0}] Set [Result] = N'{1}' WHERE [ID] = {2};";
@@ -219,6 +237,16 @@ namespace SQLSpatialTools.UnitTests.DDD
             internal string GetTargetUpdateQuery(string tableName, string fieldName, object fieldValue)
             {
                 return string.Format(CultureInfo.CurrentCulture, UpdateTargetQuery, tableName, fieldName, GetFieldValue(fieldValue), Id);
+            }
+
+            internal string UpdateOverallStatusCountQuery(string tablename, int count, int passCount, int failCount)
+            {
+                return string.Format(CultureInfo.CurrentCulture, OverallResult.UpdateQuery, count, passCount, failCount, tablename);
+            }
+
+            internal string InsertOverallStatusQuery(string tablename)
+            {
+                return string.Format(CultureInfo.CurrentCulture, OverallResult.InsertQuery, tablename);
             }
 
             private string GetFieldValue(object fieldValue)
