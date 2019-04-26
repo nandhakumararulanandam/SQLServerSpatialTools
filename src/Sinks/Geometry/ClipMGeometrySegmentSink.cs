@@ -19,9 +19,9 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         double clipStartMeasure;
         double clipEndMeasure;
-        double lastX;
-        double lastY;
-        double lastM;
+        double previousX;
+        double preivousY;
+        double previousM;
         bool started;
         bool finished;
 
@@ -112,14 +112,16 @@ namespace SQLSpatialTools.Sinks.Geometry
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
                         // if computed point is within tolerance of last point then begin figure with last point
-                        if (Ext.IsWithinTolerance(lastX, lastY, newX, newY, tolerance))
-                            target.BeginFigure(lastX, lastY, null, retainClipMeasure ? clipStartMeasure : lastM);
+                        if (Ext.IsWithinTolerance(previousX, preivousY, newX, newY, tolerance))
+                            target.BeginFigure(previousX, preivousY, null, retainClipMeasure ? clipStartMeasure : previousM);
+                        
                         // check with current point against new computed point
                         else if (Ext.IsWithinTolerance(x, y, newX, newY, tolerance))
                         {
-                            target.BeginFigure(x, y, null, retainClipMeasure ? clipStartMeasure : m);
+                            target.BeginFigure(x, y, null, m);
                             isShapePoint = true;
                         }
+                        
                         // else begin figure with clipped point
                         else
                             target.BeginFigure(newX, newY, null, clipPointMeasure);
@@ -142,13 +144,13 @@ namespace SQLSpatialTools.Sinks.Geometry
                 if (!started)
                 {
                     var isShapePoint = false;
-                    if (clipPointMeasure.IsWithinRange((double)m, lastM))
+                    if (clipPointMeasure.IsWithinRange((double)m, previousM))
                     {
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
                         // if computed point is within tolerance of last point then begin figure with last point
-                        if (Ext.IsWithinTolerance(lastX, lastY, newX, newY, tolerance))
-                            target.BeginFigure(lastX, lastY, null, retainClipMeasure ? clipStartMeasure : lastM);
+                        if (Ext.IsWithinTolerance(previousX, preivousY, newX, newY, tolerance))
+                            target.BeginFigure(previousX, preivousY, null, retainClipMeasure ? clipStartMeasure : previousM);
                         // check with current point against new computed point
                         else if (Ext.IsWithinTolerance(x, y, newX, newY, tolerance))
                         {
@@ -172,11 +174,11 @@ namespace SQLSpatialTools.Sinks.Geometry
                     // re calculate clip point measure as it can be changed from above condition.
                     clipPointMeasure = GetClipPointMeasure(m);
 
-                    if (clipPointMeasure.IsWithinRange((double)m, lastM))
+                    if (clipPointMeasure.IsWithinRange((double)m, previousM))
                     {
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
-                        var isWithinLastPoint = Ext.IsWithinTolerance(lastX, lastY, newX, newY, tolerance);
+                        var isWithinLastPoint = Ext.IsWithinTolerance(previousX, preivousY, newX, newY, tolerance);
                         var isWithinCurrentPoint = Ext.IsWithinTolerance(x, y, newX, newY, tolerance);
 
                         // if computed point is within tolerance of last point then skip
@@ -201,9 +203,9 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         private void UpdateLastPoint(double x, double y, double? m)
         {
-            lastX = x;
-            lastY = y;
-            lastM = m.HasValue ? (double)m : 0;
+            previousX = x;
+            preivousY = y;
+            previousM = m.HasValue ? (double)m : 0;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -224,9 +226,9 @@ namespace SQLSpatialTools.Sinks.Geometry
             target.EndGeometry();
             started = false;
             finished = false;
-            lastX = default(double);
-            lastY = default(double);
-            lastM = default(double);
+            previousX = default(double);
+            preivousY = default(double);
+            previousM = default(double);
         }
 
         /// <summary>
@@ -237,7 +239,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         private double GetClipPointMeasure(double? currentPointMeasure)
         {
             double clipPointMeasure;
-            if (lastM < currentPointMeasure && !started)
+            if (previousM < currentPointMeasure && !started)
                 clipPointMeasure = Math.Min(clipStartMeasure, clipEndMeasure);
             else
                 clipPointMeasure = Math.Max(clipStartMeasure, clipEndMeasure);
@@ -257,9 +259,9 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             var currentM = (double)currentPointMeasure;
             // The fraction of the way from start to end.
-            var fraction = ((double)computePointMeasure - lastM) / (currentM - lastM);
-            newX = (lastX * (1 - fraction)) + (currentXCoordinate * fraction);
-            newY = (lastY * (1 - fraction)) + (currentYCoordinate * fraction);
+            var fraction = ((double)computePointMeasure - previousM) / (currentM - previousM);
+            newX = (previousX * (1 - fraction)) + (currentXCoordinate * fraction);
+            newY = (preivousY * (1 - fraction)) + (currentYCoordinate * fraction);
         }
     }
 }

@@ -53,16 +53,26 @@ namespace SQLSpatialTools.UnitTests.Extension
         /// <returns>Null trimmed geom text</returns>
         public static string TrimNullValue(this string inputGeom)
         {
-            var result = Regex.Replace(inputGeom, @"\s*null\s*", " ", RegexOptions.IgnoreCase);
-            var output = result;
-            var matches = Regex.Matches(result, @"(\d+\.\d{5,16})", RegexOptions.Compiled);
+            return Regex.Replace(inputGeom, @"\s*null\s*", " ", RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
+        /// Trims the decimal precision.
+        /// </summary>
+        /// <param name="inputGeom">The input geom.</param>
+        /// <returns></returns>
+        public static string RoundOffDecimalPrecision(this string inputGeom)
+        {
+            var output = inputGeom;
+            //var matches = Regex.Matches(inputGeom, @"(\d+\.\d{5,16})", RegexOptions.Compiled);
+            var matches = Regex.Matches(inputGeom, @"(\d+\.\d+)", RegexOptions.Compiled);
 
             foreach (Match match in matches)
             {
                 var inputStr = match.Groups[1].Value;
                 if (double.TryParse(inputStr, out double trimValue))
                 {
-                    output = output.Replace(inputStr, Math.Round(trimValue, 8).ToString());
+                    output = output.Replace(inputStr, Math.Round(trimValue, 4).ToString());
                 }
             }
 
@@ -89,6 +99,8 @@ namespace SQLSpatialTools.UnitTests.Extension
             if (string.IsNullOrEmpty(firstResult) || string.IsNullOrEmpty(secondResult))
                 return false;
 
+            firstResult = firstResult.RoundOffDecimalPrecision();
+            secondResult = secondResult.RoundOffDecimalPrecision();
             firstResult = Regex.Replace(firstResult, @"\s+", string.Empty).ToLower(CultureInfo.CurrentCulture);
             secondResult = Regex.Replace(secondResult, @"\s+", string.Empty).ToLower(CultureInfo.CurrentCulture);
             return firstResult.Equals(secondResult, StringComparison.CurrentCulture);

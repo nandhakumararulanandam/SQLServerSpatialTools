@@ -91,7 +91,6 @@
     <Compile Include="Sinks\Geometry\TranslateMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ReverseLinearGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ClipMultiLineSegmentSink.cs" />
-    <Compile Include="Sinks\Geometry\OffsetGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\LineStringMergeGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ValidateLinearMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\LocateMAlongGeometrySink.cs" />
