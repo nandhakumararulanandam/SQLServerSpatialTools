@@ -994,17 +994,29 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Gets the LRS multi line.
+        /// </summary>
+        /// <param name="sqlGeometry">The SQL geometry.</param>
+        /// <param name="doUpdateM">if set to <c>true</c> [do update m].</param>
+        /// <param name="offsetM">The offset m.</param>
+        /// <returns></returns>
+        internal static LRSMultiLine GetLRSMultiLine(this SqlGeometry sqlGeometry, bool doUpdateM, double? offsetM)
+        {
+            ThrowIfNotLineOrMultiLine(sqlGeometry);
+            // populate the input segment
+            var lrsBuilder = new BuildLRSMultiLineSink(doUpdateM, offsetM);
+            sqlGeometry.Populate(lrsBuilder);
+            return lrsBuilder.MultiLine;
+        }
+
+        /// <summary>
         /// Gets the LRS multi line from Sql Geometry.
         /// </summary>
         /// <param name="sqlGeometry">The SQL geometry.</param>
         /// <returns></returns>
         internal static LRSMultiLine GetLRSMultiLine(this SqlGeometry sqlGeometry)
         {
-            SpatialExtensions.ThrowIfNotLineOrMultiLine(sqlGeometry);
-            // populate the input segment
-            var lrsBuilder = new BuildLRSMultiLineSink();
-            sqlGeometry.Populate(lrsBuilder);
-            return lrsBuilder.MultiLine;
+            return sqlGeometry.GetLRSMultiLine(false, 0);
         }
 
         /// <summary>

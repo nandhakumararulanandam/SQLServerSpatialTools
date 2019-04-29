@@ -54,12 +54,10 @@ namespace SQLSpatialTools.Functions.LRS
                 return ClipLineSegment(geometry, clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
 
             // for multi line
-            var geomSink = new BuildLRSMultiLineSink();
-            geometry.Populate(geomSink);
-            var multiLine = geomSink.MultiLine;
+            var multiLine = geometry.GetLRSMultiLine();
 
             var clippedSegments = new List<SqlGeometry>();
-            foreach (var line in geomSink.MultiLine)
+            foreach (var line in multiLine)
             {
                 var segment = ClipLineSegment(line.ToSqlGeometry(), clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
                 // add only line segments
@@ -554,16 +552,10 @@ namespace SQLSpatialTools.Functions.LRS
             // check direction of measure.
             var isSameDirection = geometry1.STSameDirection(geometry2);
 
-            BuildLRSMultiLineSink geom1Line = new BuildLRSMultiLineSink();
-            geometry1.Populate(geom1Line);
-
-            BuildLRSMultiLineSink geom2Line = new BuildLRSMultiLineSink();
-            geometry2.Populate(geom2Line);
-
             SqlGeometry sourceSegment, targetSegment, mergedSegment;
 
-            var segment1 = geom1Line.MultiLine;
-            var segment2 = geom2Line.MultiLine;
+            var segment1 = geometry1.GetLRSMultiLine();
+            var segment2 = geometry2.GetLRSMultiLine();
 
             switch (mergePosition)
             {
@@ -579,8 +571,7 @@ namespace SQLSpatialTools.Functions.LRS
                         //  Generating merged segment of geometry1 and geometry2
                         mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
 
-                        var mergedGeom = new BuildLRSMultiLineSink();
-                        mergedSegment.Populate(mergedGeom);
+                        var mergedGeom = mergedSegment.GetLRSMultiLine();
 
                         segment1.RemoveLast();                          //  Removing merging line segment from the geometry1
                         segment2.RemoveLast();                          //  Removing merging line segment from the geometry2
@@ -588,8 +579,8 @@ namespace SQLSpatialTools.Functions.LRS
                         segment2.ReverseLinesAndPoints();               //  Traversing from end to the start of geometry2. So reversing the 
                         segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
 
-                        segment1.AddLines(mergedGeom.MultiLine.Lines);  //  appending merged segment line to the segment1 , since geometry1 would be the beginning geometry of the resultant geometry
-                        segment1.AddLines(segment2.Lines);              //  appending remaining segment of updated geometry2 with the segment1
+                        segment1.Add(mergedGeom);                       //  appending merged segment line to the segment1 , since geometry1 would be the beginning geometry of the resultant geometry
+                        segment1.Add(segment2);                         //  appending remaining segment of updated geometry2 with the segment1
                         return segment1.ToSqlGeometry();                //  converting to SqlGeometry type
                     }
                 case MergePosition.EndStart:
@@ -604,16 +595,15 @@ namespace SQLSpatialTools.Functions.LRS
                         //  Generating merged segment of geometry1 and geometry2
                         mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
 
-                        var mergedGeom = new BuildLRSMultiLineSink();
-                        mergedSegment.Populate(mergedGeom);
+                        var mergedGeom = mergedSegment.GetLRSMultiLine();
 
                         segment1.RemoveLast();                          //  Removing merging line segment from the geometry1
                         segment2.RemoveFirst();                         //  Removing merging line segment from the geometry2
 
                         segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
 
-                        segment1.AddLines(mergedGeom.MultiLine.Lines);  //  Appending merged segment line to the segment1 , since geometry1 would be the beginning geometry of the resultant geometry
-                        segment1.AddLines(segment2.Lines);              //  Appending remaining segment of updated geometry2 with the segment1
+                        segment1.Add(mergedGeom);                       //  Appending merged segment line to the segment1 , since geometry1 would be the beginning geometry of the resultant geometry
+                        segment1.Add(segment2);                         //  Appending remaining segment of updated geometry2 with the segment1
                         return segment1.ToSqlGeometry();                //  converting to SqlGeometry type
                     }
                 case MergePosition.StartEnd:
@@ -627,16 +617,15 @@ namespace SQLSpatialTools.Functions.LRS
                         //  Generating merged segment of geometry1 and geometry2
                         mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
 
-                        var mergedGeom = new BuildLRSMultiLineSink();
-                        mergedSegment.Populate(mergedGeom);
+                        var mergedGeom = mergedSegment.GetLRSMultiLine();
 
                         segment1.RemoveFirst();                         //  Removing merging line segment from the geometry1
                         segment2.RemoveLast();                          //  Removing merging line segment from the geometry2
 
                         segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
 
-                        segment2.AddLines(mergedGeom.MultiLine.Lines);  //  Appending merged segment line to the segment2 ,since geometry1 would be the beginning geometry of the resultant geometry
-                        segment2.AddLines(segment1.Lines);              //  Appending remaining segments of geometry1 with the geometry2
+                        segment2.Add(mergedGeom);                       //  Appending merged segment line to the segment2 ,since geometry1 would be the beginning geometry of the resultant geometry
+                        segment2.Add(segment1);                         //  Appending remaining segments of geometry1 with the geometry2
                         return segment2.ToSqlGeometry();                //  converting to SqlGeometry type
                     }
                 case MergePosition.StartStart:
@@ -650,8 +639,7 @@ namespace SQLSpatialTools.Functions.LRS
                         //  Generating merged segment of geometry1 and geometry2
                         mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
 
-                        var mergedGeom = new BuildLRSMultiLineSink();
-                        mergedSegment.Populate(mergedGeom);
+                        var mergedGeom = mergedSegment.GetLRSMultiLine();
 
                         segment1.RemoveFirst();                         //  Removing merging line segment from the geometry1
                         segment2.RemoveFirst();                         //  Removing merging line segment from the geometry2
@@ -659,8 +647,8 @@ namespace SQLSpatialTools.Functions.LRS
                         segment2.ReverseLinesAndPoints();               //  Reversing the lines and its corresponding points of segment2, Since it has been traversed from end to start
                         segment2.TranslateMeasure(measureDifference);   //  Translating the offset measure difference in segment2
 
-                        segment2.AddLines(mergedGeom.MultiLine.Lines);  //  Appending merged segment line to the segment2 ,since geometry1 would be the beginning geometry of the resultant geometry
-                        segment2.AddLines(segment1.Lines);              //  Appending remaining segments of geometry1 with the geometry2
+                        segment2.Add(mergedGeom);                       //  Appending merged segment line to the segment2 ,since geometry1 would be the beginning geometry of the resultant geometry
+                        segment2.Add(segment1);                         //  Appending remaining segments of geometry1 with the geometry2
                         return segment2.ToSqlGeometry();                //  converting to SqlGeometry type
                     }
                 default:
@@ -697,60 +685,10 @@ namespace SQLSpatialTools.Functions.LRS
             else
                 doUpdateM = true;
 
-            var builder = new BuildLRSMultiLineSink();
-            geometry1.Populate(builder);
-            var lrsMultiline1 = builder.MultiLine;
+            var mergedLRSMultiLine = geometry1.GetLRSMultiLine();
+            mergedLRSMultiLine.Add(geometry2.GetLRSMultiLine(doUpdateM, offsetM));
 
-            builder = new BuildLRSMultiLineSink();
-            geometry2.Populate(builder);
-            var lrsMultiline2 = builder.MultiLine;
-
-            var geometryBuilder = new SqlGeometryBuilder();
-            // Start Multiline
-            geometryBuilder.SetSrid((int)geometry1.STSrid);
-            geometryBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
-
-            // First Segment
-            foreach (var line in lrsMultiline1)
-            {
-                var pointCounter = 1;
-                geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);
-
-                foreach (var point in line.Points)
-                {
-                    if (pointCounter == 1)
-                        geometryBuilder.BeginFigure(point.X, point.Y, point.Z, point.M);
-                    else
-                        geometryBuilder.AddLine(point.X, point.Y, point.Z, point.M);
-                    pointCounter++;
-                }
-                geometryBuilder.EndFigure();
-                geometryBuilder.EndGeometry();
-            }
-
-            // Second Segment
-            foreach (var line in lrsMultiline2)
-            {
-                var pointCounter = 1;
-                geometryBuilder.BeginGeometry(OpenGisGeometryType.LineString);
-
-                foreach (var point in line.Points)
-                {
-                    var measure = doUpdateM ? point.M + offsetM : point.M;
-                    if (pointCounter == 1)
-                        geometryBuilder.BeginFigure(point.X, point.Y, point.Z, measure);
-                    else
-                        geometryBuilder.AddLine(point.X, point.Y, point.Z, measure);
-                    pointCounter++;
-                }
-                geometryBuilder.EndFigure();
-                geometryBuilder.EndGeometry();
-            }
-
-            // End Multiline
-            geometryBuilder.EndGeometry();
-
-            return geometryBuilder.ConstructedGeometry;
+            return mergedLRSMultiLine.ToSqlGeometry();
         }
 
         /// <summary>
@@ -799,6 +737,7 @@ namespace SQLSpatialTools.Functions.LRS
 
                 // Computing offset
                 var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress());
+                parallelSegment.PopulateMeasures(parallelSegment.GetStartPointM(), parallelSegment.GetEndPointM());
 
                 return parallelSegment.ToSqlGeometry();
             }
@@ -828,14 +767,16 @@ namespace SQLSpatialTools.Functions.LRS
             if (startMeasure == null || endMeasure == null)
                 startMeasure = endMeasure = null;
 
+            // segment length
+            var segmentLength = geometry.STLength().Value;
+
             // As per requirement; 
             // the default value of start point is 0 when null is specified
             // the default value of end point is cartographic length of the segment when null is specified
             var localStartMeasure = startMeasure ?? 0;
-            var localEndMeasure = endMeasure ?? geometry.STLength();
+            var localEndMeasure = endMeasure ?? segmentLength;
 
-            var length = geometry.STLength().Value;
-            var geomSink = new PopulateGeometryMeasuresSink(localStartMeasure, localEndMeasure, length);
+            var geomSink = new PopulateGeometryMeasuresSink(localStartMeasure, localEndMeasure, segmentLength);
             geometry.Populate(geomSink);
             return geomSink.GetConstructedGeom();
         }

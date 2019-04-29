@@ -13,8 +13,16 @@ namespace SQLSpatialTools.Sinks.Geometry
     class BuildLRSMultiLineSink : IGeometrySink110
     {
         private int srid;
+        private readonly bool doUpdateM;
+        private readonly double offsetM;
         private LRSLine currentLine;
         public LRSMultiLine MultiLine;
+
+        public BuildLRSMultiLineSink(bool doUpdateM, double? offsetM)
+        {
+            this.doUpdateM = doUpdateM;
+            this.offsetM = offsetM.HasValue ? (double)offsetM : 0;
+        }
 
         // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
@@ -33,13 +41,15 @@ namespace SQLSpatialTools.Sinks.Geometry
         // Just add the points to the current line.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            currentLine.AddPoint(x, y, z, m);
+            var currentM = doUpdateM ? m + offsetM : m;
+            currentLine.AddPoint(x, y, z, currentM);
         }
 
         // Just add the points to the current line.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            currentLine.AddPoint(x, y, z, m);
+            var currentM = doUpdateM ? m + offsetM : m;
+            currentLine.AddPoint(x, y, z, currentM);
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)

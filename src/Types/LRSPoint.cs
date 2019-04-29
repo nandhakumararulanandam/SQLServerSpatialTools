@@ -80,11 +80,11 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
-        /// Gets the offset point.
+        /// Gets the distance from point.
         /// </summary>
         /// <param name="nextPoint">The next point.</param>
         /// <returns>Offset Point.</returns>
-        internal double GetOffsetDistance(LRSPoint nextPoint)
+        internal double GetDistance(LRSPoint nextPoint)
         {
             return Math.Sqrt(Math.Pow(nextPoint.X - X, 2) + Math.Pow(nextPoint.Y - Y, 2));
         }
@@ -273,6 +273,20 @@ namespace SQLSpatialTools.Types
             double offsetBearing = OffsetBearing != null ? OffsetBearing.Value : default(double);
             // offset / (SIN(RADIANS(((OffsetBearing - OffsetAngleLeft) + 360) % 360)))
             OffsetDistance = offset / (Math.Sin(Util.ToRadians(((offsetBearing - OffsetAngle) + 360) % 360)));
+        }
+
+        /// <summary>
+        /// Re calculate the measure.
+        /// </summary>
+        /// <param name="previousPoint">The previous point.</param>
+        /// <param name="totalLength">The total length.</param>
+        /// <param name="startMeasure">The start measure.</param>
+        /// <param name="endMeasure">The end measure.</param>
+        internal double ReCalculateMeasure(LRSPoint previousPoint, double currentLength, double totalLength, double startMeasure, double endMeasure)
+        {
+            currentLength += GetDistance(previousPoint);
+            M = startMeasure + (currentLength / totalLength) * (endMeasure - startMeasure);
+            return currentLength;
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +62,14 @@ namespace SQLSpatialTools.Types
         /// </value>
         internal bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
 
+        /// <summary>
+        /// Gets the length.
+        /// </summary>
+        /// <value>
+        /// The length.
+        /// </value>
+        internal double Length { get { return Lines.Any() ? Lines.Sum(e => e.Length) : 0; } }
+
         #region Add Lines
 
         /// <summary>
@@ -81,6 +90,16 @@ namespace SQLSpatialTools.Types
         {
             if (lineList != null && lineList.Any())
                 Lines.AddRange(lineList.ToArray());
+        }
+
+        /// <summary>
+        /// Adds LRS Multi lines.
+        /// </summary>
+        /// <param name="lineList">The line list.</param>
+        internal void Add(LRSMultiLine lrsMultiLine)
+        {
+            if (lrsMultiLine != null && lrsMultiLine.Lines != null && lrsMultiLine.Lines.Any())
+                Lines.AddRange(lrsMultiLine.Lines.ToArray());
         }
 
         #endregion
@@ -144,6 +163,24 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
+        /// Populates the measures.
+        /// </summary>
+        /// <param name="startM">The start m.</param>
+        /// <param name="endM">The end m.</param>
+        internal void PopulateMeasures(double? startM, double? endM)
+        {
+            var startMeasure = startM ?? 0;
+            var endMeasure = endM ?? Length;
+            double currentLength = 0;
+
+            Lines.ForEach(line =>
+            {
+                currentLength += line.PopulateMeasures(Length, currentLength, startMeasure, endMeasure);
+            });
+
+        }
+
+        /// <summary>
         /// Reverse both LINESTRING segment and its POINTS
         /// </summary>
         internal void ReverseLinesAndPoints()
@@ -192,6 +229,15 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
+        /// Gets the start POINT measure in a MULTILINESTRING
+        /// </summary>
+        /// <returns></returns>
+        internal double? GetStartPointM()
+        {
+            return GetStartPoint()?.M;
+        }
+
+        /// <summary>
         /// Gets the end POINT in a MULTILINESTRING
         /// </summary>
         /// <returns></returns>
@@ -205,6 +251,15 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
+        /// Gets the end POINT measure in a MULTILINESTRING
+        /// </summary>
+        /// <returns></returns>
+        internal double? GetEndPointM()
+        {
+            return GetEndPoint()?.M;
+        }
+
+        /// <summary>
         /// Gets the POINT in a MULTILINESTRING at a specified measure
         /// </summary>
         /// <returns></returns>
@@ -212,7 +267,7 @@ namespace SQLSpatialTools.Types
         {
             if (Lines.Any())
             {
-                foreach(var line in Lines)
+                foreach (var line in Lines)
                 {
                     LRSPoint point = line.GetPointAtM(measure);
                     if (point != null)

@@ -3,7 +3,6 @@
 using System;
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Types;
-using static SQLSpatialTools.Utility.SQLTypeConversions;
 
 namespace SQLSpatialTools.Sinks.Geometry
 {
@@ -41,7 +40,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a distance, which is the point along the input linestring we will travel.
         // Note that we only operate on LineString instances: anything else will throw an exception.
-        public PopulateGeometryMeasuresSink(double startMeasure, DecimalValue endMeasure, double length)
+        public PopulateGeometryMeasuresSink(double startMeasure, double endMeasure, double length)
         {
             this.startMeasure = startMeasure;
             this.endMeasure = endMeasure;

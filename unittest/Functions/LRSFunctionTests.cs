@@ -520,6 +520,38 @@ namespace SQLSpatialTools.Tests
         }
 
         [TestMethod]
+        public void OffsetGeometryWithPopulateMeasureTest()
+        {
+            var geom = "LINESTRING(5 10 10, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
+            var offetGeom = "LINESTRING (19.448627725169224 7.2919758650558464 NULL 29, 20 7.10818510677892 NULL 30.195004804845414, 33.751951402570789 11.692168907635848 NULL 60)".GetGeom();
+            var startMeasure = 60;
+            var endMeasure = 29;
+            var offset = 2;
+            var tolerance = 0.5;
+            Logger.LogLine("Input Line : {0}", geom.ToString());
+            var result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+            Logger.Log("Expected Line : {0}", offetGeom.ToString());
+            Logger.Log("Offset Line : {0}", result.ToString());
+            SqlAssert.IsTrue(offetGeom.STEquals(result));
+        }
+
+        [TestMethod]
+        public void OffsetGeometryWithBendLinesTest()
+        {
+            var geom = "LINESTRING (5 10 10, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
+            var offetGeom = "LINESTRING (7.0867894471005748 11.412588624412061 NULL 12, 20 7.10818510677892 NULL 36.2224547311131, 34.675444679663244 12 NULL 61.257, 54.483777714683939 12 NULL 99)".GetGeom();
+            var startMeasure = 12;
+            var endMeasure = 99;
+            var offset = 2;
+            var tolerance = 0.5;
+            Logger.LogLine("Input Line : {0}", geom.ToString());
+            var result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+            Logger.Log("Expected Line : {0}", offetGeom.ToString());
+            Logger.Log("Offset Line : {0}", result.ToString());
+            SqlAssert.IsTrue(offetGeom.STEquals(result));
+        }
+
+        [TestMethod]
         public void OffsetGeometrySegmentCollinearPointsTest()
         {
             var geom = "LINESTRING (218000 104375 0, 218000 104875 500, 218000 105000 625)".GetGeom();

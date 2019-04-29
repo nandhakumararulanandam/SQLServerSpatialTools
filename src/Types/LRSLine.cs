@@ -70,6 +70,14 @@ namespace SQLSpatialTools.Types
         /// </returns>
         internal bool IsPoint { get { return Points.Any() && Points.Count == 1; } }
 
+        /// <summary>
+        /// Gets the length.
+        /// </summary>
+        /// <value>
+        /// The length.
+        /// </value>
+        internal double Length { get; private set; }
+
         #region Add Points
 
         /// <summary>
@@ -78,6 +86,7 @@ namespace SQLSpatialTools.Types
         /// <param name="lRSPoint">The l rs point.</param>
         internal void AddPoint(LRSPoint lRSPoint)
         {
+            UpdateLength(lRSPoint);
             Points.Add(lRSPoint);
         }
 
@@ -99,7 +108,16 @@ namespace SQLSpatialTools.Types
         /// <param name="m">The m.</param>
         internal void AddPoint(double x, double y, double? z, double? m)
         {
-            Points.Add(new LRSPoint(x, y, z, m, SRID));
+            AddPoint(new LRSPoint(x, y, z, m, SRID));
+        }
+
+        private void UpdateLength(LRSPoint currentPoint)
+        {
+            if (Points.Any() && Points.Count > 0)
+            {
+                var previousPoint = Points.Last();
+                Length += previousPoint.GetDistance(currentPoint);
+            }
         }
 
         #endregion
@@ -429,6 +447,7 @@ namespace SQLSpatialTools.Types
             for (var i = 0; i < pointCount; i++)
             {
                 var currentPoint = Points[i];
+                // if not last point
                 if (i != pointCount - 1)
                 {
                     // other points point
@@ -458,6 +477,32 @@ namespace SQLSpatialTools.Types
             var parallelLine = new LRSLine(SRID);
             Points.ForEach(point => parallelLine.AddPoint(point.GetParallelPoint(offset)));
             return parallelLine;
+        }
+
+        /// <summary>
+        /// Populates the measures.
+        /// </summary>
+        /// <param name="segmentLength">Length of the segment.</param>
+        /// <param name="currentLength">Length of the current.</param>
+        /// <param name="startMeasure">The start measure.</param>
+        /// <param name="endMeasure">The end measure.</param>
+        /// <returns></returns>
+        internal double PopulateMeasures(double segmentLength, double currentLength, double startMeasure, double endMeasure)
+        {
+            var pointCount = Points.Count;
+            for (var i = 0; i < pointCount; i++)
+            {
+                if (i == pointCount - 1)
+                    Points[i].M = GetEndPointM();
+                else if (i == 0)
+                    Points[i].M = GetStartPointM();
+                else
+                {
+                    var currentPoint = Points[i];
+                    return currentPoint.ReCalculateMeasure(Points[i - 1], currentLength, segmentLength, startMeasure, endMeasure);
+                }
+            }
+            return 0;
         }
 
         #endregion
