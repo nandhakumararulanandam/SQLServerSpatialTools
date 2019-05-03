@@ -16,7 +16,7 @@ namespace SQLSpatialTools.Types
     /// </summary>
     internal class LRSMultiLine : IEnumerable
     {
-        internal List<LRSLine> Lines;
+        private List<LRSLine> Lines;
         internal int SRID;
         private string wkt;
 
@@ -58,9 +58,33 @@ namespace SQLSpatialTools.Types
         /// Gets a value indicating whether this instance is MULTILINESTRING.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
+        ///   <c>true</c> if this instance is a multi line; otherwise, <c>false</c>.
         /// </value>
         internal bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is LINESTRING.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is a line string; otherwise, <c>false</c>.
+        /// </value>
+        internal bool IsLine { get { return Lines.Any() && Lines.Count == 1; } }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is a 2 POINT LINESTRING.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is a 2 point line string; otherwise, <c>false</c>.
+        /// </value>
+        internal bool Is2PointLine { get { return IsLine && Lines.First().Count == 2; } }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is POINT.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is a point; otherwise, <c>false</c>.
+        /// </value>
+        internal bool IsPoint { get { return IsLine && Lines.First().IsPoint; } }
 
         /// <summary>
         /// Gets the length.
@@ -78,7 +102,7 @@ namespace SQLSpatialTools.Types
         /// <param name="lrsLine">The LRS line.</param>
         internal void AddLine(LRSLine line)
         {
-            if (line != null && line.Points.Any() && line.IsLine)
+            if (line != null && line.HasPoints && line.IsLine)
                 Lines.Add(line);
         }
 
@@ -89,7 +113,7 @@ namespace SQLSpatialTools.Types
         internal void AddLines(List<LRSLine> lineList)
         {
             if (lineList != null && lineList.Any())
-                Lines.AddRange(lineList.ToArray());
+                lineList.ForEach(line => AddLine(line));
         }
 
         /// <summary>
@@ -99,7 +123,7 @@ namespace SQLSpatialTools.Types
         internal void Add(LRSMultiLine lrsMultiLine)
         {
             if (lrsMultiLine != null && lrsMultiLine.Lines != null && lrsMultiLine.Lines.Any())
-                Lines.AddRange(lrsMultiLine.Lines.ToArray());
+                AddLines(lrsMultiLine.Lines);
         }
 
         #endregion
@@ -175,7 +199,7 @@ namespace SQLSpatialTools.Types
 
             Lines.ForEach(line =>
             {
-                currentLength += line.PopulateMeasures(Length, currentLength, startMeasure, endMeasure);
+                line.PopulateMeasures(Length, ref currentLength, startMeasure, endMeasure);
             });
 
         }
@@ -223,7 +247,7 @@ namespace SQLSpatialTools.Types
         {
             if (Lines.Any())
             {
-                return Lines.First().Points.First();
+                return Lines.First().GetStartPoint();
             }
             return null;
         }
@@ -245,7 +269,7 @@ namespace SQLSpatialTools.Types
         {
             if (Lines.Any())
             {
-                return Lines.Last().Points.Last();
+                return Lines.Last().GetEndPoint();
             }
             return null;
         }
@@ -370,34 +394,44 @@ namespace SQLSpatialTools.Types
         {
             if (IsEmpty)
                 return SqlGeometry.Null;
-            BuildSqlGeometry(ref geomBuilder);
-            return geomBuilder.ConstructedGeometry;
+
+            if (IsPoint)
+                return Lines.First().GetStartPoint().ToSqlGeometry(ref geomBuilder);
+
+            return BuildSqlGeometry(ref geomBuilder) ? geomBuilder.ConstructedGeometry : null;
         }
 
         /// <summary>
         /// Method builds the SqlGeometry form of the MULTILINESTRING through reference GeometryBuilder.
         /// </summary>
         /// <param name="geomBuilder">Reference SqlGeometryBuilder to be used for building Geometry.</param>
-        internal void BuildSqlGeometry(ref SqlGeometryBuilder geomBuilder)
+        internal bool BuildSqlGeometry(ref SqlGeometryBuilder geomBuilder)
         {
+            var isBuildDone = false;
             if (IsEmpty)
-                return;
+                return false;
 
-            if (geomBuilder != null)
+            if (geomBuilder == null)
                 geomBuilder = new SqlGeometryBuilder();
 
             if (IsMultiLine)
             {
                 geomBuilder.SetSrid(SRID);
                 geomBuilder.BeginGeometry(OpenGisGeometryType.MultiLineString);
+                isBuildDone = true;
             }
 
             // ignore points
             foreach (var line in Lines.Where(line => line.IsLine).ToList())
+            {
                 line.BuildSqlGeometry(ref geomBuilder, IsMultiLine);
+                isBuildDone = true;
+            }
 
             if (IsMultiLine)
                 geomBuilder.EndGeometry();
+
+            return isBuildDone;
         }
 
 

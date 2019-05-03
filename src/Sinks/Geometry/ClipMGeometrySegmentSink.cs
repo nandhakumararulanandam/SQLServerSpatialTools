@@ -150,11 +150,11 @@ namespace SQLSpatialTools.Sinks.Geometry
 
                         // if computed point is within tolerance of last point then begin figure with last point
                         if (Ext.IsWithinTolerance(previousX, preivousY, newX, newY, tolerance))
-                            target.BeginFigure(previousX, preivousY, null, retainClipMeasure ? clipStartMeasure : previousM);
+                            target.BeginFigure(previousX, preivousY, null, retainClipMeasure ? clipPointMeasure : previousM);
                         // check with current point against new computed point
                         else if (Ext.IsWithinTolerance(x, y, newX, newY, tolerance))
                         {
-                            target.BeginFigure(x, y, null, retainClipMeasure ? clipStartMeasure : m);
+                            target.BeginFigure(x, y, null, retainClipMeasure ? clipPointMeasure : m);
                             isShapePoint = true;
                         }
                         // else begin figure with clipped point
@@ -186,7 +186,7 @@ namespace SQLSpatialTools.Sinks.Geometry
                         {
                             // if within current point then add current point
                             if (isWithinCurrentPoint)
-                                target.AddLine(x, y, null, retainClipMeasure ? clipEndMeasure : m);
+                                target.AddLine(x, y, null, retainClipMeasure ? clipPointMeasure : m);
                             // else add computed point
                             else
                                 target.AddLine(newX, newY, null, clipPointMeasure);
@@ -239,10 +239,13 @@ namespace SQLSpatialTools.Sinks.Geometry
         private double GetClipPointMeasure(double? currentPointMeasure)
         {
             double clipPointMeasure;
-            if (previousM < currentPointMeasure && !started)
-                clipPointMeasure = Math.Min(clipStartMeasure, clipEndMeasure);
+            // increasing measures
+            if(previousM < currentPointMeasure)
+                clipPointMeasure = started ? Math.Max(clipStartMeasure, clipEndMeasure) : Math.Min(clipStartMeasure, clipEndMeasure);
+            // decreasing measures
             else
-                clipPointMeasure = Math.Max(clipStartMeasure, clipEndMeasure);
+                clipPointMeasure = started ? Math.Min(clipStartMeasure, clipEndMeasure) : Math.Max(clipStartMeasure, clipEndMeasure);
+
             return clipPointMeasure;
         }
 

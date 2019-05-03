@@ -306,12 +306,26 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ReverseLinearGeometry
 GO
 
+CREATE FUNCTION LRS_ScaleGeometryMeasures (@g GEOMETRY
+    ,@scaleMeasure FLOAT(53))
+RETURNS GEOMETRY
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ScaleGeometryMeasures
+GO
+
 CREATE PROCEDURE LRS_SplitGeometrySegment @g GEOMETRY
     ,@splitMeasure FLOAT(53)
     ,@geomSegement1 GEOMETRY OUTPUT
     ,@geomSegement2 GEOMETRY OUTPUT
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].SplitGeometrySegment
+GO
+
+CREATE FUNCTION LRS_TranslateMeasure (@g GEOMETRY
+    ,@translateMeasure FLOAT(53))
+RETURNS GEOMETRY
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].TranslateMeasure
 GO
 
 CREATE FUNCTION LRS_ValidateLRSGeometry (@g GEOMETRY)

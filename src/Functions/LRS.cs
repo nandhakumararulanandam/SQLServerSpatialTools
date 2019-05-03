@@ -186,17 +186,37 @@ namespace SQLSpatialTools.Functions.LRS
             if (clipStartMeasure == clipEndMeasure && (isStartBeyond || isEndBeyond))
             {
                 if (isStartBeyond)
-                    return geometry.STStartPoint();
-                return geometry.STEndPoint();
+                    return measureProgress == LinearMeasureProgress.Increasing ? geometry.STStartPoint() : geometry.STEndPoint();
+                return measureProgress == LinearMeasureProgress.Increasing ? geometry.STEndPoint() : geometry.STStartPoint();
             }
 
             // if both clip start and end measure is same then don't check for distance tolerance
             if (clipStartMeasure != clipEndMeasure)
             {
-                var clipStartPoint = LocatePointWithTolerance(geometry, clipStartMeasure, tolerance);
-                var clipEndPoint = LocatePointWithTolerance(geometry, clipEndMeasure, tolerance);
+                var clipStartPoint = LocatePointWithTolerance(geometry, clipStartMeasure, out bool isClipStartShapePoint, tolerance);
+                var clipEndPoint = LocatePointWithTolerance(geometry, clipEndMeasure, out bool isClipEndShapePoint, tolerance);
                 if (clipStartPoint.IsWithinTolerance(clipEndPoint, tolerance))
-                    return null;
+                {
+                    // if any one of them is a shape point return null
+                    if (isClipStartShapePoint || isClipEndShapePoint)
+                        return null;
+                    else
+                    {
+                        var lrsLine = new LRSLine((int)clipStartPoint.STSrid);
+                        // based on measure progress re-arrange the points.
+                        if (measureProgress == LinearMeasureProgress.Increasing)
+                        {
+                            lrsLine.AddPoint(clipStartPoint);
+                            lrsLine.AddPoint(clipEndPoint);
+                        }
+                        else
+                        {
+                            lrsLine.AddPoint(clipEndPoint);
+                            lrsLine.AddPoint(clipStartPoint);
+                        }
+                        return lrsLine.ToSqlGeometry();
+                    }
+                }
             }
 
             var geometryBuilder = new SqlGeometryBuilder();
@@ -360,7 +380,7 @@ namespace SQLSpatialTools.Functions.LRS
         public static SqlGeometry LocatePointAlongGeom(SqlGeometry geometry, double measure)
         {
             // Invoking locate point without tolerance
-            return LocatePointWithTolerance(geometry, measure, 0);
+            return LocatePointWithTolerance(geometry, measure, out _, 0);
         }
 
         /// <summary>
@@ -370,7 +390,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="measure">The measure.</param>
         /// <param name="tolerance">The tolerance.</param>
         /// <returns></returns>
-        private static SqlGeometry LocatePointWithTolerance(SqlGeometry geometry, double measure, double tolerance = Constants.Tolerance)
+        private static SqlGeometry LocatePointWithTolerance(SqlGeometry geometry, double measure, out bool isShapePoint, double tolerance = Constants.Tolerance)
         {
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
@@ -378,7 +398,10 @@ namespace SQLSpatialTools.Functions.LRS
 
             // If input geom is point; its a no-op just return the same.
             if (geometry.IsPoint())
+            {
+                isShapePoint = true;
                 return geometry;
+            }
 
             var geomBuilder = new SqlGeometryBuilder();
             var geomSink = new LocateMAlongGeometrySink(measure, geomBuilder, tolerance);
@@ -388,6 +411,7 @@ namespace SQLSpatialTools.Functions.LRS
             if (!geomSink.IsPointDerived)
                 Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
 
+            isShapePoint = geomSink.IsShapePoint;
             return geomBuilder.ConstructedGeometry;
         }
 
@@ -737,6 +761,21 @@ namespace SQLSpatialTools.Functions.LRS
 
                 // Computing offset
                 var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress());
+
+                // if it is a two point line string; then check for distance
+                if (parallelSegment.Is2PointLine)
+                {
+                    var firstPoint = parallelSegment.GetFirstLine().GetStartPoint();
+                    var secondPoint = parallelSegment.GetFirstLine().GetEndPoint();
+
+                    if(firstPoint.IsXYWithinTolerance(secondPoint, tolerance))
+                    {
+                        // always the resultant is first point from the parallel segment
+                        // and measure being updated with minimum of start and end measure;
+                        firstPoint.M = Math.Min(startMeasure, endMeasure);
+                        return firstPoint.ToSqlGeometry();
+                    }
+                }
                 parallelSegment.PopulateMeasures(parallelSegment.GetStartPointM(), parallelSegment.GetEndPointM());
 
                 return parallelSegment.ToSqlGeometry();
@@ -828,6 +867,10 @@ namespace SQLSpatialTools.Functions.LRS
         {
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
+
+            // if point then return new point with updated measure
+            if (geometry.IsPoint())
+                return Ext.GetPointWithUpdatedM(geometry, geometry.M.Value + translateMeasure);
 
             var geometryBuilder = new SqlGeometryBuilder();
             var geomSink = new ReverseAndTranslateGeometrySink(geometryBuilder, translateMeasure);

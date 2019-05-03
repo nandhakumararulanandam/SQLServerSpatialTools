@@ -86,10 +86,10 @@
     <Compile Include="Functions\LRS.cs" />
     <Compile Include="Sinks\Geometry\BuildMultiLineFromLinesSink.cs" />
     <Compile Include="Sinks\Geometry\ClipMGeometrySegmentSink.cs" />
-    <Compile Include="Sinks\Geometry\ReverseAndTranslateGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\ReverseLinearGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ScaleMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\TranslateMeasureGeometrySink.cs" />
-    <Compile Include="Sinks\Geometry\ReverseLinearGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\ReverseAndTranslateGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ClipMultiLineSegmentSink.cs" />
     <Compile Include="Sinks\Geometry\LineStringMergeGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ValidateLinearMeasureGeometrySink.cs" />

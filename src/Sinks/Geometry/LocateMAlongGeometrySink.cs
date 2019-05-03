@@ -21,6 +21,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         SqlGeometry foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
         SqlGeometryBuilder target;    // Where we place our result.
         public bool IsPointDerived;
+        public bool IsShapePoint;
 
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a measure, which is the point along the input linestring we will travel to.
@@ -50,8 +51,9 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             if (foundPoint != null)
                 return;
+
             // Memorize the point.
-            lastPoint = Ext.GetPoint(x, y, z, m, srid);
+            lastPoint = CheckShapePointAndGet((double)m, Ext.GetPoint(x, y, z, m, srid));
         }
 
         // This is where the real work is done.
@@ -63,7 +65,7 @@ namespace SQLSpatialTools.Sinks.Geometry
                 return;
 
             // Make a point for our current position.
-            var thisPoint = Ext.GetPoint(x, y, z, m, srid);
+            var thisPoint = CheckShapePointAndGet((double)m, Ext.GetPoint(x, y, z, m, srid));
 
             // is the found point between this point and the last, or past this point?
             if (measure.IsWithinRange(lastPoint.M.Value, (double)m))
@@ -71,9 +73,15 @@ namespace SQLSpatialTools.Sinks.Geometry
                 // now we need to do the hard work and find the point in between these two
                 foundPoint = Functions.LRS.Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, measure);
                 if (lastPoint.IsWithinTolerance(foundPoint, tolerance))
+                {
                     foundPoint = lastPoint;
+                    IsShapePoint = true;
+                }
                 else if (thisPoint.IsWithinTolerance(foundPoint, tolerance))
+                {
                     foundPoint = thisPoint;
+                    IsShapePoint = true;
+                }
             }
             else
             {
@@ -85,6 +93,20 @@ namespace SQLSpatialTools.Sinks.Geometry
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
         {
             throw new Exception("AddCircularArc is not implemented yet in this class");
+        }
+
+        /// <summary>
+        /// Checks if the point is a shape point.
+        /// </summary>
+        /// <param name="m">The m.</param>
+        /// <param name="geometry">The geometry.</param>
+        /// <returns></returns>
+        private SqlGeometry CheckShapePointAndGet(double m, SqlGeometry geometry)
+        {
+            IsShapePoint = m == measure;
+            if (IsShapePoint)
+                foundPoint = geometry;
+            return geometry;
         }
 
         // This is a NOP.

@@ -7,11 +7,12 @@ using SQLSpatialTools.Types;
 namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
-    /// This class implements a geometry sink that reverses the input geometry.
+    /// This class implements a geometry sink that reverses the input geometry and translate the measure
     /// </summary>
-    class ReverseLinearGeometrySink : IGeometrySink110
+    class ReverseAndTranslateGeometrySink : IGeometrySink110
     {
-        readonly SqlGeometryBuilder target;
+        SqlGeometryBuilder target;
+        readonly double translateMeasure;
         LRSMultiLine lines;
         LRSLine currentLine;
         bool isMultiLine;
@@ -19,12 +20,13 @@ namespace SQLSpatialTools.Sinks.Geometry
         int srid;
 
         /// <summary>
-        /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse it accordingly.
+        /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse and translate measure it accordingly.
         /// </summary>
         /// <param name="type">Geometry Type</param>
-        public ReverseLinearGeometrySink(SqlGeometryBuilder target)
+        public ReverseAndTranslateGeometrySink(SqlGeometryBuilder target, double translateMeasure)
         {
             this.target = target;
+            this.translateMeasure = translateMeasure;
             isMultiLine = false;
             lineCounter = 0;
         }
@@ -33,23 +35,16 @@ namespace SQLSpatialTools.Sinks.Geometry
         public void SetSrid(int srid)
         {
             lines = new LRSMultiLine(srid);
-            target.SetSrid(srid);
             this.srid = srid;
         }
 
         // Check for types and begin geometry accordingly.
         public void BeginGeometry(OpenGisGeometryType type)
         {
-            // check if the type is of the supported types
             if (type == OpenGisGeometryType.MultiLineString)
-            {
                 isMultiLine = true;
-                target.BeginGeometry(OpenGisGeometryType.MultiLineString);
-            }
             if (type == OpenGisGeometryType.LineString)
-            {
                 lineCounter++;
-            }
         }
 
         // Just add the points to the current line segment.
@@ -84,24 +79,8 @@ namespace SQLSpatialTools.Sinks.Geometry
             {
                 // reverse the line before constructing the geometry
                 lines.ReversLines();
-                foreach (LRSLine line in lines)
-                {
-                    target.BeginGeometry(OpenGisGeometryType.LineString);
-
-                    var pointIterator = 1;
-                    foreach (LRSPoint point in line.Points)
-                    {
-                        if (pointIterator == 1)
-                            target.BeginFigure(point.X, point.Y, point.Z, point.M);
-                        else
-                            target.AddLine(point.X, point.Y, point.Z, point.M);
-                        pointIterator++;
-                    }
-                    target.EndFigure();
-                    target.EndGeometry();
-                }
-                if(isMultiLine)
-                    target.EndGeometry();
+                lines.TranslateMeasure(translateMeasure);
+                lines.ToSqlGeometry(ref target);
             }
             else
             {
