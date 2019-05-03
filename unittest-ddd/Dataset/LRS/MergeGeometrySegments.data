@@ -18,7 +18,7 @@ LINESTRING (220000 103975 0, 218625 103975 1375)    ||LINESTRING (218625 103975 
 
 ### DISCONNECTED SEGMENTS
 
-## same direction with >0 offset measure            (both increasing order of measure) Offset -  4102; 4112, 4113
+## same direction with >0 offset measure            (both increasing order of measure)
 LINESTRING(6 1  2220, 0.8 14.6  4112)               ||LINESTRING (11.6 0.7  10, 9 1  11)                ||MULTILINESTRING ((6 1 2220, 0.8 14.6 4112), (11.6 0.7 4112, 9 1 4113))        ||0.5           ||
 
 ## same direction with <= 0 offset measure          (both increasing order of measure)

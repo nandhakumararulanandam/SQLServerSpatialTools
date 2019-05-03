@@ -166,7 +166,29 @@ namespace SQLSpatialTools.UnitTests.DDD
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
         }
+        /// <summary>
+        /// Test MergeAndReset against oracle
+        /// </summary>
+        /// <param name="testObj"></param>
+        internal void DoMergeAndResetGeomTest(LRSDataSet.MergeAndResetGeometrySegmentsData testObj)
+        {
+            var errorInfo = string.Empty;
+            var query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.MergeAndResetGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom1), ConvertTo3DCoordinates(testObj.InputGeom2), testObj.Tolerance);
+            // first execute to store the result in temp table.
+            ExecuteNonQuery(query1, ref errorInfo);
 
+            // retrieve the result from temp table.
+            // if there is an error in the previous query; don't run the result from temp table.
+            if (string.IsNullOrEmpty(errorInfo))
+            {
+                var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetOneResultFromTempTable);
+                var result = ExecuteScalar<LRSDataSet.MergeAndResetResult>(query2, out errorInfo);
+                testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
+                testObj.OracleResult1 = result.Output_1;
+            }
+            testObj.OracleError = errorInfo;
+
+        }
         /// <summary>
         /// Test ClipGeom Function against Oracle.
         /// </summary>
@@ -265,7 +287,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             var errorInfo = string.Empty;
             string query1;
-            if (inputGeom.IsPoint())
+            if (inputGeom.CheckGeomPoint())
             {
                 var pointInOracle = string.Format("{0}, {1}, {2}", inputGeom.STX, inputGeom.STY, inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value);
                 query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasurePoint, pointInOracle, optionBuilder.ToString());
@@ -428,6 +450,19 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                   + "SDO_LRS.CONCATENATE_GEOM_SEGMENTS("
                                                   + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'),"
                                                   + "SDO_UTIL.FROM_WKTGEOMETRY('{1}'), {2})) from dual";
+
+        public const string MergeAndResetGeomSegmentQuery = "DECLARE "
+                                                      + "result_geom  SDO_GEOMETRY;"
+                                                      + ""
+                                                      + "BEGIN "
+                                                      + "Select SDO_LRS.CONCATENATE_GEOM_SEGMENTS (SDO_UTIL.FROM_WKTGEOMETRY('{0}'), SDO_UTIL.FROM_WKTGEOMETRY('{1}'), {2})  into result_geom from dual;"
+                                                      + ""
+                                                      + "SDO_LRS.REDEFINE_GEOM_SEGMENT(result_geom);"
+                                                      + " "
+                                                      + "	INSERT INTO TEMP_DATA (OUTPUT_1)"
+                                                          + "SELECT SDO_UTIL.TO_WKTGEOMETRY(result_geom)"
+                                                          + " FROM dual;"
+                                                      + " END;";
 
         public const string ClipGeomSegmentQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
                                                  + "SDO_LRS.CLIP_GEOM_SEGMENT("

@@ -99,6 +99,14 @@ namespace SQLSpatialTools.UnitTests.DDD
             public double Tolerance { get; set; }
         }
 
+        public class MergeAndResetGeometrySegmentsData : MergeGeometrySegmentsData
+        {
+            public new const string TableName = "LRS_MergeAndResetGeometrySegmentsData";
+            public new const string DataFile = "Dataset\\LRS\\MergeAndResetGeometrySegments.data";
+            public new static readonly string SelectQuery = string.Format(CultureInfo.CurrentCulture, "SELECT [Id], [InputGeom1], [InputGeom2], [ExpectedResult1], [Tolerance], [Comments] FROM [{0}];", TableName);
+            public new static readonly string InsertQuery = string.Format(CultureInfo.CurrentCulture, "INSERT INTO [{0}] ([InputGeom1], [InputGeom2], [ExpectedResult1], [Tolerance], [Comments]) VALUES (N'[0]', N'[1]', N'[2]', [3], N'[4]');", TableName);
+        }
+
         public class OffsetGeometrySegmentData : BaseDataSet
         {
             public const short ParamCount = 7;
@@ -267,6 +275,10 @@ namespace SQLSpatialTools.UnitTests.DDD
         {
             public string Output_1 { get; set; }
             public string Output_2 { get; set; }
+        }
+        public class MergeAndResetResult
+        {
+            public string Output_1 { get; set; }
         }
     }
 }

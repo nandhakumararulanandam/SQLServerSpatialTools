@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
-using System.Text;
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Sinks.Geometry;
 using SQLSpatialTools.Types;
@@ -430,11 +429,15 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
 
-            // If either of the input geom is point; then return the other geometry.
-            if (geometry1.IsPoint())
+            // returning geometry2 if both the geometries are points
+            if (geometry1.CheckGeomPoint() && geometry2.CheckGeomPoint())
                 return geometry2;
 
-            if (geometry2.IsPoint())
+            // If either of the input geom is point; then return the other geometry.
+            if (geometry1.CheckGeomPoint())
+                return geometry2;
+
+            if (geometry2.CheckGeomPoint())
                 return geometry1;
 
             var isConnected = CheckIfConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
@@ -460,6 +463,18 @@ namespace SQLSpatialTools.Functions.LRS
             return null;
         }
 
+        /// <summary>
+        /// Merge the segments bound with tolerance and resets the measure from zero
+        /// </summary>
+        /// <param name="geometry1"></param>
+        /// <param name="geometry2"></param>
+        /// <param name="tolerance"></param>
+        /// <returns>SqlGeometry</returns>
+        public static SqlGeometry MergeAndResetGeometrySegments(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = Constants.Tolerance)
+        {
+            SqlGeometry resultantGeometry = MergeGeometrySegments(geometry1, geometry2, tolerance);
+            return PopulateGeometryMeasures(resultantGeometry, null, null);
+        }
         /// <summary>
         /// Method will merge simple line strings with tolerance and returns the merged line segment by considering measure and direction of the first geometry.
         /// </summary>
@@ -768,7 +783,7 @@ namespace SQLSpatialTools.Functions.LRS
                     var firstPoint = parallelSegment.GetFirstLine().GetStartPoint();
                     var secondPoint = parallelSegment.GetFirstLine().GetEndPoint();
 
-                    if(firstPoint.IsXYWithinTolerance(secondPoint, tolerance))
+                    if (firstPoint.IsXYWithinTolerance(secondPoint, tolerance))
                     {
                         // always the resultant is first point from the parallel segment
                         // and measure being updated with minimum of start and end measure;
@@ -795,7 +810,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry);
 
             // check for point type
-            if (geometry.IsPoint())
+            if (geometry.CheckGeomPoint())
             {
                 // if anyone measure is null; then point measure is 0 else point measure is end measure
                 var pointMeasure = startMeasure == null || endMeasure == null ? 0 : (double)endMeasure;
@@ -819,7 +834,6 @@ namespace SQLSpatialTools.Functions.LRS
             geometry.Populate(geomSink);
             return geomSink.GetConstructedGeom();
         }
-
         /// <summary>
         /// Resets Geometry Measure values.
         /// </summary>

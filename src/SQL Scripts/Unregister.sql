@@ -96,6 +96,9 @@ IF OBJECT_ID('LRS_LocatePointAlongGeom') IS NOT NULL
 IF OBJECT_ID('LRS_MergeGeometrySegments') IS NOT NULL
     DROP FUNCTION LRS_MergeGeometrySegments
 
+IF OBJECT_ID('LRS_MergeAndResetGeometrySegments') IS NOT NULL
+	DROP FUNCTION LRS_MergeAndResetGeometrySegments
+
 IF OBJECT_ID('LRS_OffsetGeometrySegments') IS NOT NULL
     DROP FUNCTION LRS_OffsetGeometrySegments
 

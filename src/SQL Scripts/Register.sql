@@ -272,6 +272,16 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].MergeGeometrySegments
 GO
 
+CREATE FUNCTION LRS_MergeAndResetGeometrySegments (
+    @g1 GEOMETRY
+    ,@g2 GEOMETRY
+    ,@tolerance FLOAT
+    )
+RETURNS GEOMETRY
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].MergeAndResetGeometrySegments
+GO
+
 CREATE FUNCTION LRS_OffsetGeometrySegments (
     @g GEOMETRY
     ,@startMeasure FLOAT

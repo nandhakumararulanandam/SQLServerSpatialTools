@@ -17,6 +17,25 @@ namespace SQLSpatialTools.Utility
         #region OGC Type Checks
 
         /// <summary>
+        /// Check if Geometry is of type point,
+        /// it returns true, if the geometry is of type point
+        /// Instead of checking the STGeometryType directly, this utility method parses the points of the geometry, which make sure it returns true, even if the geometry contains invalid co-ordinates
+        /// </summary>
+        /// <param name="sqlgeometry"></param>
+        /// <returns></returns>
+        public static bool CheckGeomPoint(this SqlGeometry sqlgeometry)
+        {
+            try
+            {
+                return GetPoint(sqlgeometry).STGeometryType().Compare(OGCType.Point.GetString());
+            }
+            catch (SqlNullValueException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Check if Geometry is Point
         /// </summary>
         /// <param name="sqlgeometry"></param>
@@ -980,7 +999,8 @@ namespace SQLSpatialTools.Utility
         private static SqlGeometry GetPoint(SqlDouble x, SqlDouble y, SqlDouble z, SqlDouble m, SqlInt32 srid)
         {
             double? zCoordinate = z.IsNull ? (double?)null : z.Value;
-            return GetPoint((double)x, (double)y, zCoordinate, (double?)m, (int)srid);
+            double? mValue = m.IsNull ? (double?)null : m.Value;
+            return GetPoint((double)x, (double)y, zCoordinate, mValue, (int)srid);
         }
 
         /// <summary>

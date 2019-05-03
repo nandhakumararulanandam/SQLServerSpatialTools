@@ -43,6 +43,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             ExecuteQuery(ParseDataSet(LRSDataSet.LocatePointAlongGeomData.DataFile, LRSDataSet.LocatePointAlongGeomData.ParamCount, LRSDataSet.LocatePointAlongGeomData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.MergeGeometrySegmentsData.DataFile, LRSDataSet.MergeGeometrySegmentsData.ParamCount, LRSDataSet.MergeGeometrySegmentsData.InsertQuery));
+            ExecuteQuery(ParseDataSet(LRSDataSet.MergeAndResetGeometrySegmentsData.DataFile, LRSDataSet.MergeAndResetGeometrySegmentsData.ParamCount, LRSDataSet.MergeAndResetGeometrySegmentsData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.PopulateGeometryMeasuresData.DataFile, LRSDataSet.PopulateGeometryMeasuresData.ParamCount, LRSDataSet.PopulateGeometryMeasuresData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.ResetMeasureData.DataFile, LRSDataSet.ResetMeasureData.ParamCount, LRSDataSet.ResetMeasureData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.ReverseLinearGeometryData.DataFile, LRSDataSet.ReverseLinearGeometryData.ParamCount, LRSDataSet.ReverseLinearGeometryData.InsertQuery));

@@ -430,6 +430,63 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         [TestMethod]
+        public void MergeAndResetGeometrySegments()
+        {
+            var dataSet = dbConnection.Query<LRSDataSet.MergeAndResetGeometrySegmentsData>(LRSDataSet.MergeAndResetGeometrySegmentsData.SelectQuery);
+            if (dataSet == null || !dataSet.Any())
+                Logger.Log("No test cases found");
+
+            int testIterator = 1;
+            foreach (var test in dataSet)
+            {
+                Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
+                try
+                {
+                    var geom1 = test.InputGeom1.GetGeom();
+                    var geom2 = test.InputGeom2.GetGeom();
+                    var expectedGeom = test.ExpectedResult1.GetGeom();
+
+                    Logger.LogLine("Input geom 1:{0}", geom1);
+                    Logger.Log("Input geom 2:{0}", geom2);
+                    Logger.LogLine("Expected Result: {0}", expectedGeom);
+
+                    MSSQLTimer.Restart();
+                    // OSS Function Execution
+
+                    test.SqlObtainedResult1 = Geometry.MergeAndResetGeometrySegments(geom1, geom2, test.Tolerance).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result : {0}", test.SqlObtainedResult1);
+                }
+                catch (Exception ex)
+                {
+                    test.Result = "Failed";
+                    test.SqlError = ex.Message;
+                    Logger.LogError(ex);
+                }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                oracleConnector.DoMergeAndResetGeomTest(test);
+                OracleTimer.Stop();
+
+                #endregion
+
+                // Update results to database
+                UpdateTestResults(test, LRSDataSet.MergeAndResetGeometrySegmentsData.TableName, testIterator);
+
+                Logger.Log("Test Result : {0}", test.Result);
+                testIterator++;
+            }
+        }
+
+        [TestMethod]
         public void OffsetGeometrySegmentTest()
         {
             Logger.LogLine("Offset Geometry Segments Tests");

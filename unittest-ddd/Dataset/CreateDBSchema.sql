@@ -170,6 +170,29 @@ GO
 ALTER TABLE [LRS_MergeGeometrySegmentsData] ADD CONSTRAINT [PK_MergeGeometrySegmentsData] PRIMARY KEY ([Id]);
 GO
 
+-- MergeGeometrySegments
+CREATE TABLE [LRS_MergeAndResetGeometrySegmentsData] (
+ [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom1] nvarchar(1000) NOT NULL
+, [InputGeom2] nvarchar(1000) NOT NULL
+, [Tolerance] float NOT NULL
+, [OutputComparison1] bit
+, [SqlObtainedResult1] nvarchar(1000)
+, [OracleResult1] nvarchar(1000)
+, [OracleError] nvarchar(1000)
+, [SqlError] nvarchar(1000)
+, [OracleQuery] nvarchar(1000)
+, [SqlElapsedTime] nvarchar(100)
+, [OracleElapsedTime] nvarchar(100)
+, [ExecutionTime] datetime
+, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [Result] nvarchar(50)
+, [Comments] nvarchar(1000)
+);
+GO
+ALTER TABLE [LRS_MergeAndResetGeometrySegmentsData] ADD CONSTRAINT [PK_MergeAndResetGeometrySegmentsData] PRIMARY KEY ([Id]);
+GO
+
 
 -- OffsetGeometrySegment
 CREATE TABLE [LRS_OffsetGeometrySegmentData] (
