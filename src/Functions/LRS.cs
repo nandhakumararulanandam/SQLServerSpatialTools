@@ -922,18 +922,51 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
-            // if point then check if measure is equal to split measure
-            // if not equal then throw invalid measure exception
-            // if equal return both the segments as null.
-            if (geometry.IsPoint())
+            // assign the input split measure to a local variable
+            var inputSplitMeasure = splitMeasure;
+
+            // assign default null values to out param.
+            geometry1 = null;
+            geometry2 = null;
+
+            // for point validation.
+            if (geometry.CheckGeomPoint())
             {
                 var pointMeasure = geometry.HasM ? geometry.M.Value : 0;
                 if (pointMeasure != splitMeasure)
                     Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
-
-                geometry1 = null;
-                geometry2 = null;
                 return;
+            }
+
+            var startPointM = geometry.GetStartPointMeasure();
+            var endPointM = geometry.GetEndPointMeasure();
+            var ifNotLinear = !geometry.STHasLinearMeasure();
+
+            // if start point and end point is equal and it is equal to split measure then return null
+            if (geometry.STHasEqualStartAndEndMeasure() && startPointM == splitMeasure)
+                return;
+
+            // if start measure is split measure then segment 1 is null and segment 2 is input geom
+            if (startPointM == splitMeasure)
+            {
+                geometry2 = geometry;
+                return;
+            }
+
+            // if end measure is split measure then segment 2 is null and segment 1 is input geom
+            if (endPointM == splitMeasure)
+            {
+                geometry1 = geometry;
+                return;
+            }
+
+            // if geom is multiline and the segment doesn't has linear measure;
+            // reassign the split measure to start or end measure as per progress
+            if (geometry.IsMultiLineString() && ifNotLinear)
+            {
+                var maxMeasure = startPointM > endPointM ? startPointM : endPointM;
+                if (splitMeasure > maxMeasure)
+                    splitMeasure = maxMeasure;
             }
 
             // measure range validation is handled inside LocatePoint
@@ -987,7 +1020,7 @@ namespace SQLSpatialTools.Functions.LRS
                 return LRSErrorCodes.InvalidLRS.Value();
 
             // return invalid if geometry doesn't or have null values
-            if (!geometry.STHasMeasureValues())
+            if (!geometry.STHasLinearMeasure())
                 return LRSErrorCodes.InvalidLRSMeasure.Value();
 
             // checks if the measures are in linear range.

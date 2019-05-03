@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -189,6 +190,22 @@ namespace SQLSpatialTools.Types
                 return Points.Last();
             }
             return null;
+        }
+
+        /// <summary>
+        /// Locates the point.
+        /// </summary>
+        /// <param name="measure">The measure.</param>
+        /// <returns></returns>
+        internal LRSPoint LocatePoint(double measure, LRSPoint firstPoint = null)
+        {
+            var startPoint = firstPoint ?? GetStartPoint();
+            var endPoint = GetEndPoint();
+            double fraction = (measure - startPoint.M.Value) / (endPoint.M.Value - startPoint.M.Value);
+            double newX = (startPoint.X * (1 - fraction)) + (endPoint.X * fraction);
+            double newY = (startPoint.Y * (1 - fraction)) + (endPoint.Y * fraction);
+
+            return new LRSPoint(newX, newY, null, measure, SRID);
         }
 
         /// <summary>
@@ -394,7 +411,7 @@ namespace SQLSpatialTools.Types
         {
             // ignore if the line has only one point.
             if (Points.Count < 2)
-                return SqlGeometry.Null;
+                return GetStartPoint().ToSqlGeometry(ref geomBuilder);
             BuildSqlGeometry(ref geomBuilder);
             return geomBuilder.ConstructedGeometry;
         }

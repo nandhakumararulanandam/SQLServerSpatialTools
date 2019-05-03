@@ -24,6 +24,7 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         int srid, lineCounter;
         bool isMultiLine;
+        bool splitPointReached;
         double lastM;
 
         // Initialize Split Geom Sink with split point
@@ -63,16 +64,33 @@ namespace SQLSpatialTools.Sinks.Geometry
             currentLineForSegment1 = new LRSLine(srid);
             currentLineForSegment2 = new LRSLine(srid);
 
+            // just add it to the second segment once split point is reached
+            if (splitPointReached && m != splitPointMeasure)
+            {
+                currentLineForSegment2.AddPoint(x, y, z, m);
+                return;
+            }
+
             if (m < splitPointMeasure)
                 currentLineForSegment1.AddPoint(x, y, null, m);
             else if (m > splitPointMeasure || IsEqualToSplitMeasure(m))
+            {
                 currentLineForSegment2.AddPoint(x, y, null, m);
+                splitPointReached = IsEqualToSplitMeasure(m);
+            }
             lastM = (double)m;
         }
 
         // This is where the real work is done.
         public void AddLine(double x, double y, double? z, double? m)
         {
+            // just add it to the second segment once split point is reached
+            if (splitPointReached && m != splitPointMeasure)
+            {
+                currentLineForSegment2.AddPoint(x, y, z, m);
+                return;
+            }
+
             // If current measure is less than split measure; then add it to the first segment.
             if (m < splitPointMeasure)
             {
@@ -85,13 +103,15 @@ namespace SQLSpatialTools.Sinks.Geometry
                 currentLineForSegment1.AddPoint(splitPoint);
                 currentLineForSegment2.AddPoint(splitPoint);
                 currentLineForSegment2.AddPoint(x, y, z, m);
+                splitPointReached = true;
             }
 
             // if current measure is equal to split measure; then it is a shape point
-            else if (IsEqualToSplitMeasure(m))
+            else if (IsEqualToSplitMeasure(m) && lastM != m)
             {
                 currentLineForSegment1.AddPoint(x, y, z, m);
                 currentLineForSegment2.AddPoint(x, y, z, m);
+                splitPointReached = true;
             }
 
             // If current measure is greater than split measure; then add it to the second segment.
@@ -129,7 +149,45 @@ namespace SQLSpatialTools.Sinks.Geometry
             if (lineCounter == 0 || !isMultiLine)
             {
                 Segment1 = segment1.ToSqlGeometry();
-                Segment2 = segment2.ToSqlGeometry();
+
+                // TODO:: Messy logic to be meet as per Oracle; need to be re-factored
+                // if second is a multi line
+                // end measure of first line > end measure of last line
+                // then consider only first line 
+                // by locating the point
+                if (!segment1.IsEmpty && segment2.IsMultiLine)
+                {
+                    var endSegmentEndM = segment2.GetLastLine().GetEndPointM();
+                    var startSegmentStartM = segment2.GetFirstLine().GetEndPointM();
+
+                    if (startSegmentStartM > endSegmentEndM)
+                    {
+                        var trimmedLine = segment2.GetFirstLine();
+                        var newLS = new LRSLine(srid);
+
+                        // add points up to end segment measure
+                        foreach (var point in trimmedLine)
+                        {
+                            if (point.M < endSegmentEndM)
+                                newLS.AddPoint(point);
+                        }
+
+                        // add the end point
+                        if (endSegmentEndM == splitPointMeasure)
+                            newLS.AddPoint(splitPoint);
+                        else
+                            newLS.AddPoint(trimmedLine.LocatePoint(endSegmentEndM, newLS.GetEndPoint()));
+
+                        Segment2 = newLS.ToSqlGeometry();
+                    }
+                    // if end segment measure is equal to split measure; then return the split alone for second segment
+                    else if (endSegmentEndM == splitPointMeasure)
+                        Segment2 = splitPoint;
+                    else
+                        Segment2 = segment2.ToSqlGeometry();
+                }
+                else
+                    Segment2 = segment2.ToSqlGeometry();
             }
             else
             {

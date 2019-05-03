@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Types;
 using System.Globalization;
 using SQLSpatialTools.Sinks.Geometry;
@@ -217,24 +214,48 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
-        /// Loop through individual points in geometry and check whether it has the measure values.
+        /// for checking whether geometry measure is increasing or decreasing 
         /// </summary>
-        /// <param name="geometry">The geometry.</param>
+        /// <param name="geometry"></param>
         /// <returns></returns>
-        public static bool STHasMeasureValues(this SqlGeometry geometry)
+        public static bool STHasLinearMeasure(this SqlGeometry geometry)
         {
             if (geometry.IsNull || geometry.STIsEmpty() || !geometry.STIsValid())
                 return false;
 
             var numPoints = geometry.STNumPoints();
+            var measureProgress = geometry.STLinearMeasureProgress();
 
+            double previousM = 0.0;
             for (var iterator = 1; iterator <= numPoints; iterator++)
             {
-                if (!geometry.STPointN(iterator).HasM)
+                var currentPoint = geometry.STPointN(iterator);
+                if (!currentPoint.HasM)
                     return false;
+
+                if (iterator == 1)
+                    continue;
+
+                if (measureProgress == LinearMeasureProgress.Increasing && previousM > currentPoint.M)
+                    return false;
+
+                if (measureProgress == LinearMeasureProgress.Decreasing && previousM < currentPoint.M)
+                    return false;
+
+                previousM = currentPoint.M.Value;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// To check whether start measure value is equal to End Measure value
+        /// </summary>
+        /// <param name="geometry"></param>
+        /// <returns>equal measure value</returns>
+        public static bool STHasEqualStartAndEndMeasure(this SqlGeometry geometry)
+        {
+            return geometry.GetStartPointMeasure() == geometry.GetEndPointMeasure();
         }
 
         /// <summary>
