@@ -60,18 +60,18 @@ namespace SQLSpatialTools.Functions.LRS
             {
                 var segment = ClipLineSegment(line.ToSqlGeometry(), clipStartMeasure, clipEndMeasure, tolerance, retainMeasure);
                 // add only line segments
-                if (segment != null && !segment.IsNull && !segment.STIsEmpty())
+                if (segment.IsNotNullOrEmpty())
                     clippedSegments.Add(segment);
             }
 
-            if (clippedSegments.Any())
+            if (!clippedSegments.Any()) return SqlGeometry.Null;
             {
                 // if one segment then it is a POINT or LINESTRING, so return straight away.
                 if (clippedSegments.Count == 1)
                     return clippedSegments.First();
 
                 var geomBuilder = new SqlGeometryBuilder();
-                // count only LINESTRINGS
+                // count only LINESTRING
                 var multiLineGeomSink = new BuildMultiLineFromLinesSink(geomBuilder, clippedSegments.Count(segment => segment.IsLineString()));
 
                 foreach (var geom in clippedSegments)
@@ -84,7 +84,6 @@ namespace SQLSpatialTools.Functions.LRS
                 return geomBuilder.ConstructedGeometry;
             }
 
-            return SqlGeometry.Null;
         }
 
         /// <summary>
@@ -100,8 +99,8 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>Clipped Segment</returns>
         private static SqlGeometry ClipLineSegment(SqlGeometry geometry, double clipStartMeasure, double clipEndMeasure, double tolerance, bool retainClipMeasure)
         {
-            bool startMeasureInvalid = false;
-            bool endMeasureInvalid = false;
+            var startMeasureInvalid = false;
+            var endMeasureInvalid = false;
 
             // reassign clip start and end measure based upon there difference
             if (clipStartMeasure > clipEndMeasure)
@@ -115,11 +114,12 @@ namespace SQLSpatialTools.Functions.LRS
             if (geometry.IsPoint())
             {
                 var pointMeasure = geometry.HasM ? geometry.M.Value : 0;
-                var isClipMeasureEqual = clipStartMeasure == clipEndMeasure;
+                var isClipMeasureEqual = clipStartMeasure.EqualsTo(clipEndMeasure);
                 // no tolerance check, if both start and end measure is point measure then return point
-                if (isClipMeasureEqual && pointMeasure == clipStartMeasure)
+                if (isClipMeasureEqual && pointMeasure.EqualsTo(clipStartMeasure))
                     return geometry;
-                else if (isClipMeasureEqual && (clipStartMeasure > pointMeasure || clipStartMeasure < pointMeasure))
+
+                if (isClipMeasureEqual && (clipStartMeasure > pointMeasure || clipStartMeasure < pointMeasure))
                     Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
                 // if clip measure fall behind or beyond point measure then return null
                 else if ((clipStartMeasure < pointMeasure && clipEndMeasure < pointMeasure) || (clipStartMeasure > pointMeasure && clipEndMeasure > pointMeasure))
@@ -136,7 +136,7 @@ namespace SQLSpatialTools.Functions.LRS
 
             // if clip start measure matches geom start measure and
             // clip end measure matches geom end measure then return the input geom
-            if (clipStartMeasure == geomStartMeasure && clipEndMeasure == geomEndMeasure)
+            if (clipStartMeasure.EqualsTo(geomStartMeasure) && clipEndMeasure.EqualsTo(geomEndMeasure))
                 return geometry;
 
             // Check if clip start and end measures are beyond geom start and end point measures
@@ -178,11 +178,11 @@ namespace SQLSpatialTools.Functions.LRS
 
             // Post adjusting if clip start measure matches geom start measure and
             // clip end measure matches geom end measure then return the input geom
-            if (clipStartMeasure == geomStartMeasure && clipEndMeasure == geomEndMeasure)
+            if (clipStartMeasure.EqualsTo(geomStartMeasure) && clipEndMeasure.EqualsTo(geomEndMeasure))
                 return geometry;
 
             // if clip start and end measure are equal post adjusting then we will return a shape point
-            if (clipStartMeasure == clipEndMeasure && (isStartBeyond || isEndBeyond))
+            if (clipStartMeasure.EqualsTo(clipEndMeasure) && (isStartBeyond || isEndBeyond))
             {
                 if (isStartBeyond)
                     return measureProgress == LinearMeasureProgress.Increasing ? geometry.STStartPoint() : geometry.STEndPoint();
@@ -190,7 +190,7 @@ namespace SQLSpatialTools.Functions.LRS
             }
 
             // if both clip start and end measure is same then don't check for distance tolerance
-            if (clipStartMeasure != clipEndMeasure)
+            if (clipStartMeasure.NotEqualsTo(clipEndMeasure))
             {
                 var clipStartPoint = LocatePointWithTolerance(geometry, clipStartMeasure, out bool isClipStartShapePoint, tolerance);
                 var clipEndPoint = LocatePointWithTolerance(geometry, clipEndMeasure, out bool isClipEndShapePoint, tolerance);
@@ -223,6 +223,7 @@ namespace SQLSpatialTools.Functions.LRS
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
         }
+        // ReSharper restore CompareOfFloatsByEqualityOperator
 
         /// <summary>
         /// Get end point measure of a LRS Geom Segment.
@@ -261,13 +262,13 @@ namespace SQLSpatialTools.Functions.LRS
             // We need to check a few prerequisite.
             // We only operate on points.
             Ext.ThrowIfNotPoint(startPoint, endPoint);
-            Ext.ThrowIfSRIDsDoesNotMatch(startPoint, endPoint);
+            Ext.ThrowIfSRIDDoesNotMatch(startPoint, endPoint);
             Ext.ValidateLRSDimensions(ref startPoint);
             Ext.ValidateLRSDimensions(ref endPoint);
             Ext.ThrowIfMeasureIsNotInRange(measure, startPoint, endPoint);
 
             // The SRIDs also have to match
-            int srid = startPoint.STSrid.Value;
+            var srid = startPoint.STSrid.Value;
 
             // Since we're working on a Cartesian plane, this is now pretty simple.
             // The fraction of the way from start to end.
@@ -284,11 +285,11 @@ namespace SQLSpatialTools.Functions.LRS
         /// </summary>
         /// <param name="geometry1"></param>
         /// <param name="geometry2"></param>
-        /// <param name="tolerence"></param>
+        /// <param name="tolerance"></param>
         /// <returns>SqlBoolean</returns>
-        public static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence = Constants.Tolerance)
+        public static SqlBoolean IsConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = Constants.Tolerance)
         {
-            return CheckIfConnected(geometry1, geometry2, tolerence, out _);
+            return CheckIfConnected(geometry1, geometry2, tolerance, out _);
         }
 
         /// <summary>
@@ -296,13 +297,13 @@ namespace SQLSpatialTools.Functions.LRS
         /// </summary>
         /// <param name="geometry1">First Geometry</param>
         /// <param name="geometry2">Second Geometry</param>
-        /// <param name="tolerence">Distance Threshold range; default 0.01F</param>
-        /// <param name="mergeCoordinatePosition">Represents position of merge segments</param>
+        /// <param name="tolerance">Distance Threshold range; default 0.01F</param>
+        /// <param name="mergePosition"></param>
         /// <returns>SqlBoolean</returns>
-        private static SqlBoolean CheckIfConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerence, out MergePosition mergePosition)
+        private static SqlBoolean CheckIfConnected(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, out MergePosition mergePosition)
         {
             Ext.ThrowIfNotLRSType(geometry1, geometry2);
-            Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
+            Ext.ThrowIfSRIDDoesNotMatch(geometry1, geometry2);
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
 
@@ -317,10 +318,10 @@ namespace SQLSpatialTools.Functions.LRS
             // If the points doesn't coincide, check for the point co-ordinate difference and whether it falls within the tolerance
             // distance not considered as per Oracle.
             // Comparing geom1 start point x and y co-ordinate difference against geom2 start and end point x and y co-ordinates
-            var isStartStartConnected = geometry1StartPoint.STEquals(geometry2StartPoint) || geometry1StartPoint.IsXYWithinRange(geometry2StartPoint, tolerence);
-            var isStartEndConnected = geometry1StartPoint.STEquals(geometry2EndPoint) || geometry1StartPoint.IsXYWithinRange(geometry2EndPoint, tolerence);
-            var isEndStartConnected = geometry1EndPoint.STEquals(geometry2StartPoint) || geometry1EndPoint.IsXYWithinRange(geometry2StartPoint, tolerence);
-            var isEndEndConnected = geometry1EndPoint.STEquals(geometry2EndPoint) || geometry1EndPoint.IsXYWithinRange(geometry2EndPoint, tolerence);
+            var isStartStartConnected = geometry1StartPoint.STEquals(geometry2StartPoint) || geometry1StartPoint.IsXYWithinRange(geometry2StartPoint, tolerance);
+            var isStartEndConnected = geometry1StartPoint.STEquals(geometry2EndPoint) || geometry1StartPoint.IsXYWithinRange(geometry2EndPoint, tolerance);
+            var isEndStartConnected = geometry1EndPoint.STEquals(geometry2StartPoint) || geometry1EndPoint.IsXYWithinRange(geometry2StartPoint, tolerance);
+            var isEndEndConnected = geometry1EndPoint.STEquals(geometry2EndPoint) || geometry1EndPoint.IsXYWithinRange(geometry2EndPoint, tolerance);
             var isBothEndsConnected = isStartStartConnected && isEndEndConnected;
             var isCrossEndsConnected = isStartEndConnected && isEndStartConnected;
 
@@ -353,7 +354,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns></returns>
         public static SqlBoolean IsValidPoint(SqlGeometry geometry)
         {
-            if (geometry.IsNull || geometry.STIsEmpty() || !geometry.STIsValid() || !geometry.IsPoint())
+            if (geometry.IsNullOrEmpty() || !geometry.STIsValid() || !geometry.IsPoint())
                 return false;
 
             // check if the point has measure value
@@ -361,12 +362,9 @@ namespace SQLSpatialTools.Functions.LRS
                 return true;
 
             // if m is null; the check if frame from x,y,z where z is m
-            if (geometry.STGetDimension() == DimensionalInfo._3D)
-            {
-                geometry = geometry.ConvertTo2DM();
-                return !geometry.M.IsNull;
-            }
-            return false;
+            if (geometry.STGetDimension() != DimensionalInfo.Dim3D) return false;
+            geometry = geometry.ConvertTo2DM();
+            return !geometry.M.IsNull;
         }
 
         /// <summary>
@@ -387,6 +385,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// </summary>
         /// <param name="geometry">The geometry.</param>
         /// <param name="measure">The measure.</param>
+        /// <param name="isShapePoint"></param>
         /// <param name="tolerance">The tolerance.</param>
         /// <returns></returns>
         private static SqlGeometry LocatePointWithTolerance(SqlGeometry geometry, double measure, out bool isShapePoint, double tolerance = Constants.Tolerance)
@@ -425,7 +424,7 @@ namespace SQLSpatialTools.Functions.LRS
         public static SqlGeometry MergeGeometrySegments(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = Constants.Tolerance)
         {
             Ext.ThrowIfNotLRSType(geometry1, geometry2);
-            Ext.ThrowIfSRIDsDoesNotMatch(geometry1, geometry2);
+            Ext.ThrowIfSRIDDoesNotMatch(geometry1, geometry2);
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
 
@@ -448,11 +447,11 @@ namespace SQLSpatialTools.Functions.LRS
                 switch (mergeType)
                 {
                     case MergeInputType.LSLS:
-                        return MergeConnectedLineStrings(geometry1, geometry2, tolerance, mergePosition, out _);
+                        return MergeConnectedLineStrings(geometry1, geometry2, mergePosition, out _);
                     case MergeInputType.LSMLS:
                     case MergeInputType.MLSLS:
                     case MergeInputType.MLSMLS:
-                        return MergeConnectedMultiLineStrings(geometry1, geometry2, tolerance, mergePosition);
+                        return MergeConnectedMultiLineStrings(geometry1, geometry2, mergePosition);
                 }
             }
             else
@@ -472,25 +471,27 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns>SqlGeometry</returns>
         public static SqlGeometry MergeAndResetGeometrySegments(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = Constants.Tolerance)
         {
-            SqlGeometry resultantGeometry = MergeGeometrySegments(geometry1, geometry2, tolerance);
+            var resultantGeometry = MergeGeometrySegments(geometry1, geometry2, tolerance);
             return PopulateGeometryMeasures(resultantGeometry, null, null);
         }
+
         /// <summary>
         /// Method will merge simple line strings with tolerance and returns the merged line segment by considering measure and direction of the first geometry.
         /// </summary>
         /// <param name="geometry1"></param>
         /// <param name="geometry2"></param>
-        /// <param name="tolerance"></param>
+        /// <param name="mergePosition"></param>
+        /// <param name="measureDifference"></param>
         /// <returns>SqlGeometry</returns>
-        private static SqlGeometry MergeConnectedLineStrings(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition, out double measureDifference)
+        private static SqlGeometry MergeConnectedLineStrings(SqlGeometry geometry1, SqlGeometry geometry2, MergePosition mergePosition, out double measureDifference)
         {
             // geometry 1 and geometry 2 to be 2D line strings with measure 'm'
             Ext.ThrowIfNotLine(geometry1, geometry2);
             // offset measure difference.
-            var offsetM = 0.0;
+            double offsetM;
 
             // references governs the order of geometries to get merge
-            SqlGeometry targetSegment = null, sourceSegment = null;
+            SqlGeometry targetSegment, sourceSegment;
 
             // check direction of measure.
             var isSameDirection = geometry1.STSameDirection(geometry2);
@@ -583,10 +584,9 @@ namespace SQLSpatialTools.Functions.LRS
         /// </summary>
         /// <param name="geometry1"></param>
         /// <param name="geometry2"></param>
-        /// <param name="tolerance"></param>
         /// <param name="mergePosition"></param>
         /// <returns>SqlGeometry of type MultiLineString</returns>
-        private static SqlGeometry MergeConnectedMultiLineStrings(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance, MergePosition mergePosition)
+        private static SqlGeometry MergeConnectedMultiLineStrings(SqlGeometry geometry1, SqlGeometry geometry2, MergePosition mergePosition)
         {
             // check direction of measure.
             var isSameDirection = geometry1.STSameDirection(geometry2);
@@ -608,7 +608,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetLastLine().ToSqlGeometry();
                         targetSegment = segment2.GetLastLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -632,7 +632,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetLastLine().ToSqlGeometry();
                         targetSegment = segment2.GetFirstLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -654,7 +654,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetFirstLine().ToSqlGeometry();
                         targetSegment = segment2.GetLastLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -676,7 +676,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetFirstLine().ToSqlGeometry();
                         targetSegment = segment2.GetFirstLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, tolerance, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -706,7 +706,7 @@ namespace SQLSpatialTools.Functions.LRS
         private static SqlGeometry MergeDisconnectedLineSegments(SqlGeometry geometry1, SqlGeometry geometry2)
         {
             var isSameDirection = geometry1.STSameDirection(geometry2);
-            var firtSegmentDirection = geometry1.STLinearMeasureProgress();
+            var firstSegmentDirection = geometry1.STLinearMeasureProgress();
             if (!isSameDirection)
                 geometry2 = ScaleGeometryMeasures(geometry2, -1);
 
@@ -715,10 +715,10 @@ namespace SQLSpatialTools.Functions.LRS
 
             if (isSameDirection)
             {
-                if (firtSegmentDirection == LinearMeasureProgress.Increasing && offsetM > 0)
+                if (firstSegmentDirection == LinearMeasureProgress.Increasing && offsetM > 0)
                     doUpdateM = true;
 
-                if (firtSegmentDirection == LinearMeasureProgress.Decreasing && offsetM < 0)
+                if (firstSegmentDirection == LinearMeasureProgress.Decreasing && offsetM < 0)
                     doUpdateM = true;
             }
             else
@@ -763,7 +763,7 @@ namespace SQLSpatialTools.Functions.LRS
             if (clippedGeometry.IsPoint())
             {
                 // Computing offset
-                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress());
+                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress(), tolerance);
 
                 // get the offset point at clipped measure
                 var offsetPoint = parallelSegment.GetPointAtM(clippedGeometry.M.Value);
@@ -775,7 +775,7 @@ namespace SQLSpatialTools.Functions.LRS
                 lrsSegment.RemoveCollinearPoints();
 
                 // Computing offset
-                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress());
+                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress(), tolerance);
 
                 // if it is a two point line string; then check for distance
                 if (parallelSegment.Is2PointLine)
@@ -845,7 +845,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry);
 
             var geomBuilder = new SqlGeometryBuilder();
-            var geomSink = new ResetMGemetrySink(geomBuilder);
+            var geomSink = new ResetMGeometrySink(geomBuilder);
             geometry.Populate(geomSink);
             return geomBuilder.ConstructedGeometry;
         }
@@ -876,6 +876,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// Works only for POINT, LINESTRING, MULTILINESTRING Geometry.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
+        /// <param name="translateMeasure"></param>
         /// <returns></returns>
         public static SqlGeometry ReverseAndTranslateGeometry(SqlGeometry geometry, double translateMeasure)
         {
@@ -897,6 +898,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// Works only for POINT, LINESTRING, MULTILINESTRING Geometry.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
+        /// <param name="scaleMeasure"></param>
         /// <returns></returns>
         public static SqlGeometry ScaleGeometryMeasures(SqlGeometry geometry, double scaleMeasure)
         {
@@ -917,13 +919,11 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="splitMeasure"></param>
         /// <param name="geometry1">First Geometry Segment</param>
         /// <param name="geometry2">Second Geometry Segment</param>
+            // ReSharper disable CompareOfFloatsByEqualityOperator
         public static void SplitGeometrySegment(SqlGeometry geometry, double splitMeasure, out SqlGeometry geometry1, out SqlGeometry geometry2)
         {
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
-
-            // assign the input split measure to a local variable
-            var inputSplitMeasure = splitMeasure;
 
             // assign default null values to out param.
             geometry1 = null;
@@ -977,6 +977,7 @@ namespace SQLSpatialTools.Functions.LRS
             geometry1 = geomSink.Segment1;
             geometry2 = geomSink.Segment2;
         }
+        // ReSharper restore CompareOfFloatsByEqualityOperator
 
         /// <summary>
         /// Translates the measure values of Input Geometry
@@ -1006,7 +1007,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ThrowIfNotLRSType(geometry);
 
             // check for dimension
-            if (geometry.STGetDimension() == DimensionalInfo._2D)
+            if (geometry.STGetDimension() == DimensionalInfo.Dim2D)
             {
                 // If there is no measure value; return invalid.
                 return LRSErrorCodes.InvalidLRS.Value();
@@ -1016,7 +1017,7 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry);
 
             // return invalid if empty or is of geometry collection
-            if (geometry.IsNull || geometry.STIsEmpty() || !geometry.STIsValid() || geometry.IsGeometryCollection())
+            if (geometry.IsNullOrEmpty() || !geometry.STIsValid() || geometry.IsGeometryCollection())
                 return LRSErrorCodes.InvalidLRS.Value();
 
             // return invalid if geometry doesn't or have null values

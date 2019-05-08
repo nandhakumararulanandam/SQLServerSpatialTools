@@ -9,28 +9,27 @@ namespace SQLSpatialTools.Sinks.Geography
     /// This class implements a geography sink that finds a point along a geography linestring instance and pipes
     /// it to another sink.
     /// </summary>
-    class LocateAlongGeographySink : IGeographySink110
+    internal class LocateAlongGeographySink : IGeographySink110
     {
-
-        double distance;               // The running count of how much further we have to go.
-        SqlGeography lastPoint;        // The last point in the LineString we have passed.
-        SqlGeography foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
-        int srid;                      // The _srid we are working in.
-        SqlGeographyBuilder target;    // Where we place our result.
+        private double _distance;               // The running count of how much further we have to go.
+        private SqlGeography _lastPoint;        // The last point in the LineString we have passed.
+        private SqlGeography _foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
+        private int _srid;                      // The _srid we are working in.
+        private readonly SqlGeographyBuilder _target;    // Where we place our result.
 
         // We target another builder, to which we will send a point representing the point we find.
         // We also take a distance, which is the point along the input linestring we will travel.
         // Note that we only operate on LineString instances: anything else will throw an exception.
         public LocateAlongGeographySink(double distance, SqlGeographyBuilder target)
         {
-            this.target = target;
-            this.distance = distance;
+            _target = target;
+            _distance = distance;
         }
 
         // Save the SRID for later
         public void SetSrid(int srid)
         {
-            this.srid = srid;
+            _srid = srid;
         }
 
         // Start the geography.  Throw if it isn't a LineString.
@@ -45,7 +44,7 @@ namespace SQLSpatialTools.Sinks.Geography
         public void BeginFigure(double latitude, double longitude, double? z, double? m)
         {
             // Memorize the point.
-            lastPoint = SqlGeography.Point(latitude, longitude, srid);
+            _lastPoint = SqlGeography.Point(latitude, longitude, _srid);
         }
 
         // This is where the real work is done.
@@ -53,23 +52,23 @@ namespace SQLSpatialTools.Sinks.Geography
         {
             // If we've already found a point, then we're done.  We just need to keep ignoring these
             // pesky calls.
-            if (foundPoint != null) return;
+            if (_foundPoint != null) return;
 
             // Make a point for our current position.
-            SqlGeography thisPoint = SqlGeography.Point(latitude, longitude, srid);
+            var thisPoint = SqlGeography.Point(latitude, longitude, _srid);
 
             // is the found point between this point and the last, or past this point?
-            double length = thisPoint.STDistance(lastPoint).Value;
-            if (length < distance)
+            var length = thisPoint.STDistance(_lastPoint).Value;
+            if (length < _distance)
             {
                 // it's past this point---just step along the line
-                distance -= length;
-                lastPoint = thisPoint;
+                _distance -= length;
+                _lastPoint = thisPoint;
             }
             else
             {
                 // now we need to do the hard work and find the point in between these two
-                foundPoint = Functions.General.Geography.InterpolateBetweenGeog(lastPoint, thisPoint, distance);
+                _foundPoint = Functions.General.Geography.InterpolateBetweenGeog(_lastPoint, thisPoint, _distance);
             }
         }
 
@@ -87,15 +86,15 @@ namespace SQLSpatialTools.Sinks.Geography
         // Here's also where we catch whether we've run off the end of our LineString.
         public void EndGeography()
         {
-            if (foundPoint != null)
+            if (_foundPoint != null)
             {
                 // We could use a simple point constructor, but by targeting another sink we can use this
                 // class in a pipeline.
-                target.SetSrid(srid);
-                target.BeginGeography(OpenGisGeographyType.Point);
-                target.BeginFigure(foundPoint.Lat.Value, foundPoint.Long.Value);
-                target.EndFigure();
-                target.EndGeography();
+                _target.SetSrid(_srid);
+                _target.BeginGeography(OpenGisGeographyType.Point);
+                _target.BeginFigure(_foundPoint.Lat.Value, _foundPoint.Long.Value);
+                _target.EndFigure();
+                _target.EndGeography();
             }
             else
             {

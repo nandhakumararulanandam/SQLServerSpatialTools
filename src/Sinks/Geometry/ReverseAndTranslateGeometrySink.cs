@@ -9,84 +9,85 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that reverses the input geometry and translate the measure
     /// </summary>
-    class ReverseAndTranslateGeometrySink : IGeometrySink110
+    internal class ReverseAndTranslateGeometrySink : IGeometrySink110
     {
-        SqlGeometryBuilder target;
-        readonly double translateMeasure;
-        LRSMultiLine lines;
-        LRSLine currentLine;
-        bool isMultiLine;
-        int lineCounter;
-        int srid;
+        private SqlGeometryBuilder _target;
+        private readonly double _translateMeasure;
+        private LRSMultiLine _lines;
+        private LRSLine _currentLine;
+        private bool _isMultiLine;
+        private int _lineCounter;
+        private int _srid;
 
         /// <summary>
         /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse and translate measure it accordingly.
         /// </summary>
-        /// <param name="type">Geometry Type</param>
+        /// <param name="target"></param>
+        /// <param name="translateMeasure"></param>
         public ReverseAndTranslateGeometrySink(SqlGeometryBuilder target, double translateMeasure)
         {
-            this.target = target;
-            this.translateMeasure = translateMeasure;
-            isMultiLine = false;
-            lineCounter = 0;
+            _target = target;
+            _translateMeasure = translateMeasure;
+            _isMultiLine = false;
+            _lineCounter = 0;
         }
 
         // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
         {
-            lines = new LRSMultiLine(srid);
-            this.srid = srid;
+            _lines = new LRSMultiLine(srid);
+            _srid = srid;
         }
 
         // Check for types and begin geometry accordingly.
         public void BeginGeometry(OpenGisGeometryType type)
         {
             if (type == OpenGisGeometryType.MultiLineString)
-                isMultiLine = true;
+                _isMultiLine = true;
             if (type == OpenGisGeometryType.LineString)
-                lineCounter++;
+                _lineCounter++;
         }
 
         // Just add the points to the current line segment.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            currentLine = new LRSLine(srid);
-            currentLine.AddPoint(x, y, z, m);
+            _currentLine = new LRSLine(_srid);
+            _currentLine.AddPoint(x, y, z, m);
         }
 
         // Just add the points to the current line segment.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            currentLine.AddPoint(x, y, z, m);
+            _currentLine.AddPoint(x, y, z, m);
         }
 
         // Reverse the points at the end of figure.
         public void EndFigure()
         {
-            currentLine.ReversePoints();
+            _currentLine.ReversePoints();
         }
 
         // This is where real work is done.
         public void EndGeometry()
         {
             // if not multi line then add the current line to the collection.
-            if (!isMultiLine)
-                lines.AddLine(currentLine);
+            if (!_isMultiLine)
+                _lines.AddLine(_currentLine);
 
             // if line counter is 0 then it is multiline
             // if 1 then it is linestring 
-            if (lineCounter == 0 || !isMultiLine)
+            if (_lineCounter == 0 || !_isMultiLine)
             {
                 // reverse the line before constructing the geometry
-                lines.ReversLines();
-                lines.TranslateMeasure(translateMeasure);
-                lines.ToSqlGeometry(ref target);
+                _lines.ReversLines();
+                _lines.TranslateMeasure(_translateMeasure);
+                _lines.ToSqlGeometry(ref _target);
             }
             else
             {
-                lines.AddLine(currentLine);
+                _lines.AddLine(_currentLine);
                 // reset the line counter so that the child line strings chaining is done and return to base multiline type
-                lineCounter--;
+                _lineCounter--;
             }
         }
 

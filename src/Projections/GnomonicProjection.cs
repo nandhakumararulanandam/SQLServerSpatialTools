@@ -31,12 +31,12 @@ namespace SQLSpatialTools.Projections
 			// switching the other two, and flipping the sign of one of them. The second one is
 			// obtained by cross product.
 
-			double[] center = { _center.x, _center.y, _center.z };
-			double[] vector = new double[3];
+			double[] center = { _center.X, _center.Y, _center.Z };
+			var vector = new double[3];
 
-			int k = GetMinEntry(center);
-			int j = (k + 2) % 3;
-			int i = (j + 2) % 3;
+			var k = GetMinEntry(center);
+			var j = (k + 2) % 3;
+			var i = (j + 2) % 3;
 
 			vector[i] = -center[j];
 			vector[j] = center[i];
@@ -47,9 +47,9 @@ namespace SQLSpatialTools.Projections
 			_yAxis = _center.CrossProduct(_xAxis);
 		}
 
-		private static int GetMinEntry(double[] values)
+		private static int GetMinEntry(IList<double> values)
 		{
-			int i = 0;
+			var i = 0;
 			if (Math.Abs(values[1]) < Math.Abs(values[0]))
 				i = 1;
 			if (Math.Abs(values[2]) < Math.Abs(values[i]))
@@ -59,12 +59,12 @@ namespace SQLSpatialTools.Projections
 
 		protected internal override void Project(double latitude, double longitude, out double x, out double y)
 		{
-			Vector3 vector = Util.SphericalRadToCartesian(latitude, longitude);
-			double r = vector * _center;
+			var vector = Util.SphericalRadToCartesian(latitude, longitude);
+			var r = vector * _center;
 
 			if (r < _tolerance)
 			{
-				throw new ArgumentOutOfRangeException("Input point is too far away from the center of projection.");
+				throw new ArgumentOutOfRangeException(nameof(latitude), "Input point is too far away from the center of projection.");
 			}
 			vector = vector / r;
 
@@ -74,7 +74,7 @@ namespace SQLSpatialTools.Projections
 
 		protected internal override void Unproject(double x, double y, out double latitude, out double longitude)
 		{
-			Vector3 vector = _center + _xAxis * x + _yAxis * y;
+			var vector = _center + _xAxis * x + _yAxis * y;
 			latitude = Util.Latitude(vector);
 			longitude = Util.Longitude(vector);
 		}

@@ -10,23 +10,23 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that clips a line segment based on measure.
     /// </summary>
-    class ClipMGeometrySegmentSink : IGeometrySink110
+    internal class ClipMGeometrySegmentSink : IGeometrySink110
     {
         // Where we place our result
-        readonly SqlGeometryBuilder target;
-        readonly double tolerance;
-        readonly bool retainClipMeasure;
+        private readonly SqlGeometryBuilder _target;
+        private readonly double _tolerance;
+        private readonly bool _retainClipMeasure;
 
-        double clipStartMeasure;
-        double clipEndMeasure;
-        double previousX;
-        double preivousY;
-        double previousM;
-        bool started;
-        bool finished;
+        private readonly double _clipStartMeasure;
+        private readonly double _clipEndMeasure;
+        private double _previousX;
+        private double _previousY;
+        private double _previousM;
+        private bool _started;
+        private bool _finished;
 
         // The _srid we are working in.
-        int srid;
+        private int _srid;
 
         /// <summary>
         /// We target another builder, to which we will send a point representing the point we find.
@@ -40,24 +40,18 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <param name="retainClipMeasure">Flag to retain ClipMeasure values</param>
         public ClipMGeometrySegmentSink(double startMeasure, double endMeasure, SqlGeometryBuilder target, double tolerance, bool retainClipMeasure = false)
         {
-            this.target = target;
-            clipStartMeasure = startMeasure;
-            clipEndMeasure = endMeasure;
-            this.tolerance = tolerance;
-            this.retainClipMeasure = retainClipMeasure;
-        }
-
-        internal void UpdateClipMeasures(double clipStartMeasure, double clipEndMeasure)
-        {
-            this.clipStartMeasure = clipStartMeasure;
-            this.clipEndMeasure = clipEndMeasure;
+            _target = target;
+            _clipStartMeasure = startMeasure;
+            _clipEndMeasure = endMeasure;
+            _tolerance = tolerance;
+            _retainClipMeasure = retainClipMeasure;
         }
 
         // Save the SRID for later
         public void SetSrid(int srid)
         {
-            this.srid = srid;
-            target.SetSrid(this.srid);
+            _srid = srid;
+            _target.SetSrid(_srid);
         }
 
         // Start the geometry.  Throw if it isn't a LineString.
@@ -66,16 +60,16 @@ namespace SQLSpatialTools.Sinks.Geometry
             if (type != OpenGisGeometryType.LineString)
                 throw new ArgumentException("This operation may only be executed on LineString instances.");
 
-            target.BeginGeometry(OpenGisGeometryType.LineString);
+            _target.BeginGeometry(OpenGisGeometryType.LineString);
         }
 
         public void BeginFigure(double x, double y, double? z, double? m)
         {
             // Add the first shape point if either the start or end measure matches the clip start and end measure
-            if (m == clipStartMeasure || m == clipEndMeasure)
+            if (m.EqualsTo(_clipStartMeasure) || m.EqualsTo(_clipEndMeasure))
             {
-                target.BeginFigure(x, y, z, m);
-                started = true;
+                _target.BeginFigure(x, y, z, m);
+                _started = true;
             }
 
             UpdateLastPoint(x, y, m);
@@ -90,21 +84,21 @@ namespace SQLSpatialTools.Sinks.Geometry
 
             // If current measure is between start measure and end measure, 
             // we should add segment to the result linestring
-            if (m.IsWithinRange(clipStartMeasure, clipEndMeasure))
+            if (m.IsWithinRange(_clipStartMeasure, _clipEndMeasure))
             {
                 // if the geometry is started, just add the point to line
-                if (started)
+                if (_started)
                 {
-                    target.AddLine(x, y, z, m);
+                    _target.AddLine(x, y, z, m);
                 }
                 // Else we need to begin the geom figure first
                 else
                 {
                     var isShapePoint = false;
                     // if clip point is shape point measure then add the point without computation
-                    if (m == clipPointMeasure)
+                    if (m.EqualsTo(clipPointMeasure))
                     {
-                        target.BeginFigure(x, y, null, m);
+                        _target.BeginFigure(x, y, null, m);
                         isShapePoint = true;
                     }
                     else
@@ -112,87 +106,87 @@ namespace SQLSpatialTools.Sinks.Geometry
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
                         // if computed point is within tolerance of last point then begin figure with last point
-                        if (Ext.IsWithinTolerance(previousX, preivousY, newX, newY, tolerance))
-                            target.BeginFigure(previousX, preivousY, null, retainClipMeasure ? clipStartMeasure : previousM);
+                        if (Ext.IsWithinTolerance(_previousX, _previousY, newX, newY, _tolerance))
+                            _target.BeginFigure(_previousX, _previousY, null, _retainClipMeasure ? _clipStartMeasure : _previousM);
                         
                         // check with current point against new computed point
-                        else if (Ext.IsWithinTolerance(x, y, newX, newY, tolerance))
+                        else if (Ext.IsWithinTolerance(x, y, newX, newY, _tolerance))
                         {
-                            target.BeginFigure(x, y, null, m);
+                            _target.BeginFigure(x, y, null, m);
                             isShapePoint = true;
                         }
                         
                         // else begin figure with clipped point
                         else
-                            target.BeginFigure(newX, newY, null, clipPointMeasure);
+                            _target.BeginFigure(newX, newY, null, clipPointMeasure);
                     }
 
-                    started = true;
-                    if (clipStartMeasure == clipEndMeasure || isShapePoint)
+                    _started = true;
+                    if (_clipStartMeasure.EqualsTo(_clipEndMeasure) || isShapePoint)
                     {
                         UpdateLastPoint(x, y, m);
                         return;
                     }
 
-                    target.AddLine(x, y, z, m);
+                    _target.AddLine(x, y, z, m);
                 }
             }
             // We may still need to add last segment, 
             // if current point is the first one after we passed range of interest
             else
             {
-                if (!started)
+                if (!_started)
                 {
                     var isShapePoint = false;
-                    if (clipPointMeasure.IsWithinRange((double)m, previousM))
+                    if (clipPointMeasure.IsWithinRange(m, _previousM))
                     {
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
                         // if computed point is within tolerance of last point then begin figure with last point
-                        if (Ext.IsWithinTolerance(previousX, preivousY, newX, newY, tolerance))
-                            target.BeginFigure(previousX, preivousY, null, retainClipMeasure ? clipPointMeasure : previousM);
+                        if (Ext.IsWithinTolerance(_previousX, _previousY, newX, newY, _tolerance))
+                            _target.BeginFigure(_previousX, _previousY, null, _retainClipMeasure ? clipPointMeasure : _previousM);
                         // check with current point against new computed point
-                        else if (Ext.IsWithinTolerance(x, y, newX, newY, tolerance))
+                        else if (Ext.IsWithinTolerance(x, y, newX, newY, _tolerance))
                         {
-                            target.BeginFigure(x, y, null, retainClipMeasure ? clipPointMeasure : m);
+                            _target.BeginFigure(x, y, null, _retainClipMeasure ? clipPointMeasure : m);
                             isShapePoint = true;
                         }
                         // else begin figure with clipped point
                         else
-                            target.BeginFigure(newX, newY, null, clipPointMeasure);
+                            _target.BeginFigure(newX, newY, null, clipPointMeasure);
 
-                        started = true;
-                        if (clipStartMeasure == clipEndMeasure || isShapePoint)
+                        _started = true;
+                        if (_clipStartMeasure.EqualsTo(_clipEndMeasure) || isShapePoint)
                         {
                             UpdateLastPoint(x, y, m);
                             return;
                         }
                     }
                 }
-                if (started && !finished)
+                if (_started && !_finished)
                 {
                     // re calculate clip point measure as it can be changed from above condition.
                     clipPointMeasure = GetClipPointMeasure(m);
 
-                    if (clipPointMeasure.IsWithinRange((double)m, previousM))
+                    if (clipPointMeasure.IsWithinRange(m, _previousM))
                     {
                         ComputePointCoordinates(clipPointMeasure, m, x, y, out newX, out newY);
 
-                        var isWithinLastPoint = Ext.IsWithinTolerance(previousX, preivousY, newX, newY, tolerance);
-                        var isWithinCurrentPoint = Ext.IsWithinTolerance(x, y, newX, newY, tolerance);
+                        var isWithinLastPoint = Ext.IsWithinTolerance(_previousX, _previousY, newX, newY, _tolerance);
+                        var isWithinCurrentPoint = Ext.IsWithinTolerance(x, y, newX, newY, _tolerance);
 
                         // if computed point is within tolerance of last point then skip
                         if (!isWithinLastPoint)
                         {
                             // if within current point then add current point
                             if (isWithinCurrentPoint)
-                                target.AddLine(x, y, null, retainClipMeasure ? clipPointMeasure : m);
+                                _target.AddLine(x, y, null, _retainClipMeasure ? clipPointMeasure : m);
                             // else add computed point
                             else
-                                target.AddLine(newX, newY, null, clipPointMeasure);
+                                _target.AddLine(newX, newY, null, clipPointMeasure);
                         }
 
-                        finished = true;
+                        _finished = true;
                     }
                 }
             }
@@ -203,9 +197,9 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         private void UpdateLastPoint(double x, double y, double? m)
         {
-            previousX = x;
-            preivousY = y;
-            previousM = m.HasValue ? (double)m : 0;
+            _previousX = x;
+            _previousY = y;
+            _previousM = m ?? 0;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -216,19 +210,19 @@ namespace SQLSpatialTools.Sinks.Geometry
         // This is a NOP.
         public void EndFigure()
         {
-            target.EndFigure();
+            _target.EndFigure();
         }
 
         // When we end, we'll make all of our output calls to our target.
         // Here's also where we catch whether we've run off the end of our LineString.
         public void EndGeometry()
         {
-            target.EndGeometry();
-            started = false;
-            finished = false;
-            previousX = default(double);
-            preivousY = default(double);
-            previousM = default(double);
+            _target.EndGeometry();
+            _started = false;
+            _finished = false;
+            _previousX = default(double);
+            _previousY = default(double);
+            _previousM = default(double);
         }
 
         /// <summary>
@@ -240,11 +234,11 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             double clipPointMeasure;
             // increasing measures
-            if(previousM < currentPointMeasure)
-                clipPointMeasure = started ? Math.Max(clipStartMeasure, clipEndMeasure) : Math.Min(clipStartMeasure, clipEndMeasure);
+            if(_previousM < currentPointMeasure)
+                clipPointMeasure = _started ? Math.Max(_clipStartMeasure, _clipEndMeasure) : Math.Min(_clipStartMeasure, _clipEndMeasure);
             // decreasing measures
             else
-                clipPointMeasure = started ? Math.Min(clipStartMeasure, clipEndMeasure) : Math.Max(clipStartMeasure, clipEndMeasure);
+                clipPointMeasure = _started ? Math.Min(_clipStartMeasure, _clipEndMeasure) : Math.Max(_clipStartMeasure, _clipEndMeasure);
 
             return clipPointMeasure;
         }
@@ -258,13 +252,19 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <param name="currentYCoordinate">The current y coordinate.</param>
         /// <param name="newX">The new x.</param>
         /// <param name="newY">The new y.</param>
-        private void ComputePointCoordinates(double? computePointMeasure, double? currentPointMeasure, double currentXCoordinate, double currentYCoordinate, out double newX, out double newY)
+        private void ComputePointCoordinates(double? computePointMeasure, double? currentPointMeasure,
+            double currentXCoordinate, double currentYCoordinate, out double newX, out double newY)
         {
-            var currentM = (double)currentPointMeasure;
+            newX = 0.0;
+            newY = 0.0;
+            if (!currentPointMeasure.HasValue || !computePointMeasure.HasValue)
+                return;
+
+            var currentM = (double) currentPointMeasure;
             // The fraction of the way from start to end.
-            var fraction = ((double)computePointMeasure - previousM) / (currentM - previousM);
-            newX = (previousX * (1 - fraction)) + (currentXCoordinate * fraction);
-            newY = (preivousY * (1 - fraction)) + (currentYCoordinate * fraction);
+            var fraction = ((double) computePointMeasure - _previousM) / (currentM - _previousM);
+            newX = (_previousX * (1 - fraction)) + (currentXCoordinate * fraction);
+            newY = (_previousY * (1 - fraction)) + (currentYCoordinate * fraction);
         }
     }
 }

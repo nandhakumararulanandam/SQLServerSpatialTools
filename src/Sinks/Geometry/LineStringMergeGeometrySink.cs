@@ -8,18 +8,18 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// Class implements a geometry sink that builds a line string by reducing from the _geometry in the range of points represented by indexes
     /// </summary>
-    class LineStringMergeGeometrySink : IGeometrySink110
+    internal class LineStringMergeGeometrySink : IGeometrySink110
     {
-        private SqlGeometryBuilder target;     /* builder reference to store the reduced range of points */
-        private readonly bool isFirstSegment;         /* represent the _geometry would be the first part of the resultant geometry */
-        private readonly int numPoints;          /* counter indicates the index of the coordinates present in the _geometry */
-        private int indexCounter = 0;          /* counter indicates the index of the coordinates present in the _geometry */
+        private readonly SqlGeometryBuilder _target;    /* builder reference to store the reduced range of points */
+        private readonly bool _isFirstSegment;          /* represent the _geometry would be the first part of the resultant geometry */
+        private readonly int _numPoints;                /* counter indicates the index of the coordinates present in the _geometry */
+        private int _indexCounter;                      /* counter indicates the index of the coordinates present in the _geometry */
 
         public LineStringMergeGeometrySink(SqlGeometryBuilder target, bool isFirstSegment, Numeric numPoints)
         {
-            this.target = target;
-            this.isFirstSegment = isFirstSegment;
-            this.numPoints = numPoints;
+            _target = target;
+            _isFirstSegment = isFirstSegment;
+            _numPoints = numPoints;
         }
 
         /// <summary>
@@ -28,8 +28,8 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <param name="srid"></param>
         public void SetSrid(int srid)
         {
-            if (isFirstSegment)
-                target.SetSrid(srid);
+            if (_isFirstSegment)
+                _target.SetSrid(srid);
         }
 
         /// <summary>
@@ -40,8 +40,8 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             if (type == OpenGisGeometryType.LineString)
             {
-                if (isFirstSegment)
-                    target.BeginGeometry(type);
+                if (_isFirstSegment)
+                    _target.BeginGeometry(type);
             }
             else
                 throw new System.Exception("Line string is the only supported type");
@@ -49,20 +49,20 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            ++indexCounter;
-            if (isFirstSegment)
-                target.BeginFigure(x, y, z, m);
+            ++_indexCounter;
+            if (_isFirstSegment)
+                _target.BeginFigure(x, y, z, m);
             else
-                target.AddLine(x, y, z, m);
+                _target.AddLine(x, y, z, m);
 
         }
 
         public void AddLine(double x, double y, double? z, double? m)
         {
-            ++indexCounter;
+            ++_indexCounter;
             // skip merging point for fist segment
-            if (!(isFirstSegment && numPoints == indexCounter))
-                target.AddLine(x, y, z, m);
+            if (!(_isFirstSegment && _numPoints == _indexCounter))
+                _target.AddLine(x, y, z, m);
 
         }
 
@@ -77,8 +77,8 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// </summary>
         public void EndFigure()
         {
-            if (!isFirstSegment)
-                target.EndFigure();
+            if (!_isFirstSegment)
+                _target.EndFigure();
         }
 
         /// <summary>
@@ -86,8 +86,8 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// </summary>
         public void EndGeometry()
         {
-            if (!isFirstSegment)
-                target.EndGeometry();
+            if (!_isFirstSegment)
+                _target.EndGeometry();
         }
     }
 }

@@ -8,13 +8,13 @@ using System.Collections.Generic;
 
 namespace SQLSpatialTools.Projections
 {
-	internal sealed class TranverseMercatorProjection : Projection
+	internal sealed class TransverseMercatorProjection : Projection
 	{
 		private const double MaxX = 10;
 
 		// longitude0: Reference longitude.
 		//
-		public TranverseMercatorProjection(Dictionary<string, double> parameters)
+		public TransverseMercatorProjection(IDictionary<string, double> parameters)
 			: base(parameters)
 		{
 		}
@@ -78,7 +78,7 @@ namespace SQLSpatialTools.Projections
 			{
 				// 1 <= cosh(x) <= cosh(MaxX)
 				latitude = Math.Asin(Math.Sin(y) / Math.Cosh(x));
-				// In case of x=0 and y=+-Pi/2: latitude will be +-90 and longtude will be 0
+				// In case of x=0 and y=+-Pi/2: latitude will be +-90 and longitude will be 0
 				longitude = MathX.Atan2(Math.Sinh(x), Math.Cos(y));
 			}
 		}

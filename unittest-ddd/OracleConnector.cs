@@ -11,13 +11,13 @@ using Microsoft.SqlServer.Types;
 
 namespace SQLSpatialTools.UnitTests.DDD
 {
-    class OracleConnector
+    internal class OracleConnector
     {
-        static OracleConnector oracleConnectorObj;
-        OracleConnection oracleConnection;
-        private readonly Regex geomTypeRegex;
-        private readonly Regex dimensionGroupRegex;
-        private readonly Regex dimensionRegex;
+        private static OracleConnector _oracleConnectorObj;
+        private readonly OracleConnection _oracleConnection;
+        private readonly Regex _geomTypeRegex;
+        private readonly Regex _dimensionGroupRegex;
+        private readonly Regex _dimensionRegex;
 
         /// <summary>
         /// Obtain the Oracle Connector instance.
@@ -25,11 +25,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <returns>Oracle Connector Object</returns>
         public static OracleConnector GetInstance()
         {
-            if (oracleConnectorObj == null)
-            {
-                oracleConnectorObj = new OracleConnector();
-            }
-            return oracleConnectorObj;
+            return _oracleConnectorObj ?? (_oracleConnectorObj = new OracleConnector());
         }
 
         #region Oracle DB Manipulation
@@ -38,17 +34,17 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// Initializes Oracle Connector Object.
         /// Also Checks the Oracle connection defined in Configuration.
         /// </summary>
-        OracleConnector()
+        private OracleConnector()
         {
             var connStr = ConfigurationManager.AppSettings.Get("oracle_connection");
             if (string.IsNullOrWhiteSpace(connStr))
-                throw new ArgumentNullException("Oracle Connection string is empty");
+                throw new ArgumentNullException(message:"Oracle Connection string is empty", paramName:connStr);
 
-            geomTypeRegex = new Regex(OracleLRSQuery.GeomTypeMatch, RegexOptions.Compiled);
-            dimensionGroupRegex = new Regex(OracleLRSQuery.DimensionGroup, RegexOptions.Compiled);
-            dimensionRegex = new Regex(OracleLRSQuery.DimensionMatch, RegexOptions.Compiled);
+            _geomTypeRegex = new Regex(OracleLRSQuery.GeomTypeMatch, RegexOptions.Compiled);
+            _dimensionGroupRegex = new Regex(OracleLRSQuery.DimensionGroup, RegexOptions.Compiled);
+            _dimensionRegex = new Regex(OracleLRSQuery.DimensionMatch, RegexOptions.Compiled);
 
-            oracleConnection = new OracleConnection { ConnectionString = connStr };
+            _oracleConnection = new OracleConnection { ConnectionString = connStr };
 
             Open();
             Close();
@@ -63,7 +59,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             ExecuteNonQuery(OracleLRSQuery.CreateTempTableQuery, ref error);
             ExecuteNonQuery(OracleLRSQuery.CreateTempTableIndexQuery, ref error);
-            ExecuteNonQuery(OracleLRSQuery.CreateTempTablePKQuery, ref error);
+            ExecuteNonQuery(OracleLRSQuery.CreateTempTablePkQuery, ref error);
 
             if (!string.IsNullOrEmpty(error))
                 throw new ArgumentNullException(error);
@@ -72,12 +68,12 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <summary>
         /// Opens Oracle Connection Object.
         /// </summary>
-        void Open()
+        private void Open()
         {
             try
             {
-                if (oracleConnection.State != ConnectionState.Open)
-                    oracleConnection.Open();
+                if (_oracleConnection.State != ConnectionState.Open)
+                    _oracleConnection.Open();
             }
             catch (Exception ex)
             {
@@ -88,11 +84,11 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <summary>
         /// Close Oracle Connection Object.
         /// </summary>
-        void Close()
+        private void Close()
         {
-            if (oracleConnection.State == ConnectionState.Open)
+            if (_oracleConnection.State == ConnectionState.Open)
             {
-                oracleConnection.Close();
+                _oracleConnection.Close();
                 //oracleConnection.Dispose();
             }
         }
@@ -103,14 +99,14 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <param name="query"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        T ExecuteScalar<T>(string query, out string error)
+        private T ExecuteScalar<T>(string query, out string error)
         {
-            T result = default(T);
+            var result = default(T);
             error = string.Empty;
             try
             {
                 Open();
-                result = oracleConnection.QuerySingle<T>(query);
+                result = _oracleConnection.QuerySingle<T>(query);
             }
             catch (Exception ex)
             {
@@ -128,11 +124,11 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// </summary>
         /// <param name="query"></param>
         /// <param name="error"></param>
-        void ExecuteNonQuery(string query, ref string error)
+        private void ExecuteNonQuery(string query, ref string error)
         {
             var oracleCommand = new OracleCommand
             {
-                Connection = oracleConnection,
+                Connection = _oracleConnection,
                 CommandText = query
             };
 
@@ -161,7 +157,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoMergeGeomTest(LRSDataSet.MergeGeometrySegmentsData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.MergeGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom1), ConvertTo3DCoordinates(testObj.InputGeom2), testObj.Tolerance);
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -184,7 +180,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                 var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetOneResultFromTempTable);
                 var result = ExecuteScalar<LRSDataSet.MergeAndResetResult>(query2, out errorInfo);
                 testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
-                testObj.OracleResult1 = result.Output_1;
+                testObj.OracleResult1 = result.Output1;
             }
             testObj.OracleError = errorInfo;
 
@@ -289,7 +285,8 @@ namespace SQLSpatialTools.UnitTests.DDD
             string query1;
             if (inputGeom.CheckGeomPoint())
             {
-                var pointInOracle = string.Format("{0}, {1}, {2}", inputGeom.STX, inputGeom.STY, inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value);
+                var pointInOracle =
+                    $"{inputGeom.STX}, {inputGeom.STY}, {(inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value)}";
                 query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPopulateMeasurePoint, pointInOracle, optionBuilder.ToString());
                 ExecuteNonQuery(query1, ref errorInfo);
             }
@@ -344,8 +341,8 @@ namespace SQLSpatialTools.UnitTests.DDD
                 var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetTwoResultFromTempTable);
                 var result = ExecuteScalar<LRSDataSet.SplitGeomResult>(query2, out errorInfo);
                 testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
-                testObj.OracleResult1 = result.Output_1;
-                testObj.OracleResult2 = result.Output_2;
+                testObj.OracleResult1 = result.Output1;
+                testObj.OracleResult2 = result.Output2;
             }
 
             testObj.OracleError = errorInfo;
@@ -376,7 +373,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <returns></returns>
         internal string GetOracleOrdinatePoint(SqlGeometry inputGeom)
         {
-            return string.Format("{0}, {1}, {2}", inputGeom.STX, inputGeom.STY, inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value);
+            return $"{inputGeom.STX}, {inputGeom.STY}, {(inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value)}";
         }
 
         /// <summary>
@@ -387,14 +384,14 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal string ConvertTo3DCoordinates(string geomSegmentWKT)
         {
             var convertedStr = new StringBuilder();
-            var matches = geomTypeRegex.Matches(geomSegmentWKT);
+            var matches = _geomTypeRegex.Matches(geomSegmentWKT);
 
             foreach (Match match in matches)
             {
                 convertedStr.Append(match.Groups["type"].Value + " ");
                 convertedStr.Append("(");
 
-                var dimGroups = dimensionGroupRegex.Matches(match.Groups["content"].Value);
+                var dimGroups = _dimensionGroupRegex.Matches(match.Groups["content"].Value);
 
                 var groupIterator = 1;
                 foreach (Match dimGroup in dimGroups)
@@ -402,7 +399,7 @@ namespace SQLSpatialTools.UnitTests.DDD
                     if (dimGroups.Count > 1)
                         convertedStr.Append("(");
 
-                    var dimensions = dimensionRegex.Matches(dimGroup.Groups["group"].Value);
+                    var dimensions = _dimensionRegex.Matches(dimGroup.Groups["group"].Value);
                     var iterator = 1;
                     foreach (Match dim in dimensions)
                     {
@@ -410,10 +407,18 @@ namespace SQLSpatialTools.UnitTests.DDD
                         var y = dim.Groups["y"];
                         var z = dim.Groups["z"];
                         var m = dim.Groups["m"];
-                        z = z != null ? string.IsNullOrWhiteSpace(z.Value)
-                            || z.Value.ToLower(CultureInfo.CurrentCulture).Trim().Equals("null", StringComparison.CurrentCulture) ? null : z : z;
-                        m = m != null ? string.IsNullOrWhiteSpace(m.Value)
-                            || m.Value.ToLower(CultureInfo.CurrentCulture).Trim().Equals("null", StringComparison.CurrentCulture) ? null : m : m;
+
+                        z = z != null
+                            ? string.IsNullOrWhiteSpace(z.Value)
+                              || z.Value.ToLower(CultureInfo.CurrentCulture).Trim()
+                                  .Equals("null", StringComparison.CurrentCulture) ? null : z
+                            : null;
+
+                        m = m != null
+                            ? string.IsNullOrWhiteSpace(m.Value)
+                              || m.Value.ToLower(CultureInfo.CurrentCulture).Trim()
+                                  .Equals("null", StringComparison.CurrentCulture) ? null : m
+                            : null;
 
                         var thirdDim = m == null ? (z != null ? z.Value : "0") : m.Value;
 
@@ -440,159 +445,5 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         #endregion Utility Functions
-    }
-
-    class OracleLRSQuery
-    {
-        #region Oracle Queries
-
-        public const string MergeGeomSegmentQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
-                                                  + "SDO_LRS.CONCATENATE_GEOM_SEGMENTS("
-                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'),"
-                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{1}'), {2})) from dual";
-
-        public const string MergeAndResetGeomSegmentQuery = "DECLARE "
-                                                      + "result_geom  SDO_GEOMETRY;"
-                                                      + ""
-                                                      + "BEGIN "
-                                                      + "Select SDO_LRS.CONCATENATE_GEOM_SEGMENTS (SDO_UTIL.FROM_WKTGEOMETRY('{0}'), SDO_UTIL.FROM_WKTGEOMETRY('{1}'), {2})  into result_geom from dual;"
-                                                      + ""
-                                                      + "SDO_LRS.REDEFINE_GEOM_SEGMENT(result_geom);"
-                                                      + " "
-                                                      + "	INSERT INTO TEMP_DATA (OUTPUT_1)"
-                                                          + "SELECT SDO_UTIL.TO_WKTGEOMETRY(result_geom)"
-                                                          + " FROM dual;"
-                                                      + " END;";
-
-        public const string ClipGeomSegmentQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
-                                                 + "SDO_LRS.CLIP_GEOM_SEGMENT("
-                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2}, {3})"
-                                                 + ") from dual";
-
-        public const string ClipGeomSegmentPointQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
-                                                 + "SDO_LRS.CLIP_GEOM_SEGMENT("
-                                                 + " SDO_GEOMETRY(3001, NULL, NULL, "
-                                                      + "SDO_ELEM_INFO_ARRAY(1, 1, 1), "
-                                                      + "SDO_ORDINATE_ARRAY({0}))"
-                                                 + ", {1}, {2}, {3})"
-                                                 + ") from dual";
-
-        public const string GetEndMeasureQuery = "SELECT "
-                                                + "SDO_LRS.GEOM_SEGMENT_END_MEASURE("
-                                                + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
-                                                + ") from dual";
-
-        public const string GetStartMeasureQuery = "SELECT "
-                                                + "SDO_LRS.GEOM_SEGMENT_START_MEASURE("
-                                                + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
-                                                + ") from dual";
-
-        public const string GetIsConnectedGeomSegmentQuery = "SELECT "
-                                                 + "SDO_LRS.CONNECTED_GEOM_SEGMENTS("
-                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'),"
-                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{1}'), {2}) from dual";
-
-        public const string GetLocatePointAlongGeomQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
-                                                 + "SDO_LRS.LOCATE_PT("
-                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'),{1})"
-                                                 + ")from dual";
-
-        public const string GetReverseLinearGeomQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
-                                                 + "SDO_LRS.REVERSE_GEOMETRY("
-                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
-                                                 + "))from dual";
-
-        public const string GetPopulateMeasureNonQuery = "DECLARE geom_segment SDO_GEOMETRY;"
-                                                       + ""
-                                                       + "BEGIN"
-                                                       + "	SELECT SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
-                                                       + "	INTO geom_segment"
-                                                       + "	FROM dual;"
-                                                       + ""
-                                                       + "	SDO_LRS.REDEFINE_GEOM_SEGMENT(geom_segment{1});"
-                                                       + ""
-                                                       + "	INSERT INTO TEMP_DATA (OUTPUT_1)"
-                                                       + "	SELECT SDO_UTIL.TO_WKTGEOMETRY(geom_segment)"
-                                                       + "	FROM dual;"
-                                                       + "END;";
-
-        public const string GetPopulateMeasurePoint = "DECLARE geom_segment SDO_GEOMETRY; "
-                                                      + "BEGIN "
-                                                      + "SELECT SDO_GEOMETRY(3001, NULL, NULL, "
-                                                      + "SDO_ELEM_INFO_ARRAY(1, 1, 1), "
-                                                      + "SDO_ORDINATE_ARRAY({0})) "
-                                                      + "INTO geom_segment FROM DUAL; "
-                                                      + "SDO_LRS.REDEFINE_GEOM_SEGMENT(geom_segment{1}); "
-                                                      + "INSERT INTO TEMP_DATA (OUTPUT_1) SELECT SDO_UTIL.TO_WKTGEOMETRY(geom_segment) FROM dual; "
-                                                      + "END; ";
-
-        public const string GetSplitGeometrySegmentQuery = "DECLARE "
-                                                        + "geom_segment SDO_GEOMETRY;"
-                                                        + "result_geom_1 SDO_GEOMETRY;"
-                                                        + "result_geom_2 SDO_GEOMETRY;"
-                                                        + ""
-                                                        + "BEGIN "
-                                                            + "SELECT SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
-                                                            + " INTO geom_segment"
-                                                            + " FROM dual;"
-                                                        + " "
-                                                        + "SDO_LRS.SPLIT_GEOM_SEGMENT(geom_segment,{1},result_geom_1,result_geom_2);"
-                                                        + " "
-                                                        + "	INSERT INTO TEMP_DATA (OUTPUT_1,OUTPUT_2)"
-                                                            + "SELECT SDO_UTIL.TO_WKTGEOMETRY(result_geom_1), SDO_UTIL.TO_WKTGEOMETRY(result_geom_2)"
-                                                            + " FROM dual;"
-                                                        + "END;";
-
-        public const string DropTempTableQuery = "DECLARE"
-                                               + "   C INT;"
-                                               + "BEGIN"
-                                               + "   SELECT COUNT(*) INTO C FROM USER_TABLES WHERE TABLE_NAME = UPPER('TEMP_DATA');"
-                                               + "   IF C = 1 THEN"
-                                               + "      EXECUTE IMMEDIATE 'DROP TABLE TEMP_DATA';"
-                                               + "   END IF;"
-                                               + "END;";
-
-
-        public const string CreateTempTableQuery = "CREATE TABLE Temp_Data ("
-                                                 + " Output_ID NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY"
-                                                 + " ,Output_1 VARCHAR2(1000)"
-                                                 + " ,Output_2 VARCHAR2(1000)"
-                                                 + " )";
-
-        public const string CreateTempTableIndexQuery = "CREATE UNIQUE INDEX UN_PK ON Temp_Data (Output_ID)";
-
-        public const string CreateTempTablePKQuery = "ALTER TABLE Temp_Data ADD (CONSTRAINT UN_PK PRIMARY KEY (Output_ID) USING INDEX UN_PK ENABLE VALIDATE)";
-
-        public const string GetOneResultFromTempTable = "SELECT OUTPUT_1"
-                                                  + " FROM TEMP_DATA"
-                                                  + " WHERE OUTPUT_ID IN ("
-                                                  + " SELECT MAX(OUTPUT_ID)"
-                                                  + " FROM TEMP_DATA"
-                                                  + " )";
-
-        public const string GetTwoResultFromTempTable = "SELECT OUTPUT_1, OUTPUT_2"
-                                                   + " FROM TEMP_DATA"
-                                                   + " WHERE OUTPUT_ID IN ("
-                                                   + " SELECT MAX(OUTPUT_ID)"
-                                                   + " FROM TEMP_DATA"
-                                                   + " )";
-
-        public const string ValidateLRSGeometryQuery = "SELECT "
-                                                    + "SDO_LRS.VALIDATE_LRS_GEOMETRY ("
-                                                    + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
-                                                    + ") from dual";
-
-        public const string OffsetGeometryQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
-                                                  + "SDO_LRS.OFFSET_GEOM_SEGMENT("
-                                                  + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2}, {3}, {4})"
-                                                  + ") from dual";
-
-        #endregion Oracle Queries
-
-        public const string GeomTypeMatch = @"(?<type>\w+)\s*?(?<content>\(.*\))";
-        public const string DimensionGroup = @"\((?<group>.*?)\)";
-        public const string DimensionMatch = @"((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+)\s+(?<z>([\d\.\-]+)|(null)|(NULL))\s+(?<m>([\d\.]+)|(null)|(NULL)))"
-                                          + @"|((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+)\s+(?<z>([\d\.\-]+)|(null)|(NULL)))"
-                                          + @"|((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+))";
     }
 }

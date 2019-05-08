@@ -9,24 +9,24 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that populate measures for each point in a geometry .
     /// </summary>
-    class PopulateGeometryMeasuresSink : IGeometrySink110
+    internal class PopulateGeometryMeasuresSink : IGeometrySink110
     {
-        SqlGeometry lastPoint;
-        SqlGeometry thisPoint;
+        private SqlGeometry _lastPoint;
+        private SqlGeometry _thisPoint;
 
-        LRSMultiLine lines;
-        LRSLine currentLine;
+        private LRSMultiLine _lines;
+        private LRSLine _currentLine;
 
-        readonly double startMeasure;
-        readonly double endMeasure;
-        readonly double totalLength;
+        private readonly double _startMeasure;
+        private readonly double _endMeasure;
+        private readonly double _totalLength;
 
-        bool isMultiLine;
-        int lineCounter;
-        int srid;                     // The _srid we are working in.
-        double currentLength;
-        double currentPointM;
-        SqlGeometry target;    // Where we place our result.
+        private bool _isMultiLine;
+        private int _lineCounter;
+        private int _srid;                     // The _srid we are working in.
+        private double _currentLength;
+        private double _currentPointM;
+        private SqlGeometry _target;    // Where we place our result.
 
         /// <summary>
         /// Gets the constructed geometry.
@@ -34,7 +34,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <returns></returns>
         public SqlGeometry GetConstructedGeom()
         {
-            return target;
+            return _target;
         }
 
         // We target another builder, to which we will send a point representing the point we find.
@@ -42,50 +42,50 @@ namespace SQLSpatialTools.Sinks.Geometry
         // Note that we only operate on LineString instances: anything else will throw an exception.
         public PopulateGeometryMeasuresSink(double startMeasure, double endMeasure, double length)
         {
-            this.startMeasure = startMeasure;
-            this.endMeasure = endMeasure;
-            totalLength = length;
-            isMultiLine = false;
-            lineCounter = 0;
-            currentPointM = startMeasure;
+            _startMeasure = startMeasure;
+            _endMeasure = endMeasure;
+            _totalLength = length;
+            _isMultiLine = false;
+            _lineCounter = 0;
+            _currentPointM = startMeasure;
         }
 
         // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
         {
-            lines = new LRSMultiLine(srid);
-            this.srid = srid;
+            _lines = new LRSMultiLine(srid);
+            _srid = srid;
         }
 
         // Start geometry and check if the type is of the supported types
         public void BeginGeometry(OpenGisGeometryType type)
         {
             if (type == OpenGisGeometryType.MultiLineString)
-                isMultiLine = true;
+                _isMultiLine = true;
             else if (type == OpenGisGeometryType.LineString)
-                lineCounter++;
+                _lineCounter++;
         }
 
 
         // This operates on LineStrings, multi linestring
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            currentLine = new LRSLine(srid);
-            currentLine.AddPoint(x, y, null, currentPointM);
+            _currentLine = new LRSLine(_srid);
+            _currentLine.AddPoint(x, y, null, _currentPointM);
 
             // Memorize the starting point.
-            lastPoint = SqlGeometry.Point(x, y, srid);
+            _lastPoint = SqlGeometry.Point(x, y, _srid);
         }
 
         // This is where the real work is done.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            thisPoint = SqlGeometry.Point(x, y, srid);
-            currentLength += lastPoint.STDistance(thisPoint).Value;
-            currentLine.AddPoint(x, y, null, GetCurrentMeasure());
+            _thisPoint = SqlGeometry.Point(x, y, _srid);
+            _currentLength += _lastPoint.STDistance(_thisPoint).Value;
+            _currentLine.AddPoint(x, y, null, GetCurrentMeasure());
 
             // reset the last point with the current point.
-            lastPoint = thisPoint;
+            _lastPoint = _thisPoint;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -103,27 +103,27 @@ namespace SQLSpatialTools.Sinks.Geometry
         public void EndGeometry()
         {
             // if not multi line then add the current line to the collection.
-            if (!isMultiLine)
-                lines.AddLine(currentLine);
+            if (!_isMultiLine)
+                _lines.AddLine(_currentLine);
 
             // if line counter is 0 then it is multiline
             // if 1 then it is linestring 
-            if (lineCounter == 0 || !isMultiLine)
+            if (_lineCounter == 0 || !_isMultiLine)
             {
-                target = lines.ToSqlGeometry();
+                _target = _lines.ToSqlGeometry();
             }
             else
             {
-                lines.AddLine(currentLine);
+                _lines.AddLine(_currentLine);
                 // reset the line counter so that the child line strings chaining is done and return to base multiline type
-                lineCounter--;
+                _lineCounter--;
             }
         }
 
         private double GetCurrentMeasure()
         {
-            currentPointM = startMeasure + (currentLength / totalLength) * (endMeasure - startMeasure);
-            return currentPointM;
+            _currentPointM = _startMeasure + (_currentLength / _totalLength) * (_endMeasure - _startMeasure);
+            return _currentPointM;
         }
     }
 }

@@ -8,13 +8,13 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that resets M value to null.
     /// </summary>
-    class ResetMGemetrySink : IGeometrySink110
+    internal class ResetMGeometrySink : IGeometrySink110
     {
-        SqlGeometryBuilder target;    // Where we place our result.
+        private readonly SqlGeometryBuilder _target;    // Where we place our result.
 
-        public ResetMGemetrySink(SqlGeometryBuilder target)
+        public ResetMGeometrySink(SqlGeometryBuilder target)
         {
-            this.target = target;
+            _target = target;
         }
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <param name="srid">Spatial Reference Identifier</param>
         public void SetSrid(int srid)
         {
-            target.SetSrid(srid);
+            _target.SetSrid(srid);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace SQLSpatialTools.Sinks.Geometry
             if (type != OpenGisGeometryType.LineString)
                 throw new ArgumentException("This operation may only be executed on LineString instances.");
 
-            target.BeginGeometry(type);
+            _target.BeginGeometry(type);
         }
 
         /// <summary>
@@ -48,12 +48,12 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <param name="m"></param>
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            target.BeginFigure(x, y, z, null);
+            _target.BeginFigure(x, y, z, null);
         }
 
         public void AddLine(double x, double y, double? z, double? m)
         {
-            target.AddLine(x, y, z, null);
+            _target.AddLine(x, y, z, null);
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -63,12 +63,12 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         public void EndFigure()
         {
-            target.EndFigure();
+            _target.EndFigure();
         }
 
         public void EndGeometry()
         {
-            target.EndGeometry();
+            _target.EndGeometry();
         }
     }
 }

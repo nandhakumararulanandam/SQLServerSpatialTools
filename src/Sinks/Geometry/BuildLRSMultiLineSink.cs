@@ -10,46 +10,46 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// This class implements a geometry sink that builds LRS multiline.
     /// Second segment measure is updated with offset difference.
     /// </summary>
-    class BuildLRSMultiLineSink : IGeometrySink110
+    internal class BuildLRSMultiLineSink : IGeometrySink110
     {
-        private int srid;
-        private readonly bool doUpdateM;
-        private readonly double offsetM;
-        private LRSLine currentLine;
+        private int _srid;
+        private readonly bool _doUpdateM;
+        private readonly double _offsetM;
+        private LRSLine _currentLine;
         public LRSMultiLine MultiLine;
 
         public BuildLRSMultiLineSink(bool doUpdateM, double? offsetM)
         {
-            this.doUpdateM = doUpdateM;
-            this.offsetM = offsetM.HasValue ? (double)offsetM : 0;
+            _doUpdateM = doUpdateM;
+            _offsetM = offsetM ?? 0;
         }
 
         // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
         {
             MultiLine = new LRSMultiLine(srid);
-            this.srid = srid;
+            _srid = srid;
         }
 
         // Start the geometry.
         public void BeginGeometry(OpenGisGeometryType type)
         {
             if (type == OpenGisGeometryType.LineString)
-                currentLine = new LRSLine(srid);
+                _currentLine = new LRSLine(_srid);
         }
 
         // Just add the points to the current line.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            var currentM = doUpdateM ? m + offsetM : m;
-            currentLine.AddPoint(x, y, z, currentM);
+            var currentM = _doUpdateM ? m + _offsetM : m;
+            _currentLine.AddPoint(x, y, z, currentM);
         }
 
         // Just add the points to the current line.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            var currentM = doUpdateM ? m + offsetM : m;
-            currentLine.AddPoint(x, y, z, currentM);
+            var currentM = _doUpdateM ? m + _offsetM : m;
+            _currentLine.AddPoint(x, y, z, currentM);
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -60,7 +60,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         // Add the current line to the MULTILINESTRING collection
         public void EndFigure()
         {
-            MultiLine.AddLine(currentLine);
+            MultiLine.AddLine(_currentLine);
         }
 
         // This is a NO-OP

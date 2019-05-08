@@ -35,11 +35,6 @@ namespace SQLSpatialTools.UnitTests.Extension
         {
             return result ? "Passed" : "Failed";
         }
-
-        public static string GetResult(this SqlBoolean result)
-        {
-            return GetResult((bool)result);
-        }
     }
 
     public static class TestExtension
@@ -70,9 +65,9 @@ namespace SQLSpatialTools.UnitTests.Extension
             foreach (Match match in matches)
             {
                 var inputStr = match.Groups[1].Value;
-                if (double.TryParse(inputStr, out double trimValue))
+                if (double.TryParse(inputStr, out var trimValue))
                 {
-                    output = output.Replace(inputStr, Math.Round(trimValue, 4).ToString());
+                    output = output.Replace(inputStr, Math.Round(trimValue, 4).ToString(CultureInfo.InvariantCulture));
                 }
             }
 
@@ -131,16 +126,16 @@ namespace SQLSpatialTools.UnitTests.Extension
 
     public class TestLogger
     {
-        private readonly MST.TestContext testContext;
+        private readonly MST.TestContext _testContext;
 
         public TestLogger(MST.TestContext testContext)
         {
-            this.testContext = testContext;
+            _testContext = testContext;
         }
 
         public void Log(string msgFormat, params object[] args)
         {
-            testContext.WriteLine(string.Format(CultureInfo.CurrentCulture, msgFormat, args));
+            _testContext.WriteLine(string.Format(CultureInfo.CurrentCulture, msgFormat, args));
         }
 
         public void LogLine(string msgFormat, params object[] args)
@@ -152,7 +147,7 @@ namespace SQLSpatialTools.UnitTests.Extension
             else
                 message.Append(msgFormat);
 
-            testContext.WriteLine(message.ToString());
+            _testContext.WriteLine(message.ToString());
         }
 
         public void LogError(Exception ex, string errorMessage = "", params object[] args)
@@ -195,7 +190,7 @@ namespace SQLSpatialTools.UnitTests.Extension
                     message.AppendFormat(CultureInfo.CurrentCulture, "Inner Stack trace: {0}", ex.InnerException.StackTrace);
             }
 
-            testContext.WriteLine(message.ToString());
+            _testContext.WriteLine(message.ToString());
         }
     }
 }

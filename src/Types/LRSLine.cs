@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +14,11 @@ namespace SQLSpatialTools.Types
     /// </summary>
     internal class LRSLine : IEnumerable
     {
-        private List<LRSPoint> Points;
+        private List<LRSPoint> _points;
+        private string _wkt;
         internal int SRID;
         internal bool IsInRange;
         internal bool IsCompletelyInRange;
-        private string wkt;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LRSLine"/> class.
@@ -28,7 +27,7 @@ namespace SQLSpatialTools.Types
         internal LRSLine(int srid)
         {
             SRID = srid;
-            Points = new List<LRSPoint>();
+            _points = new List<LRSPoint>();
         }
 
         /// <summary>
@@ -37,7 +36,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
         /// </value>
-        internal bool IsEmpty { get { return !Points.Any() || Points.Count == 0; } }
+        internal bool IsEmpty => !_points.Any() || _points.Count == 0;
 
         /// <summary>
         /// Gets a value indicating whether this instance is not empty or not.
@@ -45,7 +44,8 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
         /// </value>
-        internal bool IsNotEmpty { get { return !IsEmpty; } }
+        // ReSharper disable once UnusedMember.Global
+        internal bool IsNotEmpty => !IsEmpty;
 
         /// <summary>
         /// Gets a value indicating whether this instance has points.
@@ -53,15 +53,15 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance has points; otherwise, <c>false</c>.
         /// </value>
-        public bool HasPoints { get { return Points != null && Points.Any(); } }
+        public bool HasPoints => _points != null && _points.Any();
 
         /// <summary>
-        /// Gets the number of POINTs in this LINESTRING.
+        /// Gets the number of POINT in this LINESTRING.
         /// </summary>
         /// <value>
         /// The count.
         /// </value>
-        internal int Count { get { return Points.Any() ? Points.Count : 0; } }
+        internal int Count => _points.Any() ? _points.Count : 0;
 
         /// <summary>
         /// Determines whether this instance is LINESTRING.
@@ -69,7 +69,7 @@ namespace SQLSpatialTools.Types
         /// <returns>
         ///   <c>true</c> if this instance is line; otherwise, <c>false</c>.
         /// </returns>
-        internal bool IsLine { get { return Points.Any() && Points.Count > 1; } }
+        internal bool IsLine => _points.Any() && _points.Count > 1;
 
         /// <summary>
         /// Determines whether this instance is POINT.
@@ -77,7 +77,7 @@ namespace SQLSpatialTools.Types
         /// <returns>
         ///   <c>true</c> if this instance is point; otherwise, <c>false</c>.
         /// </returns>
-        internal bool IsPoint { get { return Points.Any() && Points.Count == 1; } }
+        internal bool IsPoint => _points.Any() && _points.Count == 1;
 
         /// <summary>
         /// Gets the length.
@@ -97,8 +97,8 @@ namespace SQLSpatialTools.Types
         {
             UpdateLength(lrsPoint);
             // set the indexer
-            lrsPoint.Id = Points.Count + 1;
-            Points.Add(lrsPoint);
+            lrsPoint.Id = _points.Count + 1;
+            _points.Add(lrsPoint);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace SQLSpatialTools.Types
         /// <param name="lrsPoints">List of lrs point.</param>
         internal void AddPoint(List<LRSPoint> lrsPoints)
         {
-            lrsPoints.ForEach(point => AddPoint(point));
+            lrsPoints.ForEach(AddPoint);
         }
 
         /// <summary>
@@ -137,11 +137,9 @@ namespace SQLSpatialTools.Types
         /// <param name="currentPoint">The current point.</param>
         private void UpdateLength(LRSPoint currentPoint)
         {
-            if (Points.Any() && Points.Count > 0)
-            {
-                var previousPoint = Points.Last();
-                Length += previousPoint.GetDistance(currentPoint);
-            }
+            if (!_points.Any() || _points.Count <= 0) return;
+            var previousPoint = _points.Last();
+            Length += previousPoint.GetDistance(currentPoint);
         }
 
         #endregion
@@ -153,7 +151,7 @@ namespace SQLSpatialTools.Types
         /// </summary>
         internal void ReversePoints()
         {
-            Points.Reverse();
+            _points.Reverse();
         }
 
         /// <summary>
@@ -162,11 +160,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetStartPoint()
         {
-            if (Points.Any())
-            {
-                return Points.First();
-            }
-            return null;
+            return _points.Any() ? _points.First() : null;
         }
 
         /// <summary>
@@ -176,7 +170,7 @@ namespace SQLSpatialTools.Types
         internal double GetStartPointM()
         {
             var currentPoint = GetStartPoint().M;
-            return currentPoint.HasValue ? (double)currentPoint : 0;
+            return currentPoint ?? 0;
         }
 
         /// <summary>
@@ -185,27 +179,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetEndPoint()
         {
-            if (Points.Any())
-            {
-                return Points.Last();
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Locates the point.
-        /// </summary>
-        /// <param name="measure">The measure.</param>
-        /// <returns></returns>
-        internal LRSPoint LocatePoint(double measure, LRSPoint firstPoint = null)
-        {
-            var startPoint = firstPoint ?? GetStartPoint();
-            var endPoint = GetEndPoint();
-            double fraction = (measure - startPoint.M.Value) / (endPoint.M.Value - startPoint.M.Value);
-            double newX = (startPoint.X * (1 - fraction)) + (endPoint.X * fraction);
-            double newY = (startPoint.Y * (1 - fraction)) + (endPoint.Y * fraction);
-
-            return new LRSPoint(newX, newY, null, measure, SRID);
+            return _points.Any() ? _points.Last() : null;
         }
 
         /// <summary>
@@ -215,7 +189,26 @@ namespace SQLSpatialTools.Types
         internal double GetEndPointM()
         {
             var currentPoint = GetEndPoint().M;
-            return currentPoint.HasValue ? (double)currentPoint : 0;
+            return currentPoint ?? 0;
+        }
+
+        /// <summary>
+        /// Locates the point.
+        /// </summary>
+        /// <param name="measure">The measure.</param>
+        /// <param name="firstPoint"></param>
+        /// <returns></returns>
+        internal LRSPoint LocatePoint(double measure, LRSPoint firstPoint = null)
+        {
+            var startPoint = firstPoint ?? GetStartPoint();
+            var endPoint = GetEndPoint();
+            // ReSharper disable PossibleInvalidOperationException
+            var fraction = (measure - startPoint.M.Value) / (endPoint.M.Value - startPoint.M.Value);
+            var newX = (startPoint.X * (1 - fraction)) + (endPoint.X * fraction);
+            var newY = (startPoint.Y * (1 - fraction)) + (endPoint.Y * fraction);
+            // ReSharper restore PossibleInvalidOperationException
+
+            return new LRSPoint(newX, newY, null, measure, SRID);
         }
 
         /// <summary>
@@ -224,7 +217,8 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetPointAtM(double measure)
         {
-            return Points.FirstOrDefault(e => e.M == measure);
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            return _points.FirstOrDefault(e => e.M == measure);
         }
 
         /// <summary>
@@ -233,7 +227,7 @@ namespace SQLSpatialTools.Types
         /// <param name="offsetMeasure"></param>
         internal void ScaleMeasure(double offsetMeasure)
         {
-            Points.ForEach(point => point.ScaleMeasure(offsetMeasure));
+            _points.ForEach(point => point.ScaleMeasure(offsetMeasure));
         }
 
         /// <summary>
@@ -242,7 +236,7 @@ namespace SQLSpatialTools.Types
         /// <param name="offsetMeasure"></param>
         internal void TranslateMeasure(double offsetMeasure)
         {
-            Points.ForEach(point => point.TranslateMeasure(offsetMeasure));
+            _points.ForEach(point => point.TranslateMeasure(offsetMeasure));
         }
 
         /// <summary>
@@ -250,9 +244,9 @@ namespace SQLSpatialTools.Types
         /// </summary>
         internal void RemoveCollinearPoints()
         {
-            // If the input segment has only two points; then there is no way of collinearity 
+            // If the input segment has only two points; then there is no way of collinear
             // so its no-op
-            if (Points.Count <= 2)
+            if (_points.Count <= 2)
                 return;
 
             var pointCounter = 0;
@@ -261,28 +255,39 @@ namespace SQLSpatialTools.Types
             foreach (var point in this)
             {
                 // ignore first point and last point
-                if (pointCounter == 0 || pointCounter == Points.Count() - 1)
+                if (pointCounter == 0 || pointCounter == _points.Count - 1)
                 {
                     pointCounter++;
                     continue;
                 }
 
-                // previous point A
-                var previousPoint = Points[pointCounter - 1];
+                // previous point is A
+                var previousPoint = _points[pointCounter - 1];
                 // slope AB
                 var slopeAB = previousPoint.Slope;
+                var slopeABType = previousPoint.SlopeType;
 
                 // current point is B, slope is BC
                 var slopeBC = point.Slope;
+                var slopeBCType = point.SlopeType;
 
                 // next point is C
-                var nextPoint = Points[pointCounter + 1];
-                // calculate CA slope
-                var slopCA = nextPoint.GetSlope(previousPoint);
+                var nextPoint = _points[pointCounter + 1];
+                // calculate AC slope
+                var slopeAC = previousPoint.GetSlope(nextPoint, out var slopeACType);
 
                 // for each point previous and next point slope is compared
                 // if slope of AB = BC = CA
-                if (slopeAB == slopeBC && slopeBC == slopCA)
+                var isABBCSlopeEqual = slopeAB.HasValue && slopeBC.HasValue
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    ? slopeAB.Value == slopeBC.Value
+                    : slopeABType == slopeBCType;
+                var isBCACSlopeEqual = slopeBC.HasValue && slopeAC.HasValue
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    ? slopeBC.Value == slopeAC.Value
+                    : slopeBCType == slopeACType;
+
+                if (isABBCSlopeEqual && isBCACSlopeEqual)
                     pointsToRemove.Add(point);
                 pointCounter++;
             }
@@ -297,7 +302,7 @@ namespace SQLSpatialTools.Types
         /// <param name="pointsToRemove">The points to remove.</param>
         internal void RemovePoints(List<LRSPoint> pointsToRemove)
         {
-            pointsToRemove.ForEach(pointToRemove => Points.Remove(pointToRemove));
+            pointsToRemove.ForEach(pointToRemove => _points.Remove(pointToRemove));
         }
 
         /// <summary>
@@ -305,18 +310,20 @@ namespace SQLSpatialTools.Types
         /// </summary>
         /// <param name="startMeasure">The start measure.</param>
         /// <param name="endMeasure">The end measure.</param>
+        /// <param name="clipStartPoint"></param>
+        /// <param name="clipEndPoint"></param>
         /// <returns>
         ///   <c>true</c> if [is within range] [the specified start measure]; otherwise, <c>false</c>.
         /// </returns>
         internal bool IsWithinRange(double startMeasure, double endMeasure, LRSPoint clipStartPoint, LRSPoint clipEndPoint)
         {
-            int pointCounter = 0;
+            var pointCounter = 0;
 
             var lastLRSPoint = new LRSPoint(0, 0, null, null, SRID);
 
-            foreach (LRSPoint point in this)
+            foreach (var point in this)
             {
-                var currentM = point.M.HasValue ? point.M : 0;
+                var currentM = point.M ?? 0;
 
                 if (point == clipEndPoint || point == clipStartPoint || (startMeasure > lastLRSPoint.M && startMeasure < currentM))
                     pointCounter++;
@@ -326,7 +333,7 @@ namespace SQLSpatialTools.Types
             }
 
             IsInRange = pointCounter > 1;
-            IsCompletelyInRange = pointCounter == Points.Count;
+            IsCompletelyInRange = pointCounter == _points.Count;
 
             return IsInRange;
         }
@@ -337,13 +344,10 @@ namespace SQLSpatialTools.Types
         internal void CalculateSlope()
         {
             var pointIterator = 1;
-            foreach (var point in Points)
+            foreach (var point in _points)
             {
                 // last point; next point is the first point
-                if (pointIterator == Points.Count)
-                    point.CalculateSlope(Points.First());
-                else
-                    point.CalculateSlope(Points[pointIterator]);
+                point.CalculateSlope(pointIterator == _points.Count ? _points.First() : _points[pointIterator]);
 
                 pointIterator++;
             }
@@ -361,13 +365,13 @@ namespace SQLSpatialTools.Types
         /// </returns>
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(wkt))
-                return wkt;
+            if (!string.IsNullOrEmpty(_wkt))
+                return _wkt;
 
             if (IsEmpty)
             {
-                wkt = string.Empty;
-                return wkt;
+                _wkt = string.Empty;
+                return _wkt;
             }
 
             var wktBuilder = new StringBuilder();
@@ -379,17 +383,17 @@ namespace SQLSpatialTools.Types
 
             var pointIterator = 1;
 
-            foreach (var point in Points)
+            foreach (var point in _points)
             {
                 wktBuilder.AppendFormat("{0} {1} {2}", point.X, point.Y, point.M);
-                if (pointIterator != Points.Count)
+                if (pointIterator != _points.Count)
                     wktBuilder.Append(", ");
                 pointIterator++;
             }
             wktBuilder.Append(")");
-            wkt = wktBuilder.ToString();
+            _wkt = wktBuilder.ToString();
 
-            return wkt;
+            return _wkt;
         }
 
         /// <summary>
@@ -410,7 +414,7 @@ namespace SQLSpatialTools.Types
         internal SqlGeometry ToSqlGeometry(ref SqlGeometryBuilder geomBuilder)
         {
             // ignore if the line has only one point.
-            if (Points.Count < 2)
+            if (_points.Count < 2)
                 return GetStartPoint().ToSqlGeometry(ref geomBuilder);
             BuildSqlGeometry(ref geomBuilder);
             return geomBuilder.ConstructedGeometry;
@@ -420,13 +424,14 @@ namespace SQLSpatialTools.Types
         /// Builds the SqlGeometry form LINESTRING or POINT
         /// </summary>
         /// <param name="geomBuilder">The geom builder.</param>
+        /// <param name="isFromMultiLine"></param>
         internal void BuildSqlGeometry(ref SqlGeometryBuilder geomBuilder, bool isFromMultiLine = false)
         {
             if (!isFromMultiLine)
                 geomBuilder.SetSrid(SRID);
             geomBuilder.BeginGeometry(OpenGisGeometryType.LineString);
             var pointIterator = 1;
-            foreach (var point in Points)
+            foreach (var point in _points)
             {
                 if (pointIterator == 1)
                     geomBuilder.BeginFigure(point.X, point.Y, point.Z, point.M);
@@ -446,13 +451,13 @@ namespace SQLSpatialTools.Types
         /// </summary>
         private void CalculateOffsetBearing()
         {
-            var pointCount = Points.Count;
+            var pointCount = _points.Count;
             for (var i = 0; i < pointCount; i++)
             {
-                var currentPoint = Points[i];
+                var currentPoint = _points[i];
                 if (i != pointCount - 1)
                 {
-                    var nextPoint = Points[i + 1];
+                    var nextPoint = _points[i + 1];
                     currentPoint.SetOffsetBearing(nextPoint);
                 }
                 else
@@ -468,20 +473,20 @@ namespace SQLSpatialTools.Types
         /// <param name="progress"></param>
         private void CalculateOffsetAngle(LinearMeasureProgress progress)
         {
-            var pointCount = Points.Count;
+            var pointCount = _points.Count;
             for (var i = 0; i < pointCount; i++)
             {
-                var currentPoint = Points[i];
+                var currentPoint = _points[i];
                 // except last point
                 if (i != pointCount - 1)
                 {
-                    var nextPoint = Points[i + 1];
+                    var nextPoint = _points[i + 1];
                     nextPoint.SetOffsetAngle(currentPoint, progress);
                 }
                 // last point
                 else
                 {
-                    Points[0].SetOffsetAngle(currentPoint, progress);
+                    _points[0].SetOffsetAngle(currentPoint, progress);
                 }
             }
         }
@@ -493,10 +498,10 @@ namespace SQLSpatialTools.Types
         /// <param name="progress">Measure Progress</param>
         private void CalculateOffset(double offset, LinearMeasureProgress progress)
         {
-            var pointCount = Points.Count;
+            var pointCount = _points.Count;
             for (var i = 0; i < pointCount; i++)
             {
-                var currentPoint = Points[i];
+                var currentPoint = _points[i];
                 // if not last point
                 if (i != pointCount - 1)
                 {
@@ -517,15 +522,16 @@ namespace SQLSpatialTools.Types
         /// </summary>
         /// <param name="offset">Offset Value</param>
         /// <param name="progress">Measure Progress</param>
+        /// <param name="tolerance">The tolerance.</param>
         /// <returns>Parallel Line</returns>
-        internal LRSLine ComputeParallelLine(double offset, LinearMeasureProgress progress)
+        internal LRSLine ComputeParallelLine(double offset, LinearMeasureProgress progress, double tolerance)
         {
             CalculateOffsetBearing();
             CalculateOffsetAngle(progress);
             CalculateOffset(offset, progress);
 
             var parallelLine = new LRSLine(SRID);
-            Points.ForEach(point => parallelLine.AddPoint(point.GetParallelPoint(offset, ref Points)));
+            _points.ForEach(point => parallelLine.AddPoint(point.GetParallelPoint(offset, tolerance, progress, ref _points)));
             return parallelLine;
         }
 
@@ -539,17 +545,17 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal void PopulateMeasures(double segmentLength, ref double currentLength, double startMeasure, double endMeasure)
         {
-            var pointCount = Points.Count;
+            var pointCount = _points.Count;
             for (var i = 0; i < pointCount; i++)
             {
                 if (i == pointCount - 1)
-                    Points[i].M = GetEndPointM();
+                    _points[i].M = GetEndPointM();
                 else if (i == 0)
-                    Points[i].M = GetStartPointM();
+                    _points[i].M = GetStartPointM();
                 else
                 {
-                    var currentPoint = Points[i];
-                    currentPoint.ReCalculateMeasure(Points[i - 1], ref currentLength, segmentLength, startMeasure, endMeasure);
+                    var currentPoint = _points[i];
+                    currentPoint.ReCalculateMeasure(_points[i - 1], ref currentLength, segmentLength, startMeasure, endMeasure);
                 }
             }
         }
@@ -575,7 +581,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         public LRSEnumerator<LRSPoint> GetEnumerator()
         {
-            return new LRSEnumerator<LRSPoint>(Points);
+            return new LRSEnumerator<LRSPoint>(_points);
         }
 
         #endregion

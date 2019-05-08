@@ -27,11 +27,11 @@ namespace SQLSpatialTools.Utility
 		public static Vector3 SphericalDegToCartesian(double latitudeDeg, double longitudeDeg)
 		{
 			if (Math.Abs(latitudeDeg) > 90)
-				throw new ArgumentOutOfRangeException("|latitudeDeg| > 90");
+				throw new ArgumentOutOfRangeException(nameof(latitudeDeg),"|latitudeDeg| > 90");
 
-			double latitudeRad = ToRadians(latitudeDeg);
-			double longitudeRad = ToRadians(longitudeDeg);
-			double r = Math.Cos(latitudeRad);
+			var latitudeRad = ToRadians(latitudeDeg);
+			var longitudeRad = ToRadians(longitudeDeg);
+			var r = Math.Cos(latitudeRad);
 			return new Vector3(r * Math.Cos(longitudeRad), r * Math.Sin(longitudeRad), Math.Sin(latitudeRad));
 		}
 
@@ -39,16 +39,16 @@ namespace SQLSpatialTools.Utility
 		public static Vector3 SphericalRadToCartesian(double latitudeRad, double longitudeRad)
 		{
 			if (Math.Abs(latitudeRad) > Math.PI / 2)
-				throw new ArgumentOutOfRangeException("|latitudeRad| > PI / 2");
+				throw new ArgumentOutOfRangeException(nameof(latitudeRad), "|latitudeRad| > PI / 2");
 
-			double r = Math.Cos(latitudeRad);
+			var r = Math.Cos(latitudeRad);
 			return new Vector3(r * Math.Cos(longitudeRad), r * Math.Sin(longitudeRad), Math.Sin(latitudeRad));
 		}
 
 		// Returns longitude in radians given the vector.
 		public static double Longitude(Vector3 p)
 		{ 
-			return Math.Atan2(p.y, p.x); 
+			return Math.Atan2(p.Y, p.X); 
 		}
 
 		// Returns longitude in degrees given the vector.
@@ -60,7 +60,7 @@ namespace SQLSpatialTools.Utility
 		// Returns latitude in radians given the vector.
 		public static double Latitude(Vector3 p)
 		{
-			return Math.Atan2(p.z, Math.Sqrt(p.x * p.x + p.y * p.y));
+			return Math.Atan2(p.Z, Math.Sqrt(p.X * p.X + p.Y * p.Y));
 		}
 
 		// Returns latitude in degrees given the vector.

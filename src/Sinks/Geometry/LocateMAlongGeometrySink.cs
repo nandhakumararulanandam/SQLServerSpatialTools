@@ -2,9 +2,8 @@
 
 using Microsoft.SqlServer.Types;
 using System;
-using SQLSpatialTools.Functions.LRS;
-using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 using SQLSpatialTools.Utility;
+using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 
 namespace SQLSpatialTools.Sinks.Geometry
 {
@@ -12,14 +11,14 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// This class implements a geometry sink that finds a point along a geometry linestring instance and pipes
     /// it to another sink.
     /// </summary>
-    class LocateMAlongGeometrySink : IGeometrySink110
+    internal class LocateMAlongGeometrySink : IGeometrySink110
     {
-        readonly double measure;      // The running count of how much further we have to go.
-        readonly double tolerance;      // The tolerance.
-        int srid;                     // The srid we are working in.
-        SqlGeometry lastPoint;        // The last point in the LineString we have passed.
-        SqlGeometry foundPoint;       // This is the point we're looking for, assuming it isn't null, we're done.
-        SqlGeometryBuilder target;    // Where we place our result.
+        private readonly double _measure;             // The running count of how much further we have to go.
+        private readonly double _tolerance;           // The tolerance.
+        private readonly SqlGeometryBuilder _target;  // Where we place our result.
+        private int _srid;                            // The srid we are working in.
+        private SqlGeometry _lastPoint;               // The last point in the LineString we have passed.
+        private SqlGeometry _foundPoint;              // This is the point we're looking for, assuming it isn't null, we're done.
         public bool IsPointDerived;
         public bool IsShapePoint;
 
@@ -28,16 +27,16 @@ namespace SQLSpatialTools.Sinks.Geometry
         // Note that we only operate on LineString instances: anything else will throw an exception.
         public LocateMAlongGeometrySink(double measure, SqlGeometryBuilder target, double tolerance = Constants.Tolerance)
         {
-            this.target = target;
-            this.measure = measure;
-            this.tolerance = tolerance;
+            _target = target;
+            _measure = measure;
+            _tolerance = tolerance;
             IsPointDerived = false;
         }
 
         // Save the SRID for later
         public void SetSrid(int srid)
         {
-            this.srid = srid;
+            _srid = srid;
         }
 
         // Start the geometry.  Throw if it isn't a LineString.
@@ -49,11 +48,11 @@ namespace SQLSpatialTools.Sinks.Geometry
         // once.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            if (foundPoint != null)
+            if (_foundPoint != null)
                 return;
 
             // Memorize the point.
-            lastPoint = CheckShapePointAndGet((double)m, Ext.GetPoint(x, y, z, m, srid));
+            _lastPoint = CheckShapePointAndGet(m, Ext.GetPoint(x, y, z, m, _srid));
         }
 
         // This is where the real work is done.
@@ -61,32 +60,32 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             // If we've already found a point, then we're done.  We just need to keep ignoring these
             // pesky calls.
-            if (foundPoint != null)
+            if (_foundPoint != null)
                 return;
 
             // Make a point for our current position.
-            var thisPoint = CheckShapePointAndGet((double)m, Ext.GetPoint(x, y, z, m, srid));
+            var thisPoint = CheckShapePointAndGet(m, Ext.GetPoint(x, y, z, m, _srid));
 
             // is the found point between this point and the last, or past this point?
-            if (measure.IsWithinRange(lastPoint.M.Value, (double)m))
+            if (m != null && _measure.IsWithinRange(_lastPoint.M.Value, m.Value))
             {
                 // now we need to do the hard work and find the point in between these two
-                foundPoint = Functions.LRS.Geometry.InterpolateBetweenGeom(lastPoint, thisPoint, measure);
-                if (lastPoint.IsWithinTolerance(foundPoint, tolerance))
+                _foundPoint = Functions.LRS.Geometry.InterpolateBetweenGeom(_lastPoint, thisPoint, _measure);
+                if (_lastPoint.IsWithinTolerance(_foundPoint, _tolerance))
                 {
-                    foundPoint = lastPoint;
+                    _foundPoint = _lastPoint;
                     IsShapePoint = true;
                 }
-                else if (thisPoint.IsWithinTolerance(foundPoint, tolerance))
+                else if (thisPoint.IsWithinTolerance(_foundPoint, _tolerance))
                 {
-                    foundPoint = thisPoint;
+                    _foundPoint = thisPoint;
                     IsShapePoint = true;
                 }
             }
             else
             {
                 // it's past this point---just step along the line
-                lastPoint = thisPoint;
+                _lastPoint = thisPoint;
             }
         }
 
@@ -101,11 +100,11 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <param name="m">The m.</param>
         /// <param name="geometry">The geometry.</param>
         /// <returns></returns>
-        private SqlGeometry CheckShapePointAndGet(double m, SqlGeometry geometry)
+        private SqlGeometry CheckShapePointAndGet(double? m, SqlGeometry geometry)
         {
-            IsShapePoint = m == measure;
+            IsShapePoint = m.EqualsTo(_measure);
             if (IsShapePoint)
-                foundPoint = geometry;
+                _foundPoint = geometry;
             return geometry;
         }
 
@@ -118,17 +117,15 @@ namespace SQLSpatialTools.Sinks.Geometry
         // Here's also where we catch whether we've run off the end of our LineString.
         public void EndGeometry()
         {
-            if (foundPoint != null && !IsPointDerived)
-            {
-                // We could use a simple point constructor, but by targeting another sink we can use this
-                // class in a pipeline.
-                target.SetSrid(srid);
-                target.BeginGeometry(OpenGisGeometryType.Point);
-                target.BeginFigure(foundPoint.STX.Value, foundPoint.STY.Value, foundPoint.Z.IsNull ? (double?)null : foundPoint.Z.Value, foundPoint.M.Value);
-                target.EndFigure();
-                target.EndGeometry();
-                IsPointDerived = true;
-            }
+            if (_foundPoint == null || IsPointDerived) return;
+            // We could use a simple point constructor, but by targeting another sink we can use this
+            // class in a pipeline.
+            _target.SetSrid(_srid);
+            _target.BeginGeometry(OpenGisGeometryType.Point);
+            _target.BeginFigure(_foundPoint.STX.Value, _foundPoint.STY.Value, _foundPoint.Z.IsNull ? (double?)null : _foundPoint.Z.Value, _foundPoint.M.Value);
+            _target.EndFigure();
+            _target.EndGeometry();
+            IsPointDerived = true;
         }
     }
 }

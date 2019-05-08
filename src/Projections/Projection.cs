@@ -3,61 +3,50 @@
 //
 // Purpose: Abstract base class of all projections.
 //------------------------------------------------------------------------------
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace SQLSpatialTools.Projections
 {
 	internal abstract class Projection
 	{
-		private readonly Dictionary<string, double> _parameters = new Dictionary<string, double>();
-		private readonly double _longitude0; // in radians
+		private readonly Dictionary<string, double> _parameters;
 
-		public double CentralLongitudeRad
-		{
-			get { return _longitude0; }
-		}
+        public double CentralLongitudeRad { get; }
 
-		public string Parameters
+        public string Parameters
 		{
 			get
 			{
-				StringBuilder a = new StringBuilder();
-				foreach (string key in _parameters.Keys)
-				{
-					string value = _parameters[key].ToString("R", CultureInfo.InvariantCulture);
-					if (a.Length > 0)
-					{
-						a.AppendFormat(";{0}={1}", key, value);
-					}
-					else
-					{
-						a.AppendFormat("{0}={1}", key, value);
-					}
-				}
+				var a = new StringBuilder();
+				foreach (var key in _parameters.Keys)
+                {
+                    var value = _parameters[key].ToString("R", CultureInfo.InvariantCulture);
+                    a.AppendFormat(a.Length > 0 ? ";{0}={1}" : "{0}={1}", key, value);
+                }
 				return a.ToString();
 			}
 		}
 
 		public static Dictionary<string, double> ParseParameters(string parameters)
-		{
-			Dictionary<String, double> dict = new Dictionary<string, double>();
-			foreach (string pair in parameters.Split(';'))
-			{
-				string[] a = pair.Split('=');
-				dict.Add(a[0], Double.Parse(a[1], NumberStyles.Float, CultureInfo.InvariantCulture));
-			}
-			return dict;
-		}
+        {
+            return parameters.Split(';')
+                .Select(pair => pair.Split('='))
+                .ToDictionary(a => a[0],
+                    a => double.Parse(a[1],
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture));
+        }
 
-		public Projection(Dictionary<string, double> parameters)
+        protected Projection(IDictionary<string, double> parameters)
 		{
 			Debug.Assert(parameters != null);
 			_parameters = new Dictionary<string,double>(parameters);
-			_longitude0 = InputLongitude("longitude0");
+			CentralLongitudeRad = InputLongitude("longitude0");
 		}
 
 		// Used for validation and conversion of projection input parameters.
@@ -65,7 +54,7 @@ namespace SQLSpatialTools.Projections
 		// Returns latitude converted to radians in interval (-Pi/2, Pi/2).
 		// Throws ArgumentOutOfRangeException if latitude is NaN or not in range [-89.9, 89.9].
 		//
-		// Parram name: name of latitude argument in case if the exception is thrown
+		// Param name: name of latitude argument in case if the exception is thrown
 		//
 		protected internal double InputLatitude(string name)
 		{
@@ -82,7 +71,7 @@ namespace SQLSpatialTools.Projections
 		// Returns longitude converted to radians in range [-Pi, Pi).
 		// Throws ArgumentOutOfRangeException if longitude is NaN or Infinity.
 		//
-		// Parram name: name of longitude argument in case if the exception is thrown
+		// Param name: name of longitude argument in case if the exception is thrown
 		//
 		protected internal double InputLongitude(string name)
 		{

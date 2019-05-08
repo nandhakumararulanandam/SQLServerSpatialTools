@@ -9,31 +9,31 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that reverses the input geometry.
     /// </summary>
-    class ReverseLinearGeometrySink : IGeometrySink110
+    internal class ReverseLinearGeometrySink : IGeometrySink110
     {
-        SqlGeometryBuilder target;
-        LRSMultiLine lines;
-        LRSLine currentLine;
-        bool isMultiLine;
-        int lineCounter;
-        int srid;
+        private SqlGeometryBuilder _target;
+        private LRSMultiLine _lines;
+        private LRSLine _currentLine;
+        private bool _isMultiLine;
+        private int _lineCounter;
+        private int _srid;
 
         /// <summary>
         /// Loop through each geometry types LINESTRING and MULTILINESTRING and reverse it accordingly.
         /// </summary>
-        /// <param name="type">Geometry Type</param>
+        /// <param name="target"></param>
         public ReverseLinearGeometrySink(SqlGeometryBuilder target)
         {
-            this.target = target;
-            isMultiLine = false;
-            lineCounter = 0;
+            _target = target;
+            _isMultiLine = false;
+            _lineCounter = 0;
         }
 
         // Initialize MultiLine and sets srid.
         public void SetSrid(int srid)
         {
-            lines = new LRSMultiLine(srid);
-            this.srid = srid;
+            _lines = new LRSMultiLine(srid);
+            _srid = srid;
         }
 
         // Check for types and begin geometry accordingly.
@@ -41,51 +41,51 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             // check if the type is of the supported types
             if (type == OpenGisGeometryType.MultiLineString)
-                isMultiLine = true;
+                _isMultiLine = true;
 
             if (type == OpenGisGeometryType.LineString)
-                lineCounter++;
+                _lineCounter++;
         }
 
         // Just add the points to the current line segment.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            currentLine = new LRSLine(srid);
-            currentLine.AddPoint(x, y, z, m);
+            _currentLine = new LRSLine(_srid);
+            _currentLine.AddPoint(x, y, z, m);
         }
 
         // Just add the points to the current line segment.
         public void AddLine(double x, double y, double? z, double? m)
         {
-            currentLine.AddPoint(x, y, z, m);
+            _currentLine.AddPoint(x, y, z, m);
         }
 
         // Reverse the points at the end of figure.
         public void EndFigure()
         {
-            currentLine.ReversePoints();
+            _currentLine.ReversePoints();
         }
 
         // This is where real work is done.
         public void EndGeometry()
         {
             // if not multi line then add the current line to the collection.
-            if (!isMultiLine)
-                lines.AddLine(currentLine);
+            if (!_isMultiLine)
+                _lines.AddLine(_currentLine);
 
             // if line counter is 0 then it is multiline
             // if 1 then it is linestring 
-            if (lineCounter == 0 || !isMultiLine)
+            if (_lineCounter == 0 || !_isMultiLine)
             {
                 // reverse the line before constructing the geometry
-                lines.ReversLines();
-                lines.ToSqlGeometry(ref target);
+                _lines.ReversLines();
+                _lines.ToSqlGeometry(ref _target);
             }
             else
             {
-                lines.AddLine(currentLine);
+                _lines.AddLine(_currentLine);
                 // reset the line counter so that the child line strings chaining is done and return to base multiline type
-                lineCounter--;
+                _lineCounter--;
             }
         }
 

@@ -8,29 +8,29 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that checks whether the geometry collection is of supported types.
     /// </summary>
-    class ValidateLinearMeasureGeometrySink : IGeometrySink110
+    internal class ValidateLinearMeasureGeometrySink : IGeometrySink110
     {
-        readonly LinearMeasureProgress linearMeasureProgress;
-        readonly SqlGeometryBuilder target;
-        double lastM;
-        bool isLinearMeasure = true;
-        bool geomStarted = true;
+        private readonly LinearMeasureProgress _linearMeasureProgress;
+        private readonly SqlGeometryBuilder _target;
+        private double _lastM;
+        private bool _isLinearMeasure = true;
+        private bool _geomStarted = true;
 
         public ValidateLinearMeasureGeometrySink(SqlGeometryBuilder target, LinearMeasureProgress linearMeasureProgress)
         {
-            this.target = target;
-            this.linearMeasureProgress = linearMeasureProgress;
+            _target = target;
+            _linearMeasureProgress = linearMeasureProgress;
         }
 
         public bool IsLinearMeasure()
         {
-            return isLinearMeasure;
+            return _isLinearMeasure;
         }
 
         // This is a NOP.
         public void SetSrid(int srid)
         {
-            target.SetSrid(srid);
+            _target.SetSrid(srid);
         }
 
         /// <summary>
@@ -41,29 +41,29 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             if (type == OpenGisGeometryType.GeometryCollection)
                 return;
-            target.BeginGeometry(type);
+            _target.BeginGeometry(type);
         }
 
         // This is a NOP.
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            if (geomStarted)
+            if (_geomStarted)
             {
-                lastM = (double)m;
-                geomStarted = false;
+                if (m != null) _lastM = (double) m;
+                _geomStarted = false;
             }
             else
             {
                 ValidateMeasure(m);
             }
-            target.BeginFigure(x, y, z, m);
+            _target.BeginFigure(x, y, z, m);
         }
 
         // This is a NOP.
         public void AddLine(double x, double y, double? z, double? m)
         {
             ValidateMeasure(m);
-            target.AddLine(x, y, z, m);
+            _target.AddLine(x, y, z, m);
         }
 
 
@@ -75,29 +75,30 @@ namespace SQLSpatialTools.Sinks.Geometry
         // This is a NOP.
         public void EndFigure()
         {
-            target.EndFigure();
+            _target.EndFigure();
         }
 
         // This is a NOP.
         public void EndGeometry()
         {
-            target.EndGeometry();
+            _target.EndGeometry();
         }
 
         private void ValidateMeasure(double? m)
         {
+            if (m == null) return;
             var currentM = (double)m;
-            if (isLinearMeasure && linearMeasureProgress == LinearMeasureProgress.Increasing)
+            if (_isLinearMeasure && _linearMeasureProgress == LinearMeasureProgress.Increasing)
             {
-                if (currentM < lastM)
-                    isLinearMeasure = false;
+                if (currentM < _lastM)
+                    _isLinearMeasure = false;
             }
-            else if (isLinearMeasure && linearMeasureProgress == LinearMeasureProgress.Decreasing)
+            else if (_isLinearMeasure && _linearMeasureProgress == LinearMeasureProgress.Decreasing)
             {
-                if (currentM > lastM)
-                    isLinearMeasure = false;
+                if (currentM > _lastM)
+                    _isLinearMeasure = false;
             }
-            lastM = currentM;
+            _lastM = currentM;
         }
     }
 }

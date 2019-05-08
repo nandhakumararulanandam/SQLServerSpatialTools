@@ -17,25 +17,22 @@ namespace SQLSpatialTools.Sinks.Geography
     public class DensifyGeographySink : IGeographySink110
     {
         // Minimum angle. If the user specifies a smaller angle, the angle will be set to this minimum.
-        public static readonly double MinAngle = 0.000001;
+        private const double MinAngle = 0.000001;
 
         // Maximum angular difference in degrees between two consecutive points in the "densified" line.
-        private readonly double angle;
+        private readonly double _angle;
 
         // Previous point added.
-        private Vector3 startPoint;
+        private Vector3 _startPoint;
 
-        private readonly IGeographySink110 sink;
+        private readonly IGeographySink110 _sink;
 
         // Constructor.
 		public DensifyGeographySink(IGeographySink110 sink, double angle)
         {
-            this.sink = sink ?? throw new ArgumentNullException("sink");
+            _sink = sink ?? throw new ArgumentNullException(nameof(sink), "sink");
 
-            if (angle < MinAngle)
-                this.angle = MinAngle;
-            else
-                 this.angle = angle;
+            _angle = angle < MinAngle ? MinAngle : angle;
         }
 
         #region IGeographySink Members
@@ -43,9 +40,9 @@ namespace SQLSpatialTools.Sinks.Geography
         public void AddLine(double latitude, double longitude, double? z, double? m)
         {
             // Transforming from geodetic coordinates to a unit vector.
-			Vector3 endPoint = Util.SphericalDegToCartesian(latitude, longitude);
+			var endPoint = Util.SphericalDegToCartesian(latitude, longitude);
 
-            double angle = endPoint.Angle(startPoint);
+            var angle = endPoint.Angle(_startPoint);
             if (angle > MinAngle)
             {
                 // _startPoint and endPoint are the unit vectors that correspond to the input
@@ -55,39 +52,39 @@ namespace SQLSpatialTools.Sinks.Geography
                 // xy plane, and converted back to geodetic coordinates.
 
                 // Construct the local z and y axes.
-                Vector3 zAxis = (startPoint + endPoint).CrossProduct(startPoint - endPoint).Unitize();
-                Vector3 yAxis = (startPoint).CrossProduct(zAxis);
+                var zAxis = (_startPoint + endPoint).CrossProduct(_startPoint - endPoint).Unitize();
+                var yAxis = (_startPoint).CrossProduct(zAxis);
 
                 // Calculating how many points we need.
-                int count = Convert.ToInt32(Math.Ceiling(angle / Util.ToRadians(this.angle)));
+                var count = Convert.ToInt32(Math.Ceiling(angle / Util.ToRadians(_angle)));
 
                 // Scaling the angle so that points are equally placed.
-                double exactAngle = angle / count;
+                var exactAngle = angle / count;
 
-                double cosine = Math.Cos(exactAngle);
-                double sine = Math.Sin(exactAngle);
+                var cosine = Math.Cos(exactAngle);
+                var sine = Math.Sin(exactAngle);
 
                 // Setting the first x and y points in our local coordinate system.
-                double x = cosine;
-                double y = sine;
+                var x = cosine;
+                var y = sine;
 
-                for (int i = 0; i < count - 1; i++)
+                for (var i = 0; i < count - 1; i++)
                 {
-                    Vector3 newPoint = (startPoint * x + yAxis * y).Unitize();
+                    var newPoint = (_startPoint * x + yAxis * y).Unitize();
 
                     // Adding the point.
-                    sink.AddLine(Util.LatitudeDeg(newPoint), Util.LongitudeDeg(newPoint), null, null);
+                    _sink.AddLine(Util.LatitudeDeg(newPoint), Util.LongitudeDeg(newPoint), null, null);
 
                     // Rotating to get next point.
-                    double r = x * cosine - y * sine;
+                    var r = x * cosine - y * sine;
                     y = x * sine + y * cosine;
                     x = r;
                 }
             }
-            sink.AddLine(latitude, longitude, z, m);
+            _sink.AddLine(latitude, longitude, z, m);
 
             // Remembering last point we added.
-            startPoint = endPoint;
+            _startPoint = endPoint;
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -98,28 +95,28 @@ namespace SQLSpatialTools.Sinks.Geography
         public void BeginFigure(double latitude, double longitude, double? z, double? m)
         {
             // Starting the figure, remembering the vector that corresponds to the first point.
-			startPoint = Util.SphericalDegToCartesian(latitude, longitude);
-            sink.BeginFigure(latitude, longitude, z, m);
+			_startPoint = Util.SphericalDegToCartesian(latitude, longitude);
+            _sink.BeginFigure(latitude, longitude, z, m);
         }
 
         public void BeginGeography(OpenGisGeographyType type)
         {
-            sink.BeginGeography(type);
+            _sink.BeginGeography(type);
         }
 
         public void EndFigure()
         {
-            sink.EndFigure();
+            _sink.EndFigure();
         }
 
         public void EndGeography()
         {
-            sink.EndGeography();
+            _sink.EndGeography();
         }
 
         public void SetSrid(int srid)
         {
-            sink.SetSrid(srid);
+            _sink.SetSrid(srid);
         }
 
         #endregion

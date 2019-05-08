@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Types;
-using SQLSpatialTools.Sinks.Geometry;
 using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Types
@@ -16,9 +14,9 @@ namespace SQLSpatialTools.Types
     /// </summary>
     internal class LRSMultiLine : IEnumerable
     {
-        private List<LRSLine> Lines;
+        private readonly List<LRSLine> _lines;
         internal int SRID;
-        private string wkt;
+        private string _wkt;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LRSMultiLine"/> class.
@@ -27,7 +25,7 @@ namespace SQLSpatialTools.Types
         internal LRSMultiLine(int srid)
         {
             SRID = srid;
-            Lines = new List<LRSLine>();
+            _lines = new List<LRSLine>();
         }
 
         /// <summary>
@@ -36,7 +34,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
         /// </value>
-        internal bool IsEmpty { get { return !Lines.Any() || Lines.Count == 0; } }
+        internal bool IsEmpty => !_lines.Any() || _lines.Count == 0;
 
         /// <summary>
         /// Gets a value indicating whether this instance is not empty or not.
@@ -44,7 +42,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
         /// </value>
-        internal bool IsNotEmpty { get { return !IsEmpty; } }
+        internal bool IsNotEmpty => !IsEmpty;
 
         /// <summary>
         /// Gets the number of line segments in the MULTILINESTRING.
@@ -52,7 +50,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         /// The count.
         /// </value>
-        internal int Count { get { return Lines.Any() ? Lines.Count : 0; } }
+        internal int Count => _lines.Any() ? _lines.Count : 0;
 
         /// <summary>
         /// Gets a value indicating whether this instance is MULTILINESTRING.
@@ -60,7 +58,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is a multi line; otherwise, <c>false</c>.
         /// </value>
-        internal bool IsMultiLine { get { return Lines.Any() && Lines.Count > 1; } }
+        internal bool IsMultiLine => Count > 1;
 
         /// <summary>
         /// Gets a value indicating whether this instance is LINESTRING.
@@ -68,7 +66,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is a line string; otherwise, <c>false</c>.
         /// </value>
-        internal bool IsLine { get { return Lines.Any() && Lines.Count == 1; } }
+        internal bool IsLine => Count == 1;
 
         /// <summary>
         /// Gets a value indicating whether this instance is a 2 POINT LINESTRING.
@@ -76,7 +74,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is a 2 point line string; otherwise, <c>false</c>.
         /// </value>
-        internal bool Is2PointLine { get { return IsLine && Lines.First().Count == 2; } }
+        internal bool Is2PointLine => IsLine && Count == 2;
 
         /// <summary>
         /// Gets a value indicating whether this instance is POINT.
@@ -84,7 +82,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is a point; otherwise, <c>false</c>.
         /// </value>
-        internal bool IsPoint { get { return IsLine && Lines.First().IsPoint; } }
+        internal bool IsPoint => IsLine && _lines.First().IsPoint;
 
         /// <summary>
         /// Gets the length.
@@ -92,18 +90,18 @@ namespace SQLSpatialTools.Types
         /// <value>
         /// The length.
         /// </value>
-        internal double Length { get { return Lines.Any() ? Lines.Sum(e => e.Length) : 0; } }
+        internal double Length { get { return _lines.Any() ? _lines.Sum(line => line.Length) : 0; } }
 
         #region Add Lines
 
         /// <summary>
         /// Adds the line.
         /// </summary>
-        /// <param name="lrsLine">The LRS line.</param>
+        /// <param name="line">The LRS line.</param>
         internal void AddLine(LRSLine line)
         {
             if (line != null && line.HasPoints && line.IsLine)
-                Lines.Add(line);
+                _lines.Add(line);
         }
 
         /// <summary>
@@ -113,17 +111,17 @@ namespace SQLSpatialTools.Types
         internal void AddLines(List<LRSLine> lineList)
         {
             if (lineList != null && lineList.Any())
-                lineList.ForEach(line => AddLine(line));
+                lineList.ForEach(AddLine);
         }
 
         /// <summary>
         /// Adds LRS Multi lines.
         /// </summary>
-        /// <param name="lineList">The line list.</param>
+        /// <param name="lrsMultiLine">The line list.</param>
         internal void Add(LRSMultiLine lrsMultiLine)
         {
-            if (lrsMultiLine != null && lrsMultiLine.Lines != null && lrsMultiLine.Lines.Any())
-                AddLines(lrsMultiLine.Lines);
+            if (lrsMultiLine?._lines != null && lrsMultiLine._lines.Any())
+                AddLines(lrsMultiLine._lines);
         }
 
         #endregion
@@ -136,7 +134,7 @@ namespace SQLSpatialTools.Types
         /// <param name="offsetMeasure"></param>
         internal void ScaleMeasure(double offsetMeasure)
         {
-            Lines.ForEach(line => line.ScaleMeasure(offsetMeasure));
+            _lines.ForEach(line => line.ScaleMeasure(offsetMeasure));
         }
 
         /// <summary>
@@ -145,7 +143,7 @@ namespace SQLSpatialTools.Types
         /// <param name="offsetMeasure"></param>
         internal void TranslateMeasure(double offsetMeasure)
         {
-            Lines.ForEach(line => line.TranslateMeasure(offsetMeasure));
+            _lines.ForEach(line => line.TranslateMeasure(offsetMeasure));
         }
 
         /// <summary>
@@ -153,7 +151,7 @@ namespace SQLSpatialTools.Types
         /// </summary>
         internal void ReversLines()
         {
-            Lines.Reverse();
+            _lines.Reverse();
         }
 
         /// <summary>
@@ -163,7 +161,7 @@ namespace SQLSpatialTools.Types
         {
             // First calculate the slope to remove collinear points.
             CalculateSlope();
-            Lines.ForEach(line => line.RemoveCollinearPoints());
+            _lines.ForEach(line => line.RemoveCollinearPoints());
         }
 
         /// <summary>
@@ -171,7 +169,7 @@ namespace SQLSpatialTools.Types
         /// </summary>
         internal void CalculateSlope()
         {
-            Lines.ForEach(line => line.CalculateSlope());
+            _lines.ForEach(line => line.CalculateSlope());
         }
 
         /// <summary>
@@ -179,10 +177,12 @@ namespace SQLSpatialTools.Types
         /// </summary>
         /// <param name="offset">The offset.</param>
         /// <param name="progress">The progress.</param>
-        internal LRSMultiLine ComputeOffset(double offset, LinearMeasureProgress progress)
+        /// <param name="tolerance">The tolerance.</param>
+        /// <returns></returns>
+        internal LRSMultiLine ComputeOffset(double offset, LinearMeasureProgress progress, double tolerance)
         {
             var parallelMultiLine = new LRSMultiLine(SRID);
-            Lines.ForEach(line => parallelMultiLine.Lines.Add(line.ComputeParallelLine(offset, progress)));
+            _lines.ForEach(line => parallelMultiLine._lines.Add(line.ComputeParallelLine(offset, progress, tolerance)));
             return parallelMultiLine;
         }
 
@@ -197,7 +197,7 @@ namespace SQLSpatialTools.Types
             var endMeasure = endM ?? Length;
             double currentLength = 0;
 
-            Lines.ForEach(line =>
+            _lines.ForEach(line =>
             {
                 line.PopulateMeasures(Length, ref currentLength, startMeasure, endMeasure);
             });
@@ -210,7 +210,7 @@ namespace SQLSpatialTools.Types
         internal void ReverseLinesAndPoints()
         {
             ReversLines();
-            Lines.ForEach(line => line.ReversePoints());
+            _lines.ForEach(line => line.ReversePoints());
         }
 
         /// <summary>
@@ -219,9 +219,9 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSLine GetFirstLine()
         {
-            if (Lines.Any())
+            if (_lines.Any())
             {
-                return Lines.First();
+                return _lines.First();
             }
             return null;
         }
@@ -232,9 +232,9 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSLine GetLastLine()
         {
-            if (Lines.Any())
+            if (_lines.Any())
             {
-                return Lines.Last();
+                return _lines.Last();
             }
             return null;
         }
@@ -245,9 +245,9 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetStartPoint()
         {
-            if (Lines.Any())
+            if (_lines.Any())
             {
-                return Lines.First().GetStartPoint();
+                return _lines.First().GetStartPoint();
             }
             return null;
         }
@@ -267,9 +267,9 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetEndPoint()
         {
-            if (Lines.Any())
+            if (_lines.Any())
             {
-                return Lines.Last().GetEndPoint();
+                return _lines.Last().GetEndPoint();
             }
             return null;
         }
@@ -289,9 +289,9 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetPointAtM(double measure)
         {
-            if (Lines.Any())
+            if (_lines.Any())
             {
-                foreach (var line in Lines)
+                foreach (var line in _lines)
                 {
                     LRSPoint point = line.GetPointAtM(measure);
                     if (point != null)
@@ -307,10 +307,10 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal List<LRSLine> RemoveFirst()
         {
-            if (Lines.Any())
+            if (_lines.Any())
             {
-                Lines.RemoveAt(0);
-                return Lines;
+                _lines.RemoveAt(0);
+                return _lines;
             }
             return null;
         }
@@ -321,10 +321,10 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal List<LRSLine> RemoveLast()
         {
-            if (Lines.Any())
+            if (_lines.Any())
             {
-                Lines.RemoveAt(Lines.Count - 1);
-                return Lines;
+                _lines.RemoveAt(_lines.Count - 1);
+                return _lines;
             }
             return null;
         }
@@ -341,12 +341,12 @@ namespace SQLSpatialTools.Types
         /// </returns>
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(wkt))
-                return wkt;
+            if (!string.IsNullOrEmpty(_wkt))
+                return _wkt;
 
             if (IsEmpty)
             {
-                wkt = string.Empty;
+                _wkt = string.Empty;
                 return "MULTILINESTRING EMPTY";
             }
 
@@ -357,12 +357,12 @@ namespace SQLSpatialTools.Types
 
             var lineIterator = 1;
 
-            foreach (var line in Lines)
+            foreach (var line in _lines)
             {
                 if (line.IsLine)
-                    wktBuilder.Append(line.ToString());
+                    wktBuilder.Append(line.ToString().Replace("LINESTRING", string.Empty));
 
-                if (lineIterator != Lines.Count)
+                if (lineIterator != _lines.Count)
                     wktBuilder.Append(", ");
                 lineIterator++;
             }
@@ -370,9 +370,9 @@ namespace SQLSpatialTools.Types
             if (IsMultiLine)
                 wktBuilder.Append(")");
 
-            wkt = wktBuilder.ToString();
+            _wkt = wktBuilder.ToString();
 
-            return wkt;
+            return _wkt;
         }
 
         /// <summary>
@@ -396,7 +396,7 @@ namespace SQLSpatialTools.Types
                 return SqlGeometry.Null;
 
             if (IsPoint)
-                return Lines.First().GetStartPoint().ToSqlGeometry(ref geomBuilder);
+                return _lines.First().GetStartPoint().ToSqlGeometry(ref geomBuilder);
 
             return BuildSqlGeometry(ref geomBuilder) ? geomBuilder.ConstructedGeometry : null;
         }
@@ -422,7 +422,7 @@ namespace SQLSpatialTools.Types
             }
 
             // ignore points
-            foreach (var line in Lines.Where(line => line.IsLine).ToList())
+            foreach (var line in _lines.Where(line => line.IsLine).ToList())
             {
                 line.BuildSqlGeometry(ref geomBuilder, IsMultiLine);
                 isBuildDone = true;
@@ -445,7 +445,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         public LRSEnumerator<LRSLine> GetEnumerator()
         {
-            return new LRSEnumerator<LRSLine>(Lines);
+            return new LRSEnumerator<LRSLine>(_lines);
         }
 
         /// <summary>

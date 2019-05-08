@@ -16,12 +16,12 @@ namespace SQLSpatialTools.Projections
 		// longitude0:
 		// parallel: standard parallels (north and south of the equator) where the scale of the projection is true
 		//
-		public EquirectangularProjection(Dictionary<String, double> parameters)
+		public EquirectangularProjection(Dictionary<string, double> parameters)
 			: base(parameters)
 		{
-			double parallel_rad = InputLatitude("parallel");
+			var parallelRadian = InputLatitude("parallel");
 			
-			_scale = Math.Cos(parallel_rad);
+			_scale = Math.Cos(parallelRadian);
 
 			// scale > 0 because |parallel| <= 89.9
 			Debug.Assert(_scale > 0, _scale.ToString(CultureInfo.InvariantCulture));

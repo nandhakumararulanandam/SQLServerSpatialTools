@@ -42,16 +42,16 @@ namespace SQLSpatialTools.Utility
     {
         None,
         [StringValue("2 Dimensional point, with x and y")]
-        _2D,
+        Dim2D,
         [StringValue("2 Dimensional point, with x, y and measure")]
-        _2DM,
+        Dim2DWithMeasure,
         [StringValue("3 Dimensional point, with x, y and z")]
-        _3D,
+        Dim3D,
         [StringValue("3 Dimensional point, with x, y, z with measure")]
-        _3DM
+        Dim3DWithMeasure
     }
 
-    public class Constants
+    public static class Constants
     {
         public const int DefaultSRID = 4326;
 
@@ -60,6 +60,15 @@ namespace SQLSpatialTools.Utility
 
         // Point sql char format.
         public const string PointSqlCharFormat = "POINT({0} {1} {2} {3})";
+    }
+
+    public enum SlopeValue
+    {
+        None,
+        PositiveZero,
+        NegativeZero,
+        PositiveInfinity,
+        NegativeInfinity
     }
 
     /// <summary>
@@ -71,7 +80,7 @@ namespace SQLSpatialTools.Utility
         /// <summary>
         /// Holds the string value for a value in an enum.
         /// </summary>
-        public string StringValue { get; private set; }
+        public string StringValue { get; }
 
         /// <summary>
         /// Constructor used to initialize a StringValue Attribute
@@ -79,7 +88,7 @@ namespace SQLSpatialTools.Utility
         /// <param name="value"></param>
         public StringValueAttribute(string value)
         {
-            this.StringValue = value;
+            StringValue = value;
         }
     }
 

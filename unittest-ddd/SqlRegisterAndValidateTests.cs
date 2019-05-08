@@ -1,63 +1,61 @@
 ﻿using System;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Types;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SQLSpatialTools.Functions.LRS;
-using SQLSpatialTools.UnitTests.Extension;
-using SQLSpatialTools.Utility;
-using System.Globalization;
-using System.IO;
-using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlServer.Management.Common;
-using System.Data.SqlClient;
 using System.Configuration;
+using System.Data.SqlClient;
+using System.IO;
 using System.Reflection;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SQLSpatialTools.UniTests.SQL.Tests
+namespace SQLSpatialTools.UnitTests.DDD
 {
     [TestClass]
     public class SqlRegisterAndValidateTests
     {
-        private static string connectionString;
-        private static string targetDir;
-        private static SqlConnection dbConnection;
-        private static Server dbServer;
+        private static string _connectionString;
+        private static string _targetDir;
+        private static SqlConnection _dbConnection;
+        private static Server _dbServer;
 
-        private static string registerScriptFilePath;
-        private static string unregisterScriptFilePath;
-        private static string lrsExampleScriptFilePath;
+        private static string _registerScriptFilePath;
+        private static string _unRegisterScriptFilePath;
+        private static string _lrsExampleScriptFilePath;
 
-        private const string registerScriptFileName = "Register.sql";
-        private const string unregisterScriptFileName = "Unregister.sql";
-        private const string lrsExampleScriptFileName = "lrs_geometry_example.sql";
+        private const string RegisterScriptFileName = "Register.sql";
+        private const string UnregisterScriptFileName = "Unregister.sql";
+        private const string LRSExampleScriptFileName = "lrs_geometry_example.sql";
 
         [ClassInitialize()]
-        public static void Intialize(TestContext testContext)
+        public static void Initialize(TestContext testContext)
         {
-            connectionString = ConfigurationManager.AppSettings.Get("sql_connection");
-            dbConnection = new SqlConnection(connectionString);
-            dbServer = new Server(new ServerConnection(dbConnection));
+            _connectionString = ConfigurationManager.AppSettings.Get("sql_connection");
+            _dbConnection = new SqlConnection(_connectionString);
+            _dbServer = new Server(new ServerConnection(_dbConnection));
 
-            targetDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            targetDir = targetDir.Substring(0, targetDir.LastIndexOf('\\'));
-            targetDir = Path.Combine(targetDir, "lib\\SQL Scripts");
-            if (!Directory.Exists(targetDir))
-                throw new Exception("Target Directory not found : " + targetDir);
+            _targetDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            if (_targetDir != null)
+            {
+                _targetDir = _targetDir.Substring(0, _targetDir.LastIndexOf('\\'));
+                _targetDir = Path.Combine(_targetDir, "lib\\SQL Scripts");
+                if (!Directory.Exists(_targetDir))
+                    throw new Exception("Target Directory not found : " + _targetDir);
 
-            // register script
-            registerScriptFilePath = Path.Combine(targetDir, registerScriptFileName);
-            if (!File.Exists(registerScriptFilePath))
-                throw new Exception("Register Script file not found : " + registerScriptFilePath);
+                // register script
+                _registerScriptFilePath = Path.Combine(_targetDir, RegisterScriptFileName);
+                if (!File.Exists(_registerScriptFilePath))
+                    throw new Exception("Register Script file not found : " + _registerScriptFilePath);
 
-            // unregister script
-            unregisterScriptFilePath = Path.Combine(targetDir, unregisterScriptFileName);
-            if (!File.Exists(unregisterScriptFilePath))
-                throw new Exception("Unregister Script file not found : " + unregisterScriptFilePath);
+                // unregister script
+                _unRegisterScriptFilePath = Path.Combine(_targetDir, UnregisterScriptFileName);
+                if (!File.Exists(_unRegisterScriptFilePath))
+                    throw new Exception("Unregister Script file not found : " + _unRegisterScriptFilePath);
 
-            // LRS examples script
-            lrsExampleScriptFilePath = Path.Combine(targetDir, lrsExampleScriptFileName);
-            if (!File.Exists(lrsExampleScriptFilePath))
-                throw new Exception("Unregister Script file not found : " + lrsExampleScriptFilePath);
+                // LRS examples script
+                _lrsExampleScriptFilePath = Path.Combine(_targetDir, LRSExampleScriptFileName);
+            }
+
+            if (!File.Exists(_lrsExampleScriptFilePath))
+                throw new Exception("Unregister Script file not found : " + _lrsExampleScriptFilePath);
 
             // call unregister script as part of initialize
             Unregister();
@@ -65,8 +63,8 @@ namespace SQLSpatialTools.UniTests.SQL.Tests
 
         private static void Unregister()
         {
-            var scriptContent = File.ReadAllText(unregisterScriptFilePath);
-            dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
+            var scriptContent = File.ReadAllText(_unRegisterScriptFilePath);
+            _dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
         }
 
         [TestMethod]
@@ -81,8 +79,8 @@ namespace SQLSpatialTools.UniTests.SQL.Tests
         public void RegisterOSSLibraryTest()
         {
             UnregisterOSSLibraryTest();
-            var scriptContent = File.ReadAllText(registerScriptFilePath);
-            dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
+            var scriptContent = File.ReadAllText(_registerScriptFilePath);
+            _dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
         }
 
         [TestMethod]
@@ -90,15 +88,14 @@ namespace SQLSpatialTools.UniTests.SQL.Tests
         public void RunLRSExamplesTest()
         {
             RegisterOSSLibraryTest();
-            var scriptContent = File.ReadAllText(lrsExampleScriptFilePath);
-            dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
+            var scriptContent = File.ReadAllText(_lrsExampleScriptFilePath);
+            _dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
         }
 
         [ClassCleanup()]
         public static void Cleanup()
         {
-            if (dbConnection != null)
-                dbConnection.Close();
+            _dbConnection?.Close();
         }
     }
 }

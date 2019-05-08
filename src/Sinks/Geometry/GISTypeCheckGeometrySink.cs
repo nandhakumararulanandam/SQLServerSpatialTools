@@ -8,15 +8,15 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that checks whether the geometry collection is of supported types.
     /// </summary>
-    class GISTypeCheckGeometrySink : IGeometrySink110
+    internal class GISTypeCheckGeometrySink : IGeometrySink110
     {
-        private bool isSupportedType;
-        private readonly OpenGisGeometryType[] supportedTypes;
+        private bool _isSupportedType;
+        private readonly OpenGisGeometryType[] _supportedTypes;
 
         public GISTypeCheckGeometrySink(OpenGisGeometryType[] supportedTypes)
         {
-            isSupportedType = true;
-            this.supportedTypes = supportedTypes;
+            _isSupportedType = true;
+            _supportedTypes = supportedTypes;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <returns></returns>
         public bool IsCompatible()
         {
-            return isSupportedType;
+            return _isSupportedType;
         }
 
         // This is a NOP.
@@ -43,9 +43,9 @@ namespace SQLSpatialTools.Sinks.Geometry
                 return;
 
             // check if the type is of the supported types
-            if (isSupportedType && !(type.Contains(supportedTypes)))
+            if (_isSupportedType && !(type.Contains(_supportedTypes)))
             {
-                isSupportedType = false;
+                _isSupportedType = false;
             }
         }
 

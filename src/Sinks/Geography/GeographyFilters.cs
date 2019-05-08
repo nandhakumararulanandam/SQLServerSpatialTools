@@ -10,51 +10,51 @@ namespace SQLSpatialTools.Sinks.Geography
 {
 	public class GeographyEmptyShapeFilter : IGeographySink110
 	{
-		private IGeographySink110 sink;
-		private Queue<OpenGisGeographyType> types = new Queue<OpenGisGeographyType>();
-		private bool root = true;
+		private readonly IGeographySink110 _sink;
+		private readonly Queue<OpenGisGeographyType> _types = new Queue<OpenGisGeographyType>();
+		private bool _root = true;
 
 		public GeographyEmptyShapeFilter(IGeographySink110 sink)
 		{
-			this.sink = sink;
+			_sink = sink;
 		}
 
 		public void SetSrid(int srid)
 		{
-			sink.SetSrid(srid);
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
-			if (root)
+			if (_root)
 			{
-				root = false;
-				sink.BeginGeography(type);
+				_root = false;
+				_sink.BeginGeography(type);
 			}
 			else
 			{
-				types.Enqueue(type);
+				_types.Enqueue(type);
 			}
 		}
 
 		public void EndGeography()
 		{
-			if (types.Count > 0)
-				types.Dequeue();
+			if (_types.Count > 0)
+				_types.Dequeue();
 			else
-				sink.EndGeography();
+				_sink.EndGeography();
 		}
 
 		public void BeginFigure(double latitude, double longitude, double? z, double? m)
 		{
-			while (types.Count > 0)
-				sink.BeginGeography(types.Dequeue());
-			sink.BeginFigure(latitude, longitude, z, m);
+			while (_types.Count > 0)
+				_sink.BeginGeography(_types.Dequeue());
+			_sink.BeginFigure(latitude, longitude, z, m);
 		}
 
 		public void AddLine(double latitude, double longitude, double? z, double? m)
 		{
-			sink.AddLine(latitude, longitude, z, m);
+			_sink.AddLine(latitude, longitude, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -64,63 +64,63 @@ namespace SQLSpatialTools.Sinks.Geography
 
         public void EndFigure()
 		{
-			sink.EndFigure();
+			_sink.EndFigure();
 		}
 	}
 
 	public class GeographyPointFilter : IGeographySink110
 	{
-		private IGeographySink110 sink;
-		private int depth;
-		private bool root = true;
+		private readonly IGeographySink110 _sink;
+		private int _depth;
+		private bool _root = true;
 
 		public GeographyPointFilter(IGeographySink110 sink)
 		{
-			this.sink = sink;
+			_sink = sink;
 		}
 
 		public void SetSrid(int srid)
 		{
-			sink.SetSrid(srid);
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
 			if (type == OpenGisGeographyType.Point || type == OpenGisGeographyType.MultiPoint)
 			{
-				if (root)
+				if (_root)
 				{
-					root = false;
-					sink.BeginGeography(OpenGisGeographyType.GeometryCollection);
-					sink.EndGeography();
+					_root = false;
+					_sink.BeginGeography(OpenGisGeographyType.GeometryCollection);
+					_sink.EndGeography();
 				}
-				depth++;
+				_depth++;
 			}
 			else
 			{
-				root = false;
-				sink.BeginGeography(type);
+				_root = false;
+				_sink.BeginGeography(type);
 			}
 		}
 
 		public void EndGeography()
 		{
-			if (depth > 0)
-				depth--;
+			if (_depth > 0)
+				_depth--;
 			else
-				sink.EndGeography();
+				_sink.EndGeography();
 		}
 
 		public void BeginFigure(double latitude, double longitude, double? z, double? m)
 		{
-			if (depth == 0)
-				sink.BeginFigure(latitude, longitude, z, m);
+			if (_depth == 0)
+				_sink.BeginFigure(latitude, longitude, z, m);
 		}
 
 		public void AddLine(double latitude, double longitude, double? z, double? m)
 		{
-			if (depth == 0)
-				sink.AddLine(latitude, longitude, z, m);
+			if (_depth == 0)
+				_sink.AddLine(latitude, longitude, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -130,64 +130,64 @@ namespace SQLSpatialTools.Sinks.Geography
 
         public void EndFigure()
 		{
-			if (depth == 0)
-				sink.EndFigure();
+			if (_depth == 0)
+				_sink.EndFigure();
 		}
 	}
 
 	public class GeographyShortLineStringFilter : IGeographySink110
 	{
-		private IGeographySink110 sink;
-		private readonly double tolerance;
-		private int srid;
-		private bool insideLineString;
-		private List<Vertex> figure = new List<Vertex>();
+		private readonly IGeographySink110 _sink;
+		private readonly double _tolerance;
+		private int _srid;
+		private bool _insideLineString;
+		private readonly List<Vertex> _figure = new List<Vertex>();
 
 		public GeographyShortLineStringFilter(IGeographySink110 sink, double tolerance)
 		{
-			this.sink = sink;
-			this.tolerance = tolerance;
+			_sink = sink;
+			_tolerance = tolerance;
 		}
 
 		public void SetSrid(int srid)
 		{
-			this.srid = srid;
-			sink.SetSrid(srid);
+			_srid = srid;
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
-			sink.BeginGeography(type);
-			insideLineString = type == OpenGisGeographyType.LineString;
+			_sink.BeginGeography(type);
+			_insideLineString = type == OpenGisGeographyType.LineString;
 		}
 
 		public void EndGeography()
 		{
-			sink.EndGeography();
+			_sink.EndGeography();
 		}
 
 		public void BeginFigure(double latitude, double longitude, double? z, double? m)
 		{
-			if (insideLineString)
+			if (_insideLineString)
 			{
-				figure.Clear();
-				figure.Add(new Vertex(latitude, longitude, z, m));
+				_figure.Clear();
+				_figure.Add(new Vertex(latitude, longitude, z, m));
 			}
 			else
 			{
-				sink.BeginFigure(latitude, longitude, z, m);
+				_sink.BeginFigure(latitude, longitude, z, m);
 			}
 		}
 
 		public void AddLine(double latitude, double longitude, double? z, double? m)
 		{
-			if (insideLineString)
+			if (_insideLineString)
 			{
-				figure.Add(new Vertex(latitude, longitude, z, m));
+				_figure.Add(new Vertex(latitude, longitude, z, m));
 			}
 			else
 			{
-				sink.AddLine(latitude, longitude, z, m);
+				_sink.AddLine(latitude, longitude, z, m);
 			}
 		}
 
@@ -198,16 +198,16 @@ namespace SQLSpatialTools.Sinks.Geography
 
         public void EndFigure()
 		{
-			if (insideLineString)
+			if (_insideLineString)
 			{
 				if (!IsShortLineString())
 				{
-					PopulateFigure(sink);
+					PopulateFigure(_sink);
 				}
 			}
 			else
 			{
-				sink.EndFigure();
+				_sink.EndFigure();
 			}
 		}
 
@@ -216,12 +216,12 @@ namespace SQLSpatialTools.Sinks.Geography
 			try
 			{
 				SqlGeographyBuilder b = new SqlGeographyBuilder();
-				b.SetSrid(srid);
+				b.SetSrid(_srid);
 				b.BeginGeography(OpenGisGeographyType.LineString);
 				PopulateFigure(b);
 				b.EndGeography();
 				SqlGeography g = b.ConstructedGeography;
-				return g.STLength().Value < tolerance;
+				return g.STLength().Value < _tolerance;
 			}
 			catch (FormatException) { }
 			catch (ArgumentException) { }
@@ -230,66 +230,66 @@ namespace SQLSpatialTools.Sinks.Geography
 
 		private void PopulateFigure(IGeographySink110 sink)
 		{
-			figure[0].BeginFigure(sink);
-			for (int i = 1; i < figure.Count; i++)
-				figure[i].AddLine(sink);
+			_figure[0].BeginFigure(sink);
+			for (int i = 1; i < _figure.Count; i++)
+				_figure[i].AddLine(sink);
 			sink.EndFigure();
 		}
 	}
 
 	public class GeographyThinRingFilter : IGeographySink110
 	{
-		private IGeographySink110 sink;
-		private readonly double tolerance;
-		private bool insidePolygon;
-		private int srid;
-		private List<Vertex> figure = new List<Vertex>();
+		private readonly IGeographySink110 _sink;
+		private readonly double _tolerance;
+		private bool _insidePolygon;
+		private int _srid;
+		private readonly List<Vertex> _figure = new List<Vertex>();
 
 		public GeographyThinRingFilter(IGeographySink110 sink, double tolerance)
 		{
-			this.sink = sink;
-			this.tolerance = tolerance;
+			_sink = sink;
+			_tolerance = tolerance;
 		}
 
 		public void SetSrid(int srid)
 		{
-			this.srid = srid;
-			sink.SetSrid(srid);
+			_srid = srid;
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
-			sink.BeginGeography(type);
-			insidePolygon = type == OpenGisGeographyType.Polygon;
+			_sink.BeginGeography(type);
+			_insidePolygon = type == OpenGisGeographyType.Polygon;
 		}
 
 		public void EndGeography()
 		{
-			sink.EndGeography();
+			_sink.EndGeography();
 		}
 
 		public void BeginFigure(double latitude, double longitude, double? z, double? m)
 		{
-			if (insidePolygon)
+			if (_insidePolygon)
 			{
-				figure.Clear();
-				figure.Add(new Vertex(latitude, longitude, z, m));
+				_figure.Clear();
+				_figure.Add(new Vertex(latitude, longitude, z, m));
 			}
 			else
 			{
-				sink.BeginFigure(latitude, longitude, z, m);
+				_sink.BeginFigure(latitude, longitude, z, m);
 			}
 		}
 
 		public void AddLine(double latitude, double longitude, double? z, double? m)
 		{
-			if (insidePolygon)
+			if (_insidePolygon)
 			{
-				figure.Add(new Vertex(latitude, longitude, z, m));
+				_figure.Add(new Vertex(latitude, longitude, z, m));
 			}
 			else
 			{
-				sink.AddLine(latitude, longitude, z, m);
+				_sink.AddLine(latitude, longitude, z, m);
 			}
 		}
 
@@ -300,16 +300,16 @@ namespace SQLSpatialTools.Sinks.Geography
 
         public void EndFigure()
 		{
-			if (insidePolygon)
+			if (_insidePolygon)
 			{
 				if (!IsThinRing())
 				{
-					PopulateFigure(sink, false);
+					PopulateFigure(_sink, false);
 				}
 			}
 			else
 			{
-				sink.EndFigure();
+				_sink.EndFigure();
 			}
 		}
 
@@ -327,7 +327,7 @@ namespace SQLSpatialTools.Sinks.Geography
 					return true;
 				}
 			}
-			return poly.STArea().Value < tolerance * poly.STLength().Value;
+			return poly.STArea().Value < _tolerance * poly.STLength().Value;
 		}
 
 		private SqlGeography RingToPolygon(bool reverse)
@@ -335,7 +335,7 @@ namespace SQLSpatialTools.Sinks.Geography
 			try
 			{
 				SqlGeographyBuilder b = new SqlGeographyBuilder();
-				b.SetSrid(srid);
+				b.SetSrid(_srid);
 				b.BeginGeography(OpenGisGeographyType.Polygon);
 				PopulateFigure(b, reverse);
 				b.EndGeography();
@@ -350,15 +350,15 @@ namespace SQLSpatialTools.Sinks.Geography
 		{
 			if (reverse)
 			{
-				figure[figure.Count - 1].BeginFigure(sink);
-				for (int i = figure.Count - 2; i >= 0; i--)
-					figure[i].AddLine(sink);
+				_figure[_figure.Count - 1].BeginFigure(sink);
+				for (int i = _figure.Count - 2; i >= 0; i--)
+					_figure[i].AddLine(sink);
 			}
 			else
 			{
-				figure[0].BeginFigure(sink);
-				for (int i = 1; i < figure.Count; i++)
-					figure[i].AddLine(sink);
+				_figure[0].BeginFigure(sink);
+				for (int i = 1; i < _figure.Count; i++)
+					_figure[i].AddLine(sink);
 			}
 			sink.EndFigure();
 		}

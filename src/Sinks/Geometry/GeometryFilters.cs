@@ -11,51 +11,51 @@ namespace SQLSpatialTools.Sinks.Geometry
 
     public class GeometryEmptyShapeFilter : IGeometrySink110
 	{
-		private IGeometrySink110 m_sink;
-		private Queue<OpenGisGeometryType> m_types = new Queue<OpenGisGeometryType>();
-		private bool m_root = true;
+		private readonly IGeometrySink110 _sink;
+		private readonly Queue<OpenGisGeometryType> _types = new Queue<OpenGisGeometryType>();
+		private bool _root = true;
 
 		public GeometryEmptyShapeFilter(IGeometrySink110 sink)
 		{
-			m_sink = sink;
+			_sink = sink;
 		}
 
 		public void SetSrid(int srid)
 		{
-			m_sink.SetSrid(srid);
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
-			if (m_root)
+			if (_root)
 			{
-				m_root = false;
-				m_sink.BeginGeometry(type);
+				_root = false;
+				_sink.BeginGeometry(type);
 			}
 			else
 			{
-				m_types.Enqueue(type);
+				_types.Enqueue(type);
 			}
 		}
 
 		public void EndGeometry()
 		{
-			if (m_types.Count > 0)
-				m_types.Dequeue();
+			if (_types.Count > 0)
+				_types.Dequeue();
 			else
-				m_sink.EndGeometry();
+				_sink.EndGeometry();
 		}
 
 		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			while (m_types.Count > 0)
-				m_sink.BeginGeometry(m_types.Dequeue());
-			m_sink.BeginFigure(x, y, z, m);
+			while (_types.Count > 0)
+				_sink.BeginGeometry(_types.Dequeue());
+			_sink.BeginFigure(x, y, z, m);
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
 		{
-			m_sink.AddLine(x, y, z, m);
+			_sink.AddLine(x, y, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -65,61 +65,61 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         public void EndFigure()
 		{
-			m_sink.EndFigure();
+			_sink.EndFigure();
 		}
 	}
 
 	public class GeometryPointFilter : IGeometrySink110
 	{
-		private IGeometrySink110 m_sink;
-		private int m_depth;
-		private bool m_root = true;
+		private readonly IGeometrySink110 _sink;
+		private int _depth;
+		private bool _root = true;
 
 		public GeometryPointFilter(IGeometrySink110 sink)
 		{
-			m_sink = sink;
+			_sink = sink;
 		}
 
 		public void SetSrid(int srid)
 		{
-			m_sink.SetSrid(srid);
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
 			if (type == OpenGisGeometryType.Point || type == OpenGisGeometryType.MultiPoint)
 			{
-				if (m_root)
+				if (_root)
 				{
-					m_root = false;
-					m_sink.BeginGeometry(OpenGisGeometryType.GeometryCollection);
-					m_sink.EndGeometry();
+					_root = false;
+					_sink.BeginGeometry(OpenGisGeometryType.GeometryCollection);
+					_sink.EndGeometry();
 				}
-				m_depth++;
+				_depth++;
 			}
 			else
 			{
-				m_sink.BeginGeometry(type);
+				_sink.BeginGeometry(type);
 			}
 		}
 
 		public void EndGeometry()
 		{
-			if (m_depth > 0)
-				m_depth--;
+			if (_depth > 0)
+				_depth--;
 			else
-				m_sink.EndGeometry();
+				_sink.EndGeometry();
 		}
 
 		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			if (m_depth == 0)
-				m_sink.BeginFigure(x, y, z, m);
+			if (_depth == 0)
+				_sink.BeginFigure(x, y, z, m);
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
 		{
-			m_sink.AddLine(x, y, z, m);
+			_sink.AddLine(x, y, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -129,64 +129,64 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         public void EndFigure()
 		{
-			if (m_depth == 0)
-				m_sink.EndFigure();
+			if (_depth == 0)
+				_sink.EndFigure();
 		}
 	}
 
 	public class GeometryShortLineStringFilter : IGeometrySink110
 	{
-		private IGeometrySink110 m_sink;
-		private double m_tolerance;
-		private int m_srid;
-		private bool m_insideLineString;
-		private List<Vertex> m_figure = new List<Vertex>();
+		private readonly IGeometrySink110 _sink;
+		private readonly double _tolerance;
+		private int _srid;
+		private bool _insideLineString;
+		private readonly List<Vertex> _figure = new List<Vertex>();
 
 		public GeometryShortLineStringFilter(IGeometrySink110 sink, double tolerance)
 		{
-			m_sink = sink;
-			m_tolerance = tolerance;
+			_sink = sink;
+			_tolerance = tolerance;
 		}
 
 		public void SetSrid(int srid)
 		{
-			m_srid = srid;
-			m_sink.SetSrid(srid);
+			_srid = srid;
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
-			m_sink.BeginGeometry(type);
-			m_insideLineString = type == OpenGisGeometryType.LineString;
+			_sink.BeginGeometry(type);
+			_insideLineString = type == OpenGisGeometryType.LineString;
 		}
 
 		public void EndGeometry()
 		{
-			m_sink.EndGeometry();
+			_sink.EndGeometry();
 		}
 
 		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			if (m_insideLineString)
+			if (_insideLineString)
 			{
-				m_figure.Clear();
-				m_figure.Add(new Vertex(x, y, z, m));
+				_figure.Clear();
+				_figure.Add(new Vertex(x, y, z, m));
 			}
 			else
 			{
-				m_sink.BeginFigure(x, y, z, m);
+				_sink.BeginFigure(x, y, z, m);
 			}
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
 		{
-			if (m_insideLineString)
+			if (_insideLineString)
 			{
-				m_figure.Add(new Vertex(x, y, z, m));
+				_figure.Add(new Vertex(x, y, z, m));
 			}
 			else
 			{
-				m_sink.AddLine(x, y, z, m);
+				_sink.AddLine(x, y, z, m);
 			}
 		}
 
@@ -197,16 +197,16 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         public void EndFigure()
 		{
-			if (m_insideLineString)
+			if (_insideLineString)
 			{
 				if (!IsShortLineString())
 				{
-					PopulateFigure(m_sink);
+					PopulateFigure(_sink);
 				}
 			}
 			else
 			{
-				m_sink.EndFigure();
+				_sink.EndFigure();
 			}
 		}
 
@@ -215,11 +215,11 @@ namespace SQLSpatialTools.Sinks.Geometry
 			try
 			{ 
 				SqlGeometryBuilder b = new SqlGeometryBuilder();
-				b.SetSrid(m_srid);
+				b.SetSrid(_srid);
 				b.BeginGeometry(OpenGisGeometryType.LineString);
 				PopulateFigure(b);
 				b.EndGeometry();
-				return b.ConstructedGeometry.STLength().Value < m_tolerance;
+				return b.ConstructedGeometry.STLength().Value < _tolerance;
 			}
 			catch (ArgumentException) { }
 			catch (FormatException) { }
@@ -228,66 +228,66 @@ namespace SQLSpatialTools.Sinks.Geometry
 
 		private void PopulateFigure(IGeometrySink110 sink)
 		{
-			m_figure[0].BeginFigure(sink);
-			for (int i = 1; i < m_figure.Count; i++)
-				m_figure[i].AddLine(sink);
+			_figure[0].BeginFigure(sink);
+			for (int i = 1; i < _figure.Count; i++)
+				_figure[i].AddLine(sink);
 			sink.EndFigure();
 		}
 	}
 
 	public class GeometryThinRingFilter : IGeometrySink110
 	{
-		private IGeometrySink110 m_sink;
-		private double m_tolerance;
-		private bool m_insidePolygon;
-		private int m_srid;
-		private List<Vertex> m_figure = new List<Vertex>();
+		private readonly IGeometrySink110 _sink;
+		private readonly double _tolerance;
+		private bool _insidePolygon;
+		private int _srid;
+		private readonly List<Vertex> _figure = new List<Vertex>();
 
 		public GeometryThinRingFilter(IGeometrySink110 sink, double tolerance)
 		{
-			m_sink = sink;
-			m_tolerance = tolerance;
+			_sink = sink;
+			_tolerance = tolerance;
 		}
 
 		public void SetSrid(int srid)
 		{
-			m_srid = srid;
-			m_sink.SetSrid(srid);
+			_srid = srid;
+			_sink.SetSrid(srid);
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
-			m_sink.BeginGeometry(type);
-			m_insidePolygon = type == OpenGisGeometryType.Polygon;
+			_sink.BeginGeometry(type);
+			_insidePolygon = type == OpenGisGeometryType.Polygon;
 		}
 
 		public void EndGeometry()
 		{
-			m_sink.EndGeometry();
+			_sink.EndGeometry();
 		}
 
 		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			if (m_insidePolygon)
+			if (_insidePolygon)
 			{
-				m_figure.Clear();
-				m_figure.Add(new Vertex(x, y, z, m));
+				_figure.Clear();
+				_figure.Add(new Vertex(x, y, z, m));
 			}
 			else
 			{
-				m_sink.BeginFigure(x, y, z, m);
+				_sink.BeginFigure(x, y, z, m);
 			}
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
 		{
-			if (m_insidePolygon)
+			if (_insidePolygon)
 			{
-				m_figure.Add(new Vertex(x, y, z, m));
+				_figure.Add(new Vertex(x, y, z, m));
 			}
 			else
 			{
-				m_sink.AddLine(x, y, z, m);
+				_sink.AddLine(x, y, z, m);
 			}
 		}
 
@@ -298,16 +298,16 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         public void EndFigure()
 		{
-			if (m_insidePolygon)
+			if (_insidePolygon)
 			{
 				if (!IsThinRing())
 				{
-					PopulateFigure(m_sink);
+					PopulateFigure(_sink);
 				}
 			}
 			else
 			{
-				m_sink.EndFigure();
+				_sink.EndFigure();
 			}
 		}
 
@@ -315,13 +315,13 @@ namespace SQLSpatialTools.Sinks.Geometry
 		{
 			try
 			{
-				SqlGeometryBuilder b = new SqlGeometryBuilder();
-				b.SetSrid(m_srid);
-				b.BeginGeometry(OpenGisGeometryType.Polygon);
-				PopulateFigure(b);
-				b.EndGeometry();
-				SqlGeometry poly = b.ConstructedGeometry.MakeValid();
-				return poly.STArea().Value < m_tolerance * poly.STLength().Value;
+				var builder = new SqlGeometryBuilder();
+				builder.SetSrid(_srid);
+				builder.BeginGeometry(OpenGisGeometryType.Polygon);
+				PopulateFigure(builder);
+				builder.EndGeometry();
+				var poly = builder.ConstructedGeometry.MakeValid();
+				return poly.STArea().Value < _tolerance * poly.STLength().Value;
 			}
 			catch (ArgumentException) { }
 			catch (FormatException) { }
@@ -330,9 +330,9 @@ namespace SQLSpatialTools.Sinks.Geometry
 
 		private void PopulateFigure(IGeometrySink110 sink)
 		{
-			m_figure[0].BeginFigure(sink);
-			for (int i = 1; i < m_figure.Count; i++)
-				m_figure[i].AddLine(sink);
+			_figure[0].BeginFigure(sink);
+			for (int i = 1; i < _figure.Count; i++)
+				_figure[i].AddLine(sink);
 			sink.EndFigure();
 		}
 	}

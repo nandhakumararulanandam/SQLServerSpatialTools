@@ -11,9 +11,9 @@ namespace SQLSpatialTools.Projections
 {
 	internal static class MathX
 	{
-		public static readonly double Tolerance = 1e-14;
+        public const double Tolerance = 1e-14;
 
-		public static double Atan2(double y, double x, string name)
+        public static double Atan2(double y, double x, string name)
 		{
 			if (Math.Abs(y) <= Tolerance && Math.Abs(x) <= Tolerance)
 			{
@@ -24,8 +24,8 @@ namespace SQLSpatialTools.Projections
 
 		public static double Atan2(double y, double x)
 		{
-			double a = Math.Atan2(y, x);
-			return a == Math.PI ? -Math.PI : a;
+			var a = Math.Atan2(y, x);
+			return a.EqualsTo(Math.PI) ? - Math.PI : a;
 		}
 
 		public static double Clamp(double limit, double a)
@@ -39,18 +39,18 @@ namespace SQLSpatialTools.Projections
 
 		public static double InputLat(double latDeg, double max, string name)
 		{
-			if (Double.IsNaN(latDeg) || latDeg < -max || latDeg > max)
+			if (double.IsNaN(latDeg) || latDeg < -max || latDeg > max)
 			{
-				throw new ArgumentOutOfRangeException(name, String.Format(CultureInfo.InvariantCulture, Resource.InputLatitudeIsOutOfRange, latDeg, max));
+				throw new ArgumentOutOfRangeException(name, string.Format(CultureInfo.InvariantCulture, Resource.InputLatitudeIsOutOfRange, latDeg, max));
 			}
 			return Clamp(Math.PI / 2, Util.ToRadians(latDeg));
 		}
 
 		public static double InputLong(double longDeg, double max, string name)
 		{
-			if (Double.IsNaN(longDeg) || longDeg < -max || longDeg > max)
+			if (double.IsNaN(longDeg) || longDeg < -max || longDeg > max)
 			{
-				throw new ArgumentOutOfRangeException("longitude", String.Format(CultureInfo.InvariantCulture, Resource.InputLongitudeIsOutOfRange, longDeg, max));
+				throw new ArgumentOutOfRangeException(nameof(longDeg), string.Format(CultureInfo.InvariantCulture, Resource.InputLongitudeIsOutOfRange, longDeg, max));
 			}
 			return NormalizeLongitudeRad(Util.ToRadians(longDeg));
 		}

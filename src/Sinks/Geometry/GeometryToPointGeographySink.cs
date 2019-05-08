@@ -11,39 +11,39 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// </summary>
     public sealed class GeometryToPointGeographySink : IGeometrySink110
 	{
-		private readonly IGeographySink110 sink;
-		private int count;
+		private readonly IGeographySink110 _sink;
+		private int _count;
 
 		public GeometryToPointGeographySink(IGeographySink110 sink)
 		{
-			this.sink = sink;
-			count = 0;
+			_sink = sink;
+			_count = 0;
 		}
 
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
-			if (count == 0)
+			if (_count == 0)
 			{
-				sink.BeginGeography(OpenGisGeographyType.MultiPoint);
+				_sink.BeginGeography(OpenGisGeographyType.MultiPoint);
 			}
-			count++;
+			_count++;
 		}
 
 		public void EndGeometry()
 		{
-			count--;
-			if (count == 0)
+			_count--;
+			if (_count == 0)
 			{
-				sink.EndGeography();
+				_sink.EndGeography();
 			}
 		}
 
 		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			sink.BeginGeography(OpenGisGeographyType.Point);
-			sink.BeginFigure(y, x, z, m);
-			sink.EndFigure();
-			sink.EndGeography();
+			_sink.BeginGeography(OpenGisGeographyType.Point);
+			_sink.BeginFigure(y, x, z, m);
+			_sink.EndFigure();
+			_sink.EndGeography();
 		}
 
 		public void AddLine(double x, double y, double? z, double? m)
@@ -63,7 +63,7 @@ namespace SQLSpatialTools.Sinks.Geometry
 
 		public void SetSrid(int srid)
 		{
-			sink.SetSrid(srid);
+			_sink.SetSrid(srid);
 		}
 	}
 }

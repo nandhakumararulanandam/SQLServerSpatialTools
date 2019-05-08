@@ -52,16 +52,16 @@ namespace SQLSpatialTools.Aggregates
 
 		public void Init()
 		{
-			minX = minY = Double.PositiveInfinity;
-			maxX = maxY = Double.NegativeInfinity;
+			minX = minY = double.PositiveInfinity;
+			maxX = maxY = double.NegativeInfinity;
 			lastSrid = -1;
 			failed = false;
 		}
 
 		public void Accumulate(SqlGeometry geometry)
-		{
-			if (geometry != null) geometry.Populate(this);
-		}
+        {
+            geometry?.Populate(this);
+        }
 
 		public void Merge(GeometryEnvelopeAggregate group)
 		{
@@ -82,17 +82,17 @@ namespace SQLSpatialTools.Aggregates
 		{
 			if (failed) return SqlGeometry.Null;
 
-			SqlGeometryBuilder b = new SqlGeometryBuilder();
-			b.SetSrid(lastSrid);
-			b.BeginGeometry(OpenGisGeometryType.Polygon);
-			b.BeginFigure(minX, minY);
-			b.AddLine(maxX, minY);
-			b.AddLine(maxX, maxY);
-			b.AddLine(minX, maxY);
-			b.AddLine(minX, minY);
-			b.EndFigure();
-			b.EndGeometry();
-			return b.ConstructedGeometry;
+			var builder = new SqlGeometryBuilder();
+			builder.SetSrid(lastSrid);
+			builder.BeginGeometry(OpenGisGeometryType.Polygon);
+			builder.BeginFigure(minX, minY);
+			builder.AddLine(maxX, minY);
+			builder.AddLine(maxX, maxY);
+			builder.AddLine(minX, maxY);
+			builder.AddLine(minX, minY);
+			builder.EndFigure();
+			builder.EndGeometry();
+			return builder.ConstructedGeometry;
 		}
 
 		private void IncludePoint(double x, double y)

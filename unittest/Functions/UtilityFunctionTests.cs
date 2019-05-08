@@ -2,7 +2,7 @@
 using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools.Tests
+namespace SQLSpatialTools.UnitTests.Functions
 {
     [TestClass]
     public class UtilityFunctionTests : BaseUnitTest

@@ -8,8 +8,8 @@
     <ProjectGuid>{5FCDB549-1B10-4115-9A3F-AA55584FEA23}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UnitTestSpatialTools</RootNamespace>
-    <AssemblyName>UnitTestSpatialTools</AssemblyName>
+    <RootNamespace>SQLSpatialTools.UnitTests</RootNamespace>
+    <AssemblyName>SQLSpatialTools.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -91,6 +91,7 @@
   </Target>
   <Import Project="..\packages\MSTest.TestAdapter.1.4.0\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.1.4.0\build\net45\MSTest.TestAdapter.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q</PostBuildEvent>
+    <PostBuildEvent>if exist "$(ProjectDir)obj" rd "$(ProjectDir)obj" /S /Q
+exit 0</PostBuildEvent>
   </PropertyGroup>
 </Project>

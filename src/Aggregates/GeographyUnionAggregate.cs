@@ -42,7 +42,7 @@ namespace SQLSpatialTools.Aggregates
 
 		public SqlGeography Terminate()
 		{
-			SqlGeography g = aggregate.Terminate();
+			var g = aggregate.Terminate();
 
 			if (g.IsNull || g.STIsEmpty().Value)
 				return g;
@@ -217,26 +217,26 @@ namespace SQLSpatialTools.Aggregates
 
 	internal class StripSRID : IGeographySink110
 	{
-		private readonly IGeographySink110 m_sink;
+		private readonly IGeographySink110 _sink;
 
 		public StripSRID(IGeographySink110 sink)
 		{
-			m_sink = sink;
+			_sink = sink;
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
-			m_sink.BeginGeography(type);
+			_sink.BeginGeography(type);
 		}
 
 		public void BeginFigure(double latitude, double longitude, double? z, double? m)
 		{
-			m_sink.BeginFigure(latitude, longitude, z, m);
+			_sink.BeginFigure(latitude, longitude, z, m);
 		}
 
 		public void AddLine(double latitude, double longitude, double? z, double? m)
 		{
-			m_sink.AddLine(latitude, longitude, z, m);
+			_sink.AddLine(latitude, longitude, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -246,12 +246,12 @@ namespace SQLSpatialTools.Aggregates
 
         public void EndFigure()
 		{
-			m_sink.EndFigure();
+			_sink.EndFigure();
 		}
 
 		public void EndGeography()
 		{
-			m_sink.EndGeography();
+			_sink.EndGeography();
 		}
 
 		public void SetSrid(int srid) { }
@@ -259,35 +259,35 @@ namespace SQLSpatialTools.Aggregates
 
 	internal class StripCollection : IGeographySink110
 	{
-		private readonly IGeographySink110 m_sink;
-		private int m_depth;
+		private readonly IGeographySink110 _sink;
+		private int _depth;
 
 		public StripCollection(IGeographySink110 sink)
 		{
-			m_sink = sink;
+			_sink = sink;
 		}
 
 		public void BeginGeography(OpenGisGeographyType type)
 		{
-			if (m_depth > 0)
+			if (_depth > 0)
 			{
-				m_sink.BeginGeography(type);
+				_sink.BeginGeography(type);
 			}
 			else
 			{
 				Debug.Assert(OpenGisGeographyType.GeometryCollection == type);
 			}
-			m_depth += 1;
+			_depth += 1;
 		}
 
 		public void BeginFigure(double latitude, double longitude, double? z, double? m)
 		{
-			m_sink.BeginFigure(latitude, longitude, z, m);
+			_sink.BeginFigure(latitude, longitude, z, m);
 		}
 
 		public void AddLine(double latitude, double longitude, double? z, double? m)
 		{
-			m_sink.AddLine(latitude, longitude, z, m);
+			_sink.AddLine(latitude, longitude, z, m);
 		}
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -297,13 +297,13 @@ namespace SQLSpatialTools.Aggregates
 
         public void EndFigure()
 		{
-			m_sink.EndFigure();
+			_sink.EndFigure();
 		}
 
 		public void EndGeography()
 		{
-			m_depth -= 1;
-			if (m_depth > 0) m_sink.EndGeography();
+			_depth -= 1;
+			if (_depth > 0) _sink.EndGeography();
 		}
 
 		public void SetSrid(int srid)

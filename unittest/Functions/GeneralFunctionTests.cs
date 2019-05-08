@@ -1,11 +1,10 @@
 ﻿using System;
-using Microsoft.SqlServer.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.General;
 using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
 
-namespace SQLSpatialTools.Tests
+namespace SQLSpatialTools.UnitTests.Functions
 {
     public class GeneralFunctionTests
     {
@@ -19,15 +18,15 @@ namespace SQLSpatialTools.Tests
 
                 // Empty line and point should be removed
                 // short line should be removed - tolerance length
-                var shortLinetolerance = 5;
+                var shortLineTolerance = 5;
                 // Polygon inner ring with area < tolerance * polygon length
                 var polygonAreaTolerance = 1.5;
 
                 Logger.LogLine("Input Geometry: {0}", geom);
                 Logger.Log("Filtering input geometry; removing empty line string");
-                Logger.Log("points, short line of tolerance: {0}, Polygon with inner ring area tolerance: {1}", shortLinetolerance, polygonAreaTolerance);
+                Logger.Log("points, short line of tolerance: {0}, Polygon with inner ring area tolerance: {1}", shortLineTolerance, polygonAreaTolerance);
                 var expectedGeom = "GEOMETRYCOLLECTION EMPTY".GetGeom();
-                var filteredGeom = Geometry.FilterArtifactsGeometry(geom, true, true, shortLinetolerance, polygonAreaTolerance);
+                var filteredGeom = Geometry.FilterArtifactsGeometry(geom, true, true, shortLineTolerance, polygonAreaTolerance);
                 Logger.Log("Expected converted geom: {0}", expectedGeom);
                 Logger.Log("Obtained converted geom: {0}", filteredGeom);
                 SqlAssert.IsTrue(filteredGeom.STEquals(expectedGeom));
@@ -36,12 +35,11 @@ namespace SQLSpatialTools.Tests
             [TestMethod]
             public void GeomFromXYMTextTest()
             {
-                SqlGeometry convertedGeom;
                 var geomWKT = "LINESTRING (0 0 3 4, 10 0 3 4)";
                 Logger.LogLine("Converting input Geom with 3 dimension and measure : {0}", geomWKT);
                 try
                 {
-                    convertedGeom = Geometry.GeomFromXYMText(geomWKT, Constants.DefaultSRID);
+                    Geometry.GeomFromXYMText(geomWKT, Constants.DefaultSRID);
                 }
                 catch (ArgumentException e)
                 {
@@ -52,7 +50,7 @@ namespace SQLSpatialTools.Tests
                 geomWKT = "LINESTRING (0 0 3, 10 0 4)";
                 Logger.LogLine("Converting input Geom with 3 dimension and measure : {0}", geomWKT);
                 var expectedGeom = "LINESTRING(0 0 NULL 3, 10 0 NULL 4)".GetGeom();
-                convertedGeom = Geometry.GeomFromXYMText(geomWKT, Constants.DefaultSRID);
+                var convertedGeom = Geometry.GeomFromXYMText(geomWKT, Constants.DefaultSRID);
                 Logger.Log("Expected converted geom: {0}", expectedGeom);
                 Logger.Log("Obtained converted geom: {0}", convertedGeom);
                 SqlAssert.IsTrue(convertedGeom.STEquals(expectedGeom));
@@ -64,13 +62,13 @@ namespace SQLSpatialTools.Tests
                 var geom1 = "POINT(0 0 0 0)".GetGeom();
                 var geom2 = "POINT(10 0 0 10)".GetGeom();
                 var returnPoint = "POINT (5 0 NULL 5)".GetGeom();
-                var distance = 5;
+                const int distance = 5;
                 Logger.LogLine("Input Point 1:{0} Point 2:{1}", geom1, geom2);
                 Logger.Log("Interpolating at a distance of {0}", geom1, geom2, distance);
                 Logger.LogLine("Expected Point: {0}", returnPoint);
-                var sqlgeom = Geometry.InterpolateBetweenGeom(geom1, geom2, distance);
-                Logger.Log("Obtained Point: {0}", sqlgeom.ToString());
-                SqlAssert.IsTrue(sqlgeom.STEquals(returnPoint));
+                var sqlGeometry = Geometry.InterpolateBetweenGeom(geom1, geom2, distance);
+                Logger.Log("Obtained Point: {0}", sqlGeometry.ToString());
+                SqlAssert.IsTrue(sqlGeometry.STEquals(returnPoint));
             }
 
             [TestMethod]
@@ -228,15 +226,15 @@ namespace SQLSpatialTools.Tests
 
                 // Empty line and point should be removed
                 // short line should be removed - tolerance length
-                double shortLinetolerance = 500000.0F;
+                const double shortLineTolerance = 500000.0F;
                 // Polygon inner ring with area < tolerance * polygon length
-                double polygonAreaTolerance = 150000.0F;
+                const double polygonAreaTolerance = 150000.0F;
 
                 Logger.LogLine("Input Geography: {0}", geog);
                 Logger.Log("Filtering input geometry; removing empty line string");
-                Logger.Log("points, short line of tolerance: {0}, Polygon with inner ring area tolerance: {1}", shortLinetolerance, polygonAreaTolerance);
+                Logger.Log("points, short line of tolerance: {0}, Polygon with inner ring area tolerance: {1}", shortLineTolerance, polygonAreaTolerance);
                 var expectedGeog = "GEOMETRYCOLLECTION EMPTY".GetGeog();
-                var filteredGeog = Geography.FilterArtifactsGeography(geog, true, true, shortLinetolerance, polygonAreaTolerance);
+                var filteredGeog = Geography.FilterArtifactsGeography(geog, true, true, shortLineTolerance, polygonAreaTolerance);
                 Logger.Log("Expected converted geog: {0}", expectedGeog);
                 Logger.Log("Obtained converted geog: {0}", filteredGeog);
                 SqlAssert.IsTrue(filteredGeog.STEquals(expectedGeog));
@@ -248,13 +246,13 @@ namespace SQLSpatialTools.Tests
                 var geog1 = "POINT(0 0 0 0)".GetGeog();
                 var geog2 = "POINT(10 0 0 10)".GetGeog();
                 var returnPoint = "POINT (4.7441999536520428E-05 0)".GetGeog();
-                var distance = 5;
+                const int distance = 5;
                 Logger.LogLine("Input Point 1:{0} Point 2:{1}", geog1, geog2);
                 Logger.Log("Interpolating at a distance of {0}", geog1, geog2, distance);
                 Logger.LogLine("Expected Point: {0}", returnPoint);
-                var sqlgeog = Geography.InterpolateBetweenGeog(geog1, geog2, distance);
-                Logger.Log("Obtained Point: {0}", sqlgeog.ToString());
-                SqlAssert.IsTrue(sqlgeog.STEquals(returnPoint));
+                var sqlGeography = Geography.InterpolateBetweenGeog(geog1, geog2, distance);
+                Logger.Log("Obtained Point: {0}", sqlGeography.ToString());
+                SqlAssert.IsTrue(sqlGeography.STEquals(returnPoint));
             }
 
             [TestMethod]

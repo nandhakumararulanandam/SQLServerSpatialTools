@@ -9,11 +9,11 @@ namespace SQLSpatialTools.Sinks.Geometry
     /// <summary>
     /// This class implements a geometry sink that builds Multiline from Line String
     /// </summary>
-    class BuildMultiLineFromLinesSink : IGeometrySink110
+    internal class BuildMultiLineFromLinesSink : IGeometrySink110
     {
-        SqlGeometryBuilder target;
-        bool isFirstPoint;
-        int linesCount;
+        private readonly SqlGeometryBuilder _target;
+        private bool _isFirstPoint;
+        private int _linesCount;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildMultiLineFromLinesSink"/> class.
@@ -22,14 +22,14 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// <param name="linesCount">The lines count.</param>
         public BuildMultiLineFromLinesSink(SqlGeometryBuilder target, int linesCount)
         {
-            this.target = target;
-            this.linesCount = linesCount;
-            isFirstPoint = true;
+            _target = target;
+            _linesCount = linesCount;
+            _isFirstPoint = true;
         }
 
         public void SetSrid(int srid)
         {
-            target.SetSrid(srid);
+            _target.SetSrid(srid);
         }
 
         // Start the geometry.
@@ -41,23 +41,23 @@ namespace SQLSpatialTools.Sinks.Geometry
             if (type != OpenGisGeometryType.LineString)
                 SpatialExtensions.ThrowException(ErrorMessage.LineStringCompatible);
 
-            if (isFirstPoint)
+            if (_isFirstPoint)
             {
-                isFirstPoint = false;
-                target.BeginGeometry(OpenGisGeometryType.MultiLineString);
+                _isFirstPoint = false;
+                _target.BeginGeometry(OpenGisGeometryType.MultiLineString);
             }
-            target.BeginGeometry(type);
-            linesCount--;
+            _target.BeginGeometry(type);
+            _linesCount--;
         }
 
         public void BeginFigure(double x, double y, double? z, double? m)
         {
-            target.BeginFigure(x, y, z, m);
+            _target.BeginFigure(x, y, z, m);
         }
 
         public void AddLine(double x, double y, double? z, double? m)
         {
-            target.AddLine(x, y, z, m);
+            _target.AddLine(x, y, z, m);
         }
 
         public void AddCircularArc(double x1, double y1, double? z1, double? m1, double x2, double y2, double? z2, double? m2)
@@ -67,16 +67,16 @@ namespace SQLSpatialTools.Sinks.Geometry
 
         public void EndFigure()
         {
-            target.EndFigure();
+            _target.EndFigure();
         }
 
         public void EndGeometry()
         {
-            target.EndGeometry();
+            _target.EndGeometry();
 
             // end of multi line
-            if (linesCount == 0)
-                target.EndGeometry();
+            if (_linesCount == 0)
+                _target.EndGeometry();
         }
     }
 }

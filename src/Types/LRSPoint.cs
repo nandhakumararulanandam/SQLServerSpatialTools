@@ -13,16 +13,19 @@ namespace SQLSpatialTools.Types
     internal class LRSPoint
     {
         // Fields.
-        private string wkt;
-        internal double X, Y;
+        private string _wkt;
+        internal readonly double X;
+        internal readonly double Y;
         internal double? Z, M;
-        internal int SRID;
+        private readonly int _srid;
         internal double? Slope;
+        private double _angle;
+        internal SlopeValue SlopeType;
 
         internal double? OffsetBearing;
-        internal double OffsetAngle;
+        private double _offsetAngle;
         internal double OffsetDistance;
-        internal int Id { get; set; }
+        internal int Id { private get; set; }
 
         #region Constructors
 
@@ -39,8 +42,8 @@ namespace SQLSpatialTools.Types
             X = x;
             Y = y;
             Z = m.HasValue ? z : null;
-            M = m.HasValue ? m : z;
-            SRID = srid;
+            M = m ?? z;
+            _srid = srid;
         }
 
         /// <summary>
@@ -49,14 +52,15 @@ namespace SQLSpatialTools.Types
         /// <param name="sqlGeometry">The SQL geometry.</param>
         internal LRSPoint(SqlGeometry sqlGeometry)
         {
-            if (sqlGeometry == null || sqlGeometry.STIsEmpty() || !sqlGeometry.IsPoint())
+            if (sqlGeometry.IsNullOrEmpty() || !sqlGeometry.IsPoint())
                 return;
 
+            if (sqlGeometry == null) return;
             X = sqlGeometry.STX.Value;
             Y = sqlGeometry.STY.Value;
             Z = sqlGeometry.HasZ ? sqlGeometry.Z.Value : (double?)null;
             M = sqlGeometry.HasM ? sqlGeometry.M.Value : (double?)null;
-            SRID = (int)sqlGeometry.STSrid;
+            _srid = (int)sqlGeometry.STSrid;
         }
 
         #endregion
@@ -88,7 +92,7 @@ namespace SQLSpatialTools.Types
         /// <returns>Offset Point.</returns>
         internal double GetDistance(LRSPoint nextPoint)
         {
-            return Math.Sqrt(Math.Pow(nextPoint.X - X, 2) + Math.Pow(nextPoint.Y - Y, 2));
+            return SpatialExtensions.GetDistance(X, Y, nextPoint.X, nextPoint.Y);
         }
 
         /// <summary>
@@ -108,6 +112,7 @@ namespace SQLSpatialTools.Types
         /// Re calculate the measure.
         /// </summary>
         /// <param name="previousPoint">The previous point.</param>
+        /// <param name="currentLength"></param>
         /// <param name="totalLength">The total length.</param>
         /// <param name="startMeasure">The start measure.</param>
         /// <param name="endMeasure">The end measure.</param>
@@ -123,7 +128,7 @@ namespace SQLSpatialTools.Types
         /// <param name="points">The points.</param>
         /// <param name="currentPoint">The current point.</param>
         /// <returns></returns>
-        internal LRSPoint GetPreviousPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
+        private static LRSPoint GetPreviousPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
         {
             var index = points.FindIndex(e => e.Id == currentPoint.Id);
             if (index > 0 && index < points.Count)
@@ -137,7 +142,7 @@ namespace SQLSpatialTools.Types
         /// <param name="points">The points.</param>
         /// <param name="currentPoint">The current point.</param>
         /// <returns></returns>
-        internal LRSPoint GetNextPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
+        private static LRSPoint GetNextPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
         {
             var index = points.FindIndex(e => e.Id == currentPoint.Id);
             if (index > 0 && index < points.Count)
@@ -157,7 +162,7 @@ namespace SQLSpatialTools.Types
         /// <returns>The result of the operator.</returns>
         public static LRSPoint operator -(LRSPoint a, LRSPoint b)
         {
-            return new LRSPoint(b.X - a.X, b.Y - a.Y, null, null, a.SRID);
+            return new LRSPoint(b.X - a.X, b.Y - a.Y, null, null, a._srid);
         }
 
         /// <summary>
@@ -166,13 +171,14 @@ namespace SQLSpatialTools.Types
         /// <param name="a">LRS Point 1.</param>
         /// <param name="b">LRS Point 2.</param>
         /// <returns>The result of the operator.</returns>
+
         public static bool operator ==(LRSPoint a, LRSPoint b)
         {
             if (ReferenceEquals(b, null) && ReferenceEquals(a, null))
                 return true;
             if (ReferenceEquals(b, null) || ReferenceEquals(a, null))
                 return false;
-            return a.X == b.X && a.Y == b.Y && EqualityComparer<double?>.Default.Equals(a.M, b.M);
+            return a.X.EqualsTo(b.X) && a.Y.EqualsTo(b.Y) && EqualityComparer<double?>.Default.Equals(a.M, b.M);
         }
 
         /// <summary>
@@ -197,8 +203,8 @@ namespace SQLSpatialTools.Types
         {
             var point = obj as LRSPoint;
             return point != null &&
-                   X == point.X &&
-                   Y == point.Y &&
+                   X.EqualsTo(point.X) &&
+                   Y.EqualsTo(point.Y) &&
                    EqualityComparer<double?>.Default.Equals(M, point.M);
         }
 
@@ -208,6 +214,7 @@ namespace SQLSpatialTools.Types
         /// <returns>
         /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
         /// </returns>
+        // ReSharper disable NonReadonlyMemberInGetHashCode
         public override int GetHashCode()
         {
             var hashCode = -1911090832;
@@ -217,6 +224,7 @@ namespace SQLSpatialTools.Types
             hashCode = hashCode * -1521134295 + EqualityComparer<double?>.Default.GetHashCode(M);
             return hashCode;
         }
+        // ReSharper restore NonReadonlyMemberInGetHashCode
 
         #endregion
 
@@ -230,12 +238,12 @@ namespace SQLSpatialTools.Types
         /// </returns>
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(wkt))
-                return wkt;
+            if (!string.IsNullOrEmpty(_wkt))
+                return _wkt;
 
-            wkt = string.Format("POINT ({0} {1} {2})", X, Y, M);
+            _wkt = $"POINT ({X} {Y} {M})";
 
-            return wkt;
+            return _wkt;
         }
 
         /// <summary>
@@ -255,7 +263,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal SqlGeometry ToSqlGeometry(ref SqlGeometryBuilder geometryBuilder)
         {
-            geometryBuilder.SetSrid(SRID);
+            geometryBuilder.SetSrid(_srid);
             geometryBuilder.BeginGeometry(OpenGisGeometryType.Point);
             geometryBuilder.BeginFigure(X, Y, Z, M);
             geometryBuilder.EndFigure();
@@ -272,7 +280,7 @@ namespace SQLSpatialTools.Types
         /// </summary>
         /// <param name="nextPoint">The next point.</param>
         /// <returns>Offset Point.</returns>
-        internal LRSPoint GetOffsetPoint(LRSPoint nextPoint)
+        private LRSPoint GetOffsetPoint(LRSPoint nextPoint)
         {
             return this - nextPoint;
         }
@@ -282,7 +290,7 @@ namespace SQLSpatialTools.Types
         /// </summary>
         /// <param name="nextPoint">The next point.</param>
         /// <returns></returns>
-        internal double GetAtan(LRSPoint nextPoint)
+        private double GetAtan(LRSPoint nextPoint)
         {
             var offsetPoint = GetOffsetPoint(nextPoint);
             return Math.Atan2(offsetPoint.Y, offsetPoint.X);
@@ -295,7 +303,17 @@ namespace SQLSpatialTools.Types
         internal void SetOffsetBearing(LRSPoint nextPoint)
         {
             if (nextPoint != null)
-                OffsetBearing = (90 - Util.ToDegrees(GetAtan(nextPoint)) + 360) % 360;
+                OffsetBearing = CalculateOffsetBearing(nextPoint);
+        }
+
+        /// <summary>
+        /// Calculates the offset bearing.
+        /// </summary>
+        /// <param name="nextPoint">The next point.</param>
+        private double CalculateOffsetBearing(LRSPoint nextPoint)
+        {
+            _angle = Util.ToDegrees(GetAtan(nextPoint));
+            return (90 - _angle + 360) % 360;
         }
 
         /// <summary>
@@ -305,7 +323,17 @@ namespace SQLSpatialTools.Types
         /// <param name="progress">The Linear Measure Progress.</param>
         internal void SetOffsetAngle(LRSPoint previousPoint, LinearMeasureProgress progress)
         {
-            double offsetAngle;
+            _offsetAngle = CalculateOffsetAngle(previousPoint, progress);
+        }
+
+        /// <summary>
+        /// Calculates the offset angle.
+        /// </summary>
+        /// <param name="previousPoint">The current point.</param>
+        /// <param name="progress">The Linear Measure Progress.</param>
+        private double CalculateOffsetAngle(LRSPoint previousPoint, LinearMeasureProgress progress)
+        {
+            double offsetAngle = 0;
 
             var previousPointOffsetBearing = previousPoint?.OffsetBearing;
 
@@ -313,7 +341,9 @@ namespace SQLSpatialTools.Types
             if (progress == LinearMeasureProgress.Increasing)
             {
                 if (OffsetBearing == null)
-                    offsetAngle = (double)previousPointOffsetBearing - 90;
+                {
+                    if (previousPointOffsetBearing != null) offsetAngle = (double) previousPointOffsetBearing - 90;
+                }
                 else if (previousPointOffsetBearing == null)
                     offsetAngle = (double)OffsetBearing - 90;
                 else
@@ -325,7 +355,9 @@ namespace SQLSpatialTools.Types
             {
 
                 if (OffsetBearing == null)
-                    offsetAngle = (double)previousPointOffsetBearing + 90;
+                {
+                    if (previousPointOffsetBearing != null) offsetAngle = (double) previousPointOffsetBearing + 90;
+                }
                 else if (previousPointOffsetBearing == null)
                     offsetAngle = (double)OffsetBearing + 90;
                 else
@@ -333,7 +365,7 @@ namespace SQLSpatialTools.Types
                     offsetAngle = ((double)OffsetBearing + (((((double)previousPointOffsetBearing + 180) - (double)OffsetBearing)) / 2)) % 360;
             }
 
-            OffsetAngle = offsetAngle;
+            return offsetAngle;
         }
 
         /// <summary>
@@ -342,30 +374,46 @@ namespace SQLSpatialTools.Types
         /// <param name="offset">The offset.</param>
         internal void SetOffsetDistance(double offset)
         {
-            double offsetBearing = OffsetBearing != null ? OffsetBearing.Value : default(double);
+            var offsetBearing = OffsetBearing ?? default(double);
             // offset / (SIN(RADIANS(((OffsetBearing - OffsetAngleLeft) + 360) % 360)))
-            OffsetDistance = offset / (Math.Sin(Util.ToRadians(((offsetBearing - OffsetAngle) + 360) % 360)));
+            OffsetDistance = CalculateOffsetDistance(offset, offsetBearing, _offsetAngle);
+        }
+
+        /// <summary>
+        /// Calculates the offset distance.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        /// <param name="offsetBearing"></param>
+        /// <param name="offsetAngle"></param>
+        private static double CalculateOffsetDistance(double offset, double offsetBearing, double offsetAngle)
+        {
+            // offset / (SIN(RADIANS(((OffsetBearing - OffsetAngleLeft) + 360) % 360)))
+            return offset / (Math.Sin(Util.ToRadians(((offsetBearing - offsetAngle) + 360) % 360)));
         }
 
         /// <summary>
         /// Gets the parallel point.
         /// </summary>
-        /// <param name="offset">The offset value.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="progress"></param>
+        /// <param name="points">The points.</param>
+        /// <param name="tolerance"></param>
         /// <returns>Point parallel to the current point.</returns>
-        internal List<LRSPoint> GetParallelPoint(double offset, ref List<LRSPoint> points)
+        // ReSharper disable once UnusedMember.Global
+        internal List<LRSPoint> GetParallelPoint(double offset, double tolerance, LinearMeasureProgress progress, ref List<LRSPoint> points)
         {
             var lrsPoints = new List<LRSPoint>();
 
             // first equation
-            var newX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - OffsetAngle)));
-            var newY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - OffsetAngle)));
+            var newX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - _offsetAngle)));
+            var newY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - _offsetAngle)));
 
             lrsPoints.Add(new LRSPoint(
                 newX,
                 newY,
                 null,
                 M,
-                SRID
+                _srid
                 ));
 
             return lrsPoints;
@@ -375,75 +423,77 @@ namespace SQLSpatialTools.Types
         /// Compute and populate parallel points on bend lines.
         /// </summary>
         /// <param name="offset">The offset.</param>
+        /// <param name="progress"></param>
         /// <param name="points">The points.</param>
-        /// <returns></returns>
-        internal List<LRSPoint> GetAndPopulateParallelPointsOnBendLines(double offset, ref List<LRSPoint> points)
+        /// <param name="tolerance"></param>
+        /// <returns>Point parallel to the current point.</returns>
+        internal List<LRSPoint> GetAndPopulateParallelPointsOnBendLines(double offset, double tolerance, LinearMeasureProgress progress, ref List<LRSPoint> points)
         {
             var lrsPoints = new List<LRSPoint>();
 
             // first equation
-            var newX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - OffsetAngle)));
-            var newY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - OffsetAngle)));
+            var parallelX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - _offsetAngle)));
+            var parallelY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - _offsetAngle)));
+            var parallelPoint = new LRSPoint(parallelX, parallelY, null, M, _srid);
 
-            if (OffsetDistance == offset || OffsetAngle == 0)
+            var diffInDistance = Math.Round(parallelPoint.GetDistance(this), 5);
+
+            var angleToCompare = progress == LinearMeasureProgress.Increasing ? _angle - 90 : _angle + 90;
+            var isAcuteAngle = angleToCompare < 90;
+
+            //var doComputePoint = isNegative ? OffsetDistance >= offset : OffsetDistance <= offset;
+
+            if (diffInDistance.EqualsTo(offset) || isAcuteAngle)
             {
                 lrsPoints.Add(new LRSPoint(
-                    newX,
-                    newY,
+                    parallelX,
+                    parallelY,
                     null,
                     M,
-                    SRID
+                    _srid
                     ));
             }
             else
             {
                 var previousPoint = GetPreviousPoint(ref points, this);
+                var prevRadians = Util.ToRadians(90 - previousPoint._offsetAngle);
+
                 var nextPoint = GetNextPoint(ref points, this);
+                var nextRadians = Util.ToRadians(90 - nextPoint._offsetAngle);
 
                 // first point
-                var firstPointX = X + (offset * Math.Cos(Util.ToRadians(90 - previousPoint.OffsetAngle)));
-                var firstPointY = Y + (offset * Math.Sin(Util.ToRadians(90 - previousPoint.OffsetAngle)));
-
-                lrsPoints.Add(new LRSPoint(
-                   firstPointX,
-                   firstPointY,
-                   null,
-                   M,
-                   SRID
-                   ));
+                var firstPointX = X + (offset * Math.Cos(prevRadians));
+                var firstPointY = Y + (offset * Math.Sin(prevRadians));
+                var firstPoint = new LRSPoint(firstPointX, firstPointY, null, M, _srid);
 
                 // second point
-                var secondPointX = X + (offset * Math.Cos(Util.ToRadians(90 - nextPoint.OffsetAngle)));
-                var secondPointY = Y + (offset * Math.Sin(Util.ToRadians(90 - nextPoint.OffsetAngle)));
+                var secondPointX = X + (offset * Math.Cos(nextRadians));
+                var secondPointY = Y + (offset * Math.Sin(nextRadians));
+                var secondPoint = new LRSPoint(secondPointX, secondPointY, null, M, _srid);
 
-
-                // construct middle point and second point only if slope is negative else ignore it
-                if (Slope <= 0)
+                // if computed first point is within tolerance of second point then add only first point
+                if (firstPoint.IsXYWithinTolerance(secondPoint, tolerance))
                 {
-
-                    // middle point computation
-                    // fraction of offset 
-                    var fraction = offset / OffsetDistance;
-                    var middleX = (X * (1 - fraction)) + (newX * fraction);
-                    var middleY = (Y * (1 - fraction)) + (newY * fraction);
-
-                    lrsPoints.Add(new LRSPoint(
-                       middleX,
-                       middleY,
-                       null,
-                       M,
-                       SRID
-                       ));
-
-                    lrsPoints.Add(new LRSPoint(
-                      secondPointX,
-                      secondPointY,
-                      null,
-                      M,
-                      SRID
-                      ));
+                    lrsPoints.Add(firstPoint);
                 }
+                else
+                {
+                    // add first point
+                    lrsPoints.Add(firstPoint);
 
+                    // compute middle point
+                    var fraction = Math.Abs(offset / OffsetDistance);
+                    var middleX = (X * (1 - fraction)) + (parallelX * fraction);
+                    var middleY = (Y * (1 - fraction)) + (parallelY * fraction);
+                    var middlePoint = new LRSPoint(middleX, middleY, null, M, _srid);
+
+                    // if not within tolerance add middle point
+                    if (!firstPoint.IsXYWithinTolerance(middlePoint, tolerance))
+                        lrsPoints.Add(middlePoint);
+
+                    // add second point
+                    lrsPoints.Add(secondPoint);
+                }
             }
 
             return lrsPoints;
@@ -455,18 +505,32 @@ namespace SQLSpatialTools.Types
         /// <param name="nextLRSPoint">The next LRS point.</param>
         internal void CalculateSlope(LRSPoint nextLRSPoint)
         {
-            Slope = GetSlope(nextLRSPoint);
+            Slope = GetSlope(nextLRSPoint, out SlopeType);
         }
 
         /// <summary>
         /// Calculates the slope.
         /// </summary>
         /// <param name="nextLRSPoint">The next LRS point.</param>
-        internal double GetSlope(LRSPoint nextLRSPoint)
+        /// <param name="slopeValue"></param>
+        internal double? GetSlope(LRSPoint nextLRSPoint, out SlopeValue slopeValue)
         {
+            slopeValue = SlopeValue.None;
             var xDifference = nextLRSPoint.X - X;
+            var yDifference = nextLRSPoint.Y - Y;
 
-            return xDifference == 0 ? 0 : (nextLRSPoint.Y - Y) / (xDifference);
+            if (xDifference.EqualsTo(0))
+            {
+                slopeValue = yDifference > 0 ? SlopeValue.PositiveInfinity : SlopeValue.NegativeInfinity;
+                return null;
+            }
+            else if (yDifference.EqualsTo(0))
+            {
+                slopeValue = xDifference > 0 ? SlopeValue.PositiveZero : SlopeValue.NegativeZero;
+                return null;
+            }
+
+            return yDifference / xDifference;
         }
 
         #endregion
