@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.SqlServer.Types;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
-namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
+using System.Collections.Generic;
+
+namespace SQLSpatialTools.KMLProcessor.Export
 {
 	/// <summary>
 	/// This class will keep track of the context where some action will be executed
@@ -23,19 +24,19 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// parents of the currently visited spatial object. When a visit to a spatial object is finished,
 		/// the type of that object will be removed from the end of this list.
 		/// </summary>
-		private List<T> m_Type = new List<T>();
+		private readonly List<T> _type = new List<T>();
 
 		/// <summary>
 		/// This structure is equivalent to the m_Type structure, except it will store the information
 		/// about the number of figures which are visited in each spatial object.
 		/// </summary>
-		private List<int> m_Figures = new List<int>();
+		private readonly List<int> _figures = new List<int>();
 
 		/// <summary>
 		/// Represents the depth in the spatial object tree. It will show the distance from the currently 
 		/// spatial object to the root spatial object.
 		/// </summary>
-		private int m_Depth = 0;
+		private int _depth;
 
 		#endregion
 
@@ -48,18 +49,18 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="type">Type of spatial object</param>
 		public void BeginSpatialObject(T type)
 		{
-			m_Depth += 1;		// Increment the tree depth
+			_depth += 1;		// Increment the tree depth
 
 			// Add information about this spatial object in the stack of visited spatial objects
-			if (m_Depth > m_Type.Count)
+			if (_depth > _type.Count)
 			{
-				m_Type.Add(type);
-				m_Figures.Add(0);
+				_type.Add(type);
+				_figures.Add(0);
 			}
 			else
 			{
-				m_Type[m_Depth - 1] = type;
-				m_Figures[m_Depth - 1] = 0;
+				_type[_depth - 1] = type;
+				_figures[_depth - 1] = 0;
 			}
 		}
 
@@ -68,7 +69,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// </summary>
 		public void EndSpatialObject()
 		{
-			m_Depth -= 1;
+			_depth -= 1;
 		}
 
 		/// <summary>
@@ -76,7 +77,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// </summary>
 		public void BeginFigure()
 		{
-			m_Figures[m_Depth - 1] += 1;
+			_figures[_depth - 1] += 1;
 		}
 
 		/// <summary>
@@ -99,10 +100,10 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		{
 			get
 			{
-				if (m_Depth == 0 || m_Depth > m_Type.Count)
+				if (_depth == 0 || _depth > _type.Count)
 					throw new KMLException("Type tree is invalid!");
 
-				return m_Type[m_Depth - 1];
+				return _type[_depth - 1];
 			}
 		}
 
@@ -110,25 +111,19 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// True if the figure which is currently being processed is the first figure in 
 		/// the current spatial object
 		/// </summary>
-		public bool IsFirstFigure
-		{
-			get
-			{
-				return Figures == 1;
-			}
-		}
+		public bool IsFirstFigure => Figures == 1;
 
-		/// <summary>
+        /// <summary>
 		/// The number of visited figures in the current spatial object
 		/// </summary>
 		public int Figures
 		{
 			get
 			{
-				if (m_Depth == 0 || m_Depth > m_Figures.Count)
+				if (_depth == 0 || _depth > _figures.Count)
 					throw new KMLException("Figure tree is invalid!");
 
-				return m_Figures[m_Depth - 1];
+				return _figures[_depth - 1];
 			}
 		}
 

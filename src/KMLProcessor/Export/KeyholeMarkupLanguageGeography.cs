@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.SqlServer.Types;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
-namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
+using System;
+using Microsoft.SqlServer.Types;
+using SQLSpatialTools.KMLProcessor.Import;
+
+namespace SQLSpatialTools.KMLProcessor.Export
 {
 	/// <summary>
 	/// This class is the geography sink. It will export the given geography instances
@@ -17,7 +20,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// Constructor. Creates a KeyholeMarkupLanguageGeography sink which will fill the given
 		/// xml writer with data in the KML format
 		/// </summary>
-		/// <param name="writer">Xml writter to be filled with data</param>
+		/// <param name="writer">Xml writer to be filled with data</param>
 		public KeyholeMarkupLanguageGeography(System.Xml.XmlWriter writer)
 			: base(writer)
 		{
@@ -33,7 +36,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="type">Geography type</param>
 		public void BeginGeography(OpenGisGeographyType type)
 		{
-			m_Context.BeginSpatialObject(type);
+			_context.BeginSpatialObject(type);
 
 			switch (type)
 			{
@@ -72,7 +75,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// </summary>
 		public void EndGeography()
 		{
-			m_Context.EndSpatialObject();
+			_context.EndSpatialObject();
 
 			EndElement();
 		}
@@ -84,15 +87,15 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="y">Y coordinate</param>
 		/// <param name="z">Z coordinate</param>
 		/// <param name="m">M coordinate</param>
-		public void BeginFigure(double x, double y, Nullable<double> z, Nullable<double> m)
+		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			m_Context.BeginFigure();
+			_context.BeginFigure();
 
 			#region Export of Altitude Mode flag
 
-			if ((m_Context.Type == OpenGisGeographyType.Polygon && m_Context.IsFirstFigure) ||
-				 m_Context.Type == OpenGisGeographyType.Point ||
-				 m_Context.Type == OpenGisGeographyType.LineString)
+			if ((_context.Type == OpenGisGeographyType.Polygon && _context.IsFirstFigure) ||
+				 _context.Type == OpenGisGeographyType.Point ||
+				 _context.Type == OpenGisGeographyType.LineString)
 			{
 				// The following code exports the geography instance's altitude mode. 
 				// Altitude mode is stored as the m coordinate of every point, 
@@ -101,28 +104,28 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 
 				if (m.HasValue)
 				{
-					int altitudeModeCode = (int)m.Value;
+					var altitudeModeCode = (int)m.Value;
 					if (Enum.IsDefined(typeof(AltitudeMode), altitudeModeCode))
 					{
-						AltitudeMode altitudeMode = (AltitudeMode)altitudeModeCode;
+						var altitudeMode = (AltitudeMode)altitudeModeCode;
 
 						switch (altitudeMode)
 						{
-							case AltitudeMode.absolute:
-							case AltitudeMode.relativeToGround:
-							case AltitudeMode.relativeToSeaFloor:
+							case AltitudeMode.Absolute:
+							case AltitudeMode.RelativeToGround:
+							case AltitudeMode.RelativeToSeaFloor:
 							{
 								StartElement("altitudeMode");
 								WriteString(altitudeMode.ToString());
 								EndElement();
 								break;
 							}
-							case AltitudeMode.clampToGround:
-							case AltitudeMode.clampToSeaFloor:
+							case AltitudeMode.ClampToGround:
+							case AltitudeMode.ClampToSeaFloor:
 							{
-								_writer.WriteStartElement("altitudeMode", Constants.GxNamespace);
+								Writer.WriteStartElement("altitudeMode", Constants.GxNamespace);
 								WriteString(altitudeMode.ToString());
-								_writer.WriteEndElement();
+								Writer.WriteEndElement();
 								break;
 							}
 							default:
@@ -136,21 +139,21 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 
 			#endregion
 
-			#region Export of Tesselate Flag
+			#region Export of Tessellate Flag
 
-			// If the altitude mode is "clamp to ground" or "clamp to sea floor" then a tesselate flag will be exported
+			// If the altitude mode is "clamp to ground" or "clamp to sea floor" then a tessellate flag will be exported
 
-			if (m_Context.Type == OpenGisGeographyType.LineString ||
-				(m_Context.Type == OpenGisGeographyType.Polygon && m_Context.IsFirstFigure))
+			if (_context.Type == OpenGisGeographyType.LineString ||
+				(_context.Type == OpenGisGeographyType.Polygon && _context.IsFirstFigure))
 			{
 				if (m.HasValue)
 				{
-					int altitudeModeCode = (int)m.Value;
+					var altitudeModeCode = (int)m.Value;
 					if (Enum.IsDefined(typeof(AltitudeMode), altitudeModeCode))
 					{
-						AltitudeMode altitudeMode = (AltitudeMode)altitudeModeCode;
-						if (altitudeMode == AltitudeMode.clampToGround ||
-							altitudeMode == AltitudeMode.clampToSeaFloor)
+						var altitudeMode = (AltitudeMode)altitudeModeCode;
+						if (altitudeMode == AltitudeMode.ClampToGround ||
+							altitudeMode == AltitudeMode.ClampToSeaFloor)
 						{
 							StartElement("tessellate");
 							WriteString("1");
@@ -162,25 +165,25 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 
 			#endregion
 
-			if (m_Context.Type == OpenGisGeographyType.Point ||
-				m_Context.Type == OpenGisGeographyType.LineString)
+			if (_context.Type == OpenGisGeographyType.Point ||
+				_context.Type == OpenGisGeographyType.LineString)
 			{
 				StartElement("coordinates");
 			}
-			else if (m_Context.Type == OpenGisGeographyType.Polygon)
+			else if (_context.Type == OpenGisGeographyType.Polygon)
 			{
-				StartElement(m_Context.IsFirstFigure ? "outerBoundaryIs" : "innerBoundaryIs");
+				StartElement(_context.IsFirstFigure ? "outerBoundaryIs" : "innerBoundaryIs");
 				StartElement("LinearRing");
 				StartElement("coordinates");
 			}
 
-			_writer.WriteValue(Utilities.ShiftInRange(y, 180));
-			_writer.WriteValue(",");
-			_writer.WriteValue(Utilities.ShiftInRange(x, 90));
-			if (z != null && z.HasValue)
+			Writer.WriteValue(Utilities.ShiftInRange(y, 180));
+			Writer.WriteValue(",");
+			Writer.WriteValue(Utilities.ShiftInRange(x, 90));
+			if (z.HasValue)
 			{
-				_writer.WriteValue(",");
-				_writer.WriteValue(z.Value);
+				Writer.WriteValue(",");
+				Writer.WriteValue(z.Value);
 			}
 		}
 
@@ -189,14 +192,14 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// </summary>
 		public void EndFigure()
 		{
-			m_Context.EndFigure();
+			_context.EndFigure();
 
-			if (m_Context.Type == OpenGisGeographyType.Point ||
-				m_Context.Type == OpenGisGeographyType.LineString)
+			if (_context.Type == OpenGisGeographyType.Point ||
+				_context.Type == OpenGisGeographyType.LineString)
 			{
 				EndElement();
 			}
-			else if (m_Context.Type == OpenGisGeographyType.Polygon)
+			else if (_context.Type == OpenGisGeographyType.Polygon)
 			{
 				EndElement(); // Closing coordinates tag
 				EndElement(); // Closing LinearRing tag
@@ -211,17 +214,17 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="y">Y coordinate</param>
 		/// <param name="z">Z coordinate</param>
 		/// <param name="m">M coordinate</param>
-		public void AddLine(double x, double y, Nullable<double> z, Nullable<double> m)
+		public void AddLine(double x, double y, double? z, double? m)
 		{
-			_writer.WriteValue("\r\n");
+			Writer.WriteValue("\r\n");
 
-			_writer.WriteValue(Utilities.ShiftInRange(y, 180));
-			_writer.WriteValue(",");
-			_writer.WriteValue(Utilities.ShiftInRange(x, 90));
-			if (z != null && z.HasValue)
+			Writer.WriteValue(Utilities.ShiftInRange(y, 180));
+			Writer.WriteValue(",");
+			Writer.WriteValue(Utilities.ShiftInRange(x, 90));
+			if (z.HasValue)
 			{
-				_writer.WriteValue(",");
-				_writer.WriteValue(z.Value);
+				Writer.WriteValue(",");
+				Writer.WriteValue(z.Value);
 			}
 		}
 
@@ -237,7 +240,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
         /// <summary>
         /// Export execution context
         /// </summary>
-        private ExportContext<OpenGisGeographyType> m_Context = new ExportContext<OpenGisGeographyType>();
+        private readonly ExportContext<OpenGisGeographyType> _context = new ExportContext<OpenGisGeographyType>();
 
 		#endregion
 	}

@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
-namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
+namespace SQLSpatialTools.KMLProcessor.Export
 {
 	/// <summary>
 	/// The base class for all KML exporters
@@ -16,10 +15,10 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// Constructor. Creates a KeyholeMarkupLanguageBase object which will fill 
 		/// the given xml writer with a spatial data in the KML format
 		/// </summary>
-		/// <param name="writer">The Xml writter to be filled with a spatial data in the KML format</param>
-		public KeyholeMarkupLanguageBase(System.Xml.XmlWriter writer)
+		/// <param name="writer">The Xml writer to be filled with a spatial data in the KML format</param>
+        protected KeyholeMarkupLanguageBase(System.Xml.XmlWriter writer)
 		{
-			_writer = writer;
+			Writer = writer;
 
 			BeginKMLDocument();
 		}
@@ -31,14 +30,14 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <summary>
 		/// This method will create the necessary start elements in the KML file
 		/// </summary>
-		protected void BeginKMLDocument()
+        private void BeginKMLDocument()
 		{
 			// Creates the beginning of the KML file as:
 
-			_writer.WriteStartElement("kml", Constants.KmlNamespace);
-			_writer.WriteAttributeString("xmlns", "gx", null, Constants.GxNamespace);
-			_writer.WriteAttributeString("xmlns", "kml", null, Constants.KmlNamespace);
-			_writer.WriteAttributeString("xmlns", "atom", null, Constants.AtomNamespace);
+			Writer.WriteStartElement("kml", Constants.KmlNamespace);
+			Writer.WriteAttributeString("xmlns", "gx", null, Constants.GxNamespace);
+			Writer.WriteAttributeString("xmlns", "kml", null, Constants.KmlNamespace);
+			Writer.WriteAttributeString("xmlns", "atom", null, Constants.AtomNamespace);
 
 			StartElement("Document");								//	<Document>
 			StartElement("name");									//		<name>
@@ -57,7 +56,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="name">Xml element name to be created</param>
 		protected void StartElement(string name)
 		{
-			_writer.WriteStartElement(name);
+			Writer.WriteStartElement(name);
 		}
 
 		/// <summary>
@@ -65,16 +64,16 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// </summary>
 		protected void EndElement()
 		{
-			_writer.WriteEndElement();
+			Writer.WriteEndElement();
 		}
 
 		/// <summary>
-		/// This method will write the given text into the xml writter
+		/// This method will write the given text into the xml writer
 		/// </summary>
 		/// <param name="text">The text to be written</param>
 		protected void WriteString(string text)
 		{
-			_writer.WriteString(text);
+			Writer.WriteString(text);
 		}
 
 		#endregion
@@ -98,7 +97,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="srid">Spatial reference system identifier (SrId)</param>
 		public void SetSrid(int srid)
 		{
-			m_SrId = srid;
+			SRID = srid;
 		}
 
 		#endregion
@@ -106,14 +105,14 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		#region Protected Data
 
 		/// <summary>
-		/// Xml writter to be filled with data
+		/// Xml writer to be filled with data
 		/// </summary>
-		protected System.Xml.XmlWriter _writer;
+		protected readonly System.Xml.XmlWriter Writer;
 
 		/// <summary>
 		/// Spatial reference system identifier (SrId) for this file
 		/// </summary>
-		protected int m_SrId;
+        protected int SRID;
 
 		#endregion
 	}

@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
-namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
+using System;
+
+namespace SQLSpatialTools.KMLProcessor
 {
 	/// <summary>
-	/// Instance of this class will be thrown for every exception which occures in the KML processor.
+	/// Instance of this class will be thrown for every exception which occurs in the KML processor.
 	/// </summary>
 	public class KMLException : Exception
 	{

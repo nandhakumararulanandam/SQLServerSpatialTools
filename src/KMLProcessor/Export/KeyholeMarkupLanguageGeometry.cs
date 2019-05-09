@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.SqlServer.Types;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
-namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
+using System;
+using Microsoft.SqlServer.Types;
+// ReSharper disable UnusedMember.Global
+
+namespace SQLSpatialTools.KMLProcessor.Export
 {
 	/// <summary>
 	/// This class is the geometry sink. It will export the given geometry instances
@@ -17,7 +20,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// Constructor. Creates a KeyholeMarkupLanguageGeometry sink which will fill the given
 		/// xml writer with data in the KML format
 		/// </summary>
-		/// <param name="writer">Xml writter to be filled with data</param>
+		/// <param name="writer">Xml writer to be filled with data</param>
 		public KeyholeMarkupLanguageGeometry(System.Xml.XmlWriter writer)
 			: base(writer)
 		{
@@ -33,7 +36,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="type">Geometry type</param>
 		public void BeginGeometry(OpenGisGeometryType type)
 		{
-			m_Context.BeginSpatialObject(type);
+			_context.BeginSpatialObject(type);
 
 			switch (type)
 			{
@@ -75,9 +78,9 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		public void EndGeometry()
 		{
 			// Gets the type of the geometry instance which should be finalized
-			OpenGisGeometryType type = m_Context.Type;
+			var type = _context.Type;
 
-			m_Context.EndSpatialObject();
+			_context.EndSpatialObject();
 
 			if (type == OpenGisGeometryType.Point ||
 				type == OpenGisGeometryType.LineString)
@@ -95,24 +98,24 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="y">Y coordinate</param>
 		/// <param name="z">Z coordinate</param>
 		/// <param name="m">M coordinate</param>
-		public void BeginFigure(double x, double y, Nullable<double> z, Nullable<double> m)
+		public void BeginFigure(double x, double y, double? z, double? m)
 		{
-			m_Context.BeginFigure();
+			_context.BeginFigure();
 
-			if (m_Context.Type == OpenGisGeometryType.Polygon)
+			if (_context.Type == OpenGisGeometryType.Polygon)
 			{
-				StartElement(m_Context.IsFirstFigure ? "outerBoundaryIs" : "innerBoundaryIs");
+				StartElement(_context.IsFirstFigure ? "outerBoundaryIs" : "innerBoundaryIs");
 				StartElement("LinearRing");
 				StartElement("coordinates");
 			}
 
-			_writer.WriteValue(y);
-			_writer.WriteValue(",");
-			_writer.WriteValue(x);
-			if (z != null && z.HasValue)
+			Writer.WriteValue(y);
+			Writer.WriteValue(",");
+			Writer.WriteValue(x);
+			if (z.HasValue)
 			{
-				_writer.WriteValue(",");
-				_writer.WriteValue(z.Value);
+				Writer.WriteValue(",");
+				Writer.WriteValue(z.Value);
 			}
 		}
 
@@ -121,9 +124,9 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// </summary>
 		public void EndFigure()
 		{
-			m_Context.EndFigure();
+			_context.EndFigure();
 
-			if (m_Context.Type == OpenGisGeometryType.Polygon)
+			if (_context.Type == OpenGisGeometryType.Polygon)
 			{
 				EndElement(); // Closing coordinates tag
 				EndElement(); // Closing LinearRing tag
@@ -138,17 +141,17 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
 		/// <param name="y">Y coordinate</param>
 		/// <param name="z">Z coordinate</param>
 		/// <param name="m">M coordinate</param>
-		public void AddLine(double x, double y, Nullable<double> z, Nullable<double> m)
+		public void AddLine(double x, double y, double? z, double? m)
 		{
-			_writer.WriteValue("\r\n");
+			Writer.WriteValue("\r\n");
 
-			_writer.WriteValue(y);
-			_writer.WriteValue(",");
-			_writer.WriteValue(x);
-			if (z != null && z.HasValue)
+			Writer.WriteValue(y);
+			Writer.WriteValue(",");
+			Writer.WriteValue(x);
+			if (z.HasValue)
 			{
-				_writer.WriteValue(",");
-				_writer.WriteValue(z.Value);
+				Writer.WriteValue(",");
+				Writer.WriteValue(z.Value);
 			}
 		}
 
@@ -164,7 +167,7 @@ namespace Microsoft.SqlServer.SpatialToolbox.KMLProcessor
         /// <summary>
         /// Export execution context
         /// </summary>
-        private ExportContext<OpenGisGeometryType> m_Context = new ExportContext<OpenGisGeometryType>();
+        private readonly ExportContext<OpenGisGeometryType> _context = new ExportContext<OpenGisGeometryType>();
 
 		#endregion
 	}
