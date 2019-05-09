@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //
 // References: http://mathworld.wolfram.com/LambertConformalConicProjection.html
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,7 +19,7 @@ namespace SQLSpatialTools.Projections
 		// fi1: standard parallel
 		// fi2: standard parallel
 		//
-		public LambertConformalConicProjection(Dictionary<string,double> parameters)
+		public LambertConformalConicProjection(IDictionary<string, double> parameters)
 			: base(parameters)
 		{
 			var latitudeRadian = InputLatitude("latitude0");

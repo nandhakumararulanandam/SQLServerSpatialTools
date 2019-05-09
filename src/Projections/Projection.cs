@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //
 // Purpose: Abstract base class of all projections.
 //------------------------------------------------------------------------------

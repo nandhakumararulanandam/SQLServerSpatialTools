@@ -1,13 +1,17 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 
 namespace SQLSpatialTools.UnitTests.Extension
 {
     public class BaseUnitTest
     {
-        public TestLogger Logger;
-        public Stopwatch MSSQLTimer;
-        public Stopwatch OracleTimer;
+        protected TestLogger Logger;
+        protected Stopwatch MSSQLTimer;
+        protected Stopwatch OracleTimer;
 
         [TestInitialize]
         public void Initialize()

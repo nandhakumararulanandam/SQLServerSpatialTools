@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
-// 
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//
 // References: http://mathworld.wolfram.com/MercatorProjection.html
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 
@@ -19,7 +20,7 @@ namespace SQLSpatialTools.Projections
 		// fi2:
 		// lambda2:
 		//
-		public ObliqueMercatorProjection(Dictionary<string, double> parameters)
+		public ObliqueMercatorProjection(IDictionary<string, double> parameters)
 			: base(parameters)
 		{
 			var fi1Rad = InputLatitude("fi1");

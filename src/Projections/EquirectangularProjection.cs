@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //
 // References: http://en.wikipedia.org/wiki/Equirectangular_projection
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +17,7 @@ namespace SQLSpatialTools.Projections
 		// longitude0:
 		// parallel: standard parallels (north and south of the equator) where the scale of the projection is true
 		//
-		public EquirectangularProjection(Dictionary<string, double> parameters)
+		public EquirectangularProjection(IDictionary<string, double> parameters)
 			: base(parameters)
 		{
 			var parallelRadian = InputLatitude("parallel");

@@ -1,6 +1,7 @@
 ﻿//------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
@@ -167,7 +168,7 @@ namespace SQLSpatialTools.Types.SQL
             {
                 ["longitude0"] = 0, ["longitude1"] = longitude, ["latitude1"] = latitude
             };
-            return new SqlProjection(new GnommonicProjection(parameters));
+            return new SqlProjection(new GnomonicProjection(parameters));
 		}
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local

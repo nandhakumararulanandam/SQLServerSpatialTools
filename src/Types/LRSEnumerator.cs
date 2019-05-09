@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
 using System;
 using System.Collections;
@@ -13,7 +15,7 @@ namespace SQLSpatialTools.Types
     /// <seealso cref="System.Collections.IEnumerator" />
     internal class LRSEnumerator<T> : IEnumerator
     {
-        internal List<T> ListOfItems;
+        private readonly List<T> _listOfItems;
 
         // Enumerators are positioned before the first element
         // until the first MoveNext() call.
@@ -21,13 +23,13 @@ namespace SQLSpatialTools.Types
 
         public LRSEnumerator(List<T> list)
         {
-            ListOfItems = list;
+            _listOfItems = list;
         }
 
         public bool MoveNext()
         {
             _position++;
-            return (_position < ListOfItems.Count);
+            return (_position < _listOfItems.Count);
         }
 
         public void Reset()
@@ -43,7 +45,7 @@ namespace SQLSpatialTools.Types
             {
                 try
                 {
-                    return ListOfItems[_position];
+                    return _listOfItems[_position];
                 }
                 catch (IndexOutOfRangeException)
                 {

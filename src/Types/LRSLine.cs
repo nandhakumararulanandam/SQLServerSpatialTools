@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
 using System.Collections;
 using System.Collections.Generic;
@@ -37,15 +39,6 @@ namespace SQLSpatialTools.Types
         ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
         /// </value>
         internal bool IsEmpty => !_points.Any() || _points.Count == 0;
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is not empty or not.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
-        /// </value>
-        // ReSharper disable once UnusedMember.Global
-        internal bool IsNotEmpty => !IsEmpty;
 
         /// <summary>
         /// Gets a value indicating whether this instance has points.
@@ -202,11 +195,12 @@ namespace SQLSpatialTools.Types
         {
             var startPoint = firstPoint ?? GetStartPoint();
             var endPoint = GetEndPoint();
-            // ReSharper disable PossibleInvalidOperationException
+
+            if (startPoint.M == null || endPoint.M == null) return null;
+
             var fraction = (measure - startPoint.M.Value) / (endPoint.M.Value - startPoint.M.Value);
             var newX = (startPoint.X * (1 - fraction)) + (endPoint.X * fraction);
             var newY = (startPoint.Y * (1 - fraction)) + (endPoint.Y * fraction);
-            // ReSharper restore PossibleInvalidOperationException
 
             return new LRSPoint(newX, newY, null, measure, SRID);
         }
@@ -217,8 +211,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetPointAtM(double measure)
         {
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            return _points.FirstOrDefault(e => e.M == measure);
+            return _points.FirstOrDefault(e => e.M.EqualsTo(measure));
         }
 
         /// <summary>
@@ -279,12 +272,10 @@ namespace SQLSpatialTools.Types
                 // for each point previous and next point slope is compared
                 // if slope of AB = BC = CA
                 var isABBCSlopeEqual = slopeAB.HasValue && slopeBC.HasValue
-                    // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    ? slopeAB.Value == slopeBC.Value
+                    ? slopeAB.Value.EqualsTo(slopeBC.Value)
                     : slopeABType == slopeBCType;
                 var isBCACSlopeEqual = slopeBC.HasValue && slopeAC.HasValue
-                    // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    ? slopeBC.Value == slopeAC.Value
+                    ? slopeBC.Value.EqualsTo(slopeAC.Value)
                     : slopeBCType == slopeACType;
 
                 if (isABBCSlopeEqual && isBCACSlopeEqual)

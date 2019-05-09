@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //
 // References: http://mathworld.wolfram.com/AlbersEqual-AreaConicProjection.html
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +14,7 @@ namespace SQLSpatialTools.Projections
 	internal sealed class AlbersEqualAreaProjection : Projection
 	{
 		// longitude0, latitude0, parallel1, parallel2
-		public AlbersEqualAreaProjection(Dictionary<string,double> parameters)
+		public AlbersEqualAreaProjection(IDictionary<string, double> parameters)
 			: base(parameters)
 		{
             var latitude0Rad = InputLatitude("latitude0");

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
 using System;
 using SQLSpatialTools.Utility;

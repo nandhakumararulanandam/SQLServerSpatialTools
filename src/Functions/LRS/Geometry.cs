@@ -1,6 +1,6 @@
-﻿/********************************************************
-*  (c) Microsoft. All rights reserved.                  *
-********************************************************/
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -223,7 +223,6 @@ namespace SQLSpatialTools.Functions.LRS
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
         }
-        // ReSharper restore CompareOfFloatsByEqualityOperator
 
         /// <summary>
         /// Get end point measure of a LRS Geom Segment.
@@ -363,7 +362,7 @@ namespace SQLSpatialTools.Functions.LRS
 
             // if m is null; the check if frame from x,y,z where z is m
             if (geometry.STGetDimension() != DimensionalInfo.Dim3D) return false;
-            geometry = geometry.ConvertTo2DM();
+            geometry = geometry.ConvertTo2DimensionWithMeasure();
             return !geometry.M.IsNull;
         }
 
@@ -919,7 +918,6 @@ namespace SQLSpatialTools.Functions.LRS
         /// <param name="splitMeasure"></param>
         /// <param name="geometry1">First Geometry Segment</param>
         /// <param name="geometry2">Second Geometry Segment</param>
-            // ReSharper disable CompareOfFloatsByEqualityOperator
         public static void SplitGeometrySegment(SqlGeometry geometry, double splitMeasure, out SqlGeometry geometry1, out SqlGeometry geometry2)
         {
             Ext.ThrowIfNotLRSType(geometry);
@@ -933,7 +931,7 @@ namespace SQLSpatialTools.Functions.LRS
             if (geometry.CheckGeomPoint())
             {
                 var pointMeasure = geometry.HasM ? geometry.M.Value : 0;
-                if (pointMeasure != splitMeasure)
+                if (pointMeasure.NotEqualsTo(splitMeasure))
                     Ext.ThrowLRSError(LRSErrorCodes.InvalidLRSMeasure);
                 return;
             }
@@ -943,18 +941,18 @@ namespace SQLSpatialTools.Functions.LRS
             var ifNotLinear = !geometry.STHasLinearMeasure();
 
             // if start point and end point is equal and it is equal to split measure then return null
-            if (geometry.STHasEqualStartAndEndMeasure() && startPointM == splitMeasure)
+            if (geometry.STHasEqualStartAndEndMeasure() && startPointM.EqualsTo(splitMeasure))
                 return;
 
             // if start measure is split measure then segment 1 is null and segment 2 is input geom
-            if (startPointM == splitMeasure)
+            if (startPointM.EqualsTo(splitMeasure))
             {
                 geometry2 = geometry;
                 return;
             }
 
             // if end measure is split measure then segment 2 is null and segment 1 is input geom
-            if (endPointM == splitMeasure)
+            if (endPointM.EqualsTo(splitMeasure))
             {
                 geometry1 = geometry;
                 return;
@@ -977,7 +975,6 @@ namespace SQLSpatialTools.Functions.LRS
             geometry1 = geomSink.Segment1;
             geometry2 = geomSink.Segment2;
         }
-        // ReSharper restore CompareOfFloatsByEqualityOperator
 
         /// <summary>
         /// Translates the measure values of Input Geometry

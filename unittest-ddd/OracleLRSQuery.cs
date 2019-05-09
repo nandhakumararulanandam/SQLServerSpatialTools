@@ -1,6 +1,10 @@
-﻿namespace SQLSpatialTools.UnitTests.DDD
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+namespace SQLSpatialTools.UnitTests.DDD
 {
-    internal class OracleLRSQuery
+    internal static class OracleLRSQuery
     {
         #region Oracle Queries
 

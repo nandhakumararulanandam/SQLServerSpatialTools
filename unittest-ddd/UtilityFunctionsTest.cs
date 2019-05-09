@@ -1,4 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.UnitTests.Extension;
 
 namespace SQLSpatialTools.UnitTests.DDD

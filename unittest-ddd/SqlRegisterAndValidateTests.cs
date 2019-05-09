@@ -1,4 +1,8 @@
-﻿using System;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.IO;

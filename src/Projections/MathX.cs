@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //
 // Purpose: Misc math functions.
 //------------------------------------------------------------------------------
+
 using System;
 using System.Globalization;
 using SQLSpatialTools.Utility;

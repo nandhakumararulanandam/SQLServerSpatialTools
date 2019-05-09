@@ -1,4 +1,8 @@
-﻿using System.Data.SqlTypes;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System.Data.SqlTypes;
 
 namespace SQLSpatialTools.Utility
 {

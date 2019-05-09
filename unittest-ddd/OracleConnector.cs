@@ -1,4 +1,8 @@
-﻿using System;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System;
 using System.Configuration;
 using System.Data;
 using System.Text;
@@ -195,7 +199,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             var query = inputGeom.IsPoint() 
                 ? string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentPointQuery, GetOracleOrdinatePoint(inputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance)
                 : string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance);
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -208,7 +212,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoGetEndMeasure(LRSDataSet.GetEndMeasureData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetEndMeasureQuery, ConvertTo3DCoordinates(testObj.InputGeom));
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -221,7 +225,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoGetStartMeasure(LRSDataSet.GetStartMeasureData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetStartMeasureQuery, ConvertTo3DCoordinates(testObj.InputGeom));
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -234,7 +238,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoIsConnectedGeomSegmentTest(LRSDataSet.IsConnectedData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetIsConnectedGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom1), ConvertTo3DCoordinates(testObj.InputGeom2), testObj.Tolerance);
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -247,7 +251,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoLocatePointAlongGeomTest(LRSDataSet.LocatePointAlongGeomData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetLocatePointAlongGeomQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.Measure);
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -260,7 +264,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoOffsetGeometrySegment(LRSDataSet.OffsetGeometrySegmentData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.OffsetGeometryQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Offset, testObj.Tolerance);
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -316,7 +320,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoReverseLinearGeomTest(LRSDataSet.ReverseLinearGeometryData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetReverseLinearGeomQuery, ConvertTo3DCoordinates(testObj.InputGeom));
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
@@ -356,7 +360,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void ValidateLRSGeometry(LRSDataSet.ValidateLRSGeometryData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ValidateLRSGeometryQuery, testObj.InputGeom);
-            var result = ExecuteScalar<string>(query, out string errorInfo);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;

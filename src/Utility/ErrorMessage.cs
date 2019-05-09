@@ -1,6 +1,10 @@
-﻿namespace SQLSpatialTools.Utility
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+namespace SQLSpatialTools.Utility
 {
-    public class ErrorMessage
+    public static class ErrorMessage
     {
         public const string LineStringCompatible = "LINESTRING is currently the only spatial type supported.";
         public const string LRSCompatible = "POINT, LINESTRING or MULTILINE STRING is currently the only spatial type supported.";
@@ -8,7 +12,7 @@
         public const string LineOrPointCompatible = "LINESTRING or POINT is currently the only spatial type supported.";
         public const string MultiLineStringCompatible = "MULTILINE STRING is currently the only spatial type supported.";
         public const string PointCompatible = "Start and End geometry must be a point.";
-        public const string SRIDCompatible = "SRID's of geography\\geometry objects doesn't match.";
+        public const string SRIDCompatible = @"SRID's of geography\geometry objects doesn't match.";
         public const string MeasureRange = "Measure not within range.";
         public const string WKT3DOnly = "Input WKT should only have three dimensions!";
         public const string LinearGeometryMeasureMustBeInRange = "{0} is not within the measure range {1} : {2} of the linear geometry."; 

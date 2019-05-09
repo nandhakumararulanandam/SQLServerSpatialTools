@@ -1,4 +1,8 @@
-﻿using System;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Data.SqlServerCe;
 using System.Globalization;

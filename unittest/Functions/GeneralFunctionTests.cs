@@ -1,4 +1,8 @@
-﻿using System;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.General;
 using SQLSpatialTools.UnitTests.Extension;
@@ -6,7 +10,7 @@ using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.UnitTests.Functions
 {
-    public class GeneralFunctionTests
+    public static class GeneralFunctionTests
     {
         [TestClass]
         public class GeometryTests : BaseUnitTest

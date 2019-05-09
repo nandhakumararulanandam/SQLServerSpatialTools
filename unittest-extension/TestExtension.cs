@@ -1,4 +1,8 @@
-﻿using System;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System;
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Text;
@@ -39,7 +43,7 @@ namespace SQLSpatialTools.UnitTests.Extension
 
     public static class TestExtension
     {
-        public const string DecimalPointMatch = @"\.0([\s\,\)])";
+        private const string DecimalPointMatch = @"\.0([\s\,\)])";
 
         /// <summary>
         /// Trim null values in the input geometry WKT.
@@ -56,7 +60,7 @@ namespace SQLSpatialTools.UnitTests.Extension
         /// </summary>
         /// <param name="inputGeom">The input geom.</param>
         /// <returns></returns>
-        public static string RoundOffDecimalPrecision(this string inputGeom)
+        private static string RoundOffDecimalPrecision(this string inputGeom)
         {
             var output = inputGeom;
             //var matches = Regex.Matches(inputGeom, @"(\d+\.\d{5,16})", RegexOptions.Compiled);

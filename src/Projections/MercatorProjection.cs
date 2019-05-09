@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------------
-// Copyright (c) 2008 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //
 // References: http://mathworld.wolfram.com/MercatorProjection.html
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using SQLSpatialTools.Utility;
@@ -16,7 +17,7 @@ namespace SQLSpatialTools.Projections
 
 		// longitude0: Reference longitude
 		//
-		public MercatorProjection(Dictionary<String,double> parameters)
+		public MercatorProjection(IDictionary<string, double> parameters)
 			: base(parameters)
 		{
 		}

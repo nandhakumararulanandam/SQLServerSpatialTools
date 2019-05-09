@@ -1,6 +1,7 @@
 ﻿//------------------------------------------------------------------------------
-// Copyright (c) 2010 Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using Microsoft.SqlServer.Types;

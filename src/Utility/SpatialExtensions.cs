@@ -1,4 +1,8 @@
-﻿using System;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System;
 using System.Data.SqlTypes;
 using System.Linq;
 using Microsoft.SqlServer.Types;
@@ -792,8 +796,7 @@ namespace SQLSpatialTools.Utility
         /// <returns>Dimensional Info 2D, 2DM, 3D or 3DM</returns>
         public static DimensionalInfo STGetDimension(this SqlGeometry sqlGeometry)
         {
-            // ReSharper disable once CommentTypo
-            // STNumpoint can be performed only on valid geometries.
+            // STNumPoint can be performed only on valid geometries.
             if (!sqlGeometry.STIsValid() || sqlGeometry.STNumPoints() <= 0)
                 return DimensionalInfo.None;
 
@@ -829,7 +832,7 @@ namespace SQLSpatialTools.Utility
                 // if dimension is of x, y and z
                 // need to convert third z co-ordinate to M for LRS
                 case DimensionalInfo.Dim3D:
-                    sqlGeometry = sqlGeometry.ConvertTo2DM();
+                    sqlGeometry = sqlGeometry.ConvertTo2DimensionWithMeasure();
                     break;
                 case DimensionalInfo.Dim2D:
                     ThrowException(ErrorMessage.TwoDimensionalCoordinates);
@@ -908,8 +911,7 @@ namespace SQLSpatialTools.Utility
         /// </summary>
         /// <param name="sqlGeometry">Sql Geometry</param>
         /// <returns></returns>
-        // ReSharper disable once InconsistentNaming
-        internal static SqlGeometry ConvertTo2DM(this SqlGeometry sqlGeometry)
+        internal static SqlGeometry ConvertTo2DimensionWithMeasure(this SqlGeometry sqlGeometry)
         {
             var sqlBuilder = new ConvertXYZ2XYMGeometrySink();
             sqlGeometry.Populate(sqlBuilder);

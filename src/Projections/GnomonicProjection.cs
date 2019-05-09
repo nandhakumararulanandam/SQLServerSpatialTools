@@ -1,12 +1,12 @@
 ﻿//------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //
 // References: http://mathworld.wolfram.com/GnomonicProjection.html
 //
 // Note: The gnomonic projection is the only projection that maps SqlGeography
 //       Polygons and LineString exactly to their SqlGeometry counterparts.
-//
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using SQLSpatialTools.Types;
@@ -16,10 +16,10 @@ namespace SQLSpatialTools.Projections
 {
 	// EPSG Code:    None
 	// OGC WKT Name: Gnomonic
-	internal sealed class GnommonicProjection : Projection
+	internal sealed class GnomonicProjection : Projection
 	{
 		// Input argument: the center of the projection
-		public GnommonicProjection(Dictionary<String, double> parameters)
+		public GnomonicProjection(Dictionary<String, double> parameters)
 			: base(parameters)
 		{
 			_center = Util.SphericalRadToCartesian(InputLatitude("latitude1", 90), InputLongitude("longitude1", 360));

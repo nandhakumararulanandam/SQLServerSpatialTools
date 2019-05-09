@@ -1,5 +1,8 @@
-﻿using System;
-using System.Data.SqlTypes;
+﻿//------------------------------------------------------------------------------
+// Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+//------------------------------------------------------------------------------
+
+using System;
 using Microsoft.SqlServer.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.LRS;
@@ -199,7 +202,7 @@ namespace SQLSpatialTools.UnitTests.Functions
         {
             var endMeasureValue = 14.0F;
             var geom = $"POINT(5.5 5 0 {endMeasureValue})".GetGeom();
-            SqlDouble endMeasure = Geometry.GetEndMeasure(geom);
+            var endMeasure = Geometry.GetEndMeasure(geom);
             SqlAssert.AreEqual(endMeasure, endMeasureValue);
 
             endMeasureValue = 10.0F;
