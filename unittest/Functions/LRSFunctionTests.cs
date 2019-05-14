@@ -484,10 +484,10 @@ namespace SQLSpatialTools.UnitTests.Functions
         [TestMethod]
         public void OffsetGeometrySegmentTest()
         {
-            var geom = "LINESTRING(5 10 0, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
-            var offsetGeom = "LINESTRING (5.632455532033676 11.897366596101028 NULL 0, 20 7.10818510677892 NULL 30.628, 34.367544467966326 11.897366596101028 NULL 61.257)".GetGeom();
+            var geom = "LINESTRING(214250 104000 0, 214750 104050 502.494)".GetGeom();
+            var offsetGeom = "LINESTRING (214249.80099256197 104001.99007438042 0, 214749.80099256197 104051.99007438042 502.494)".GetGeom();
             var startMeasure = 0;
-            var endMeasure = 61.5;
+            var endMeasure = 502.494;
             var offset = 2;
             var tolerance = 0.5;
             Logger.LogLine("Input Line : {0}", geom.ToString());
@@ -496,10 +496,10 @@ namespace SQLSpatialTools.UnitTests.Functions
             Logger.Log("Offset Line : {0}", result.ToString());
             SqlAssert.IsTrue(offsetGeom.STEquals(result));
 
-            geom = "LINESTRING (55 10 NULL 100, 35 10 NULL 61.257, 20 5 NULL 30.628, 5 10 NULL 0)".GetGeom();
-            offsetGeom = "LINESTRING (35.632455532033674 8.102633403898972 NULL 61.257, 20 2.8918148932210808 NULL 30.628, 4.3675444679663249 8.102633403898972 NULL 0)".GetGeom();
-            startMeasure = 0;
-            endMeasure = 61.5;
+            geom = "LINESTRING (5 10 10, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
+            offsetGeom = "LINESTRING (28.854631868795604 10.059729063044122 50, 34.367544467966326 11.897366596101028 60.984336290508338, 35 12 62.195459508852288, 55 12 100)".GetGeom();
+            startMeasure = 50;
+            endMeasure = 100.5;
             offset = 2;
             tolerance = 0.5;
             Logger.LogLine("Input Line : {0}", geom.ToString());
@@ -510,25 +510,9 @@ namespace SQLSpatialTools.UnitTests.Functions
         }
 
         [TestMethod]
-        public void OffsetGeometryWithPopulateMeasureTest()
-        {
-            var geom = "LINESTRING(5 10 10, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
-            var offsetGeom = "LINESTRING (19.448627725169224 7.2919758650558464 NULL 29, 20 7.10818510677892 NULL 30.195004804845414, 33.751951402570789 11.692168907635848 NULL 60)".GetGeom();
-            var startMeasure = 60;
-            var endMeasure = 29;
-            var offset = 2;
-            var tolerance = 0.5;
-            Logger.LogLine("Input Line : {0}", geom.ToString());
-            var result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
-            Logger.Log("Expected Line : {0}", offsetGeom.ToString());
-            Logger.Log("Offset Line : {0}", result.ToString());
-            SqlAssert.IsTrue(offsetGeom.STEquals(result));
-        }
-
-        [TestMethod]
         public void OffsetGeometryWithBendLinesTest()
         {
-            var geom = "LINESTRING (1 1 0, 3 3 3, 5 5 5, 5 8 8) ".GetGeom();
+            var geom = "LINESTRING (1 1 0, 3 3 3, 5 5 5, 8 5 8)".GetGeom();
             var offsetGeom = "LINESTRING (7.0867894471005748 11.412588624412061 NULL 12, 20 7.10818510677892 NULL 36.2224547311131, 34.675444679663244 12 NULL 61.257, 54.483777714683939 12 NULL 99)".GetGeom();
             var startMeasure = 0;
             var endMeasure = 8;
@@ -549,21 +533,22 @@ namespace SQLSpatialTools.UnitTests.Functions
             var endMeasure = 625;
             var offset = 2;
             var tolerance = 0.5;
-            Logger.LogLine("Input Line : {0}", geom.ToString());
+            Logger.LogLine("Input Line : {0}", geom);
+            Logger.Log("Expected Offset Line : {0}", offsetGeom);
             var result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
-            Logger.Log("Offset Line : {0}", result.ToString());
+            Logger.Log("Obtained Offset Line : {0}", result);
             SqlAssert.IsTrue(offsetGeom.STEquals(result));
 
-            geom = "LINESTRING(2 2 0, 4 4 4, 10 5 5, 6 6 6)".GetGeom();
-            offsetGeom =
-                "LINESTRING (0.58578643762690508 3.4142135623730949 NULL 0, 3.0389924624238596 5.8674195871700494 NULL 1.7559685740440736, 0.18606322502027162 5.3919313809361125 NULL 3.2198581902465571, 5.514928749927333 4.0597149997093362 NULL 6)"
-                    .GetGeom();
+            geom = "LINESTRING (2 2 0, 2 4 4, 2 6 6, 2 10 10, 2 12 12, 2 13 13, 2 17 17)".GetGeom();
+            offsetGeom = "LINESTRING (0 2.0000000000000004 0, 0 13 13)".GetGeom();
             startMeasure = 0;
-            endMeasure = 6;
+            endMeasure = 13;
             offset = 2;
             tolerance = 0.5;
-            Logger.LogLine("Input Line : {0}", geom.ToString());
+            Logger.LogLine("Input Line : {0}", geom);
+            Logger.Log("Expected Offset Line : {0}", offsetGeom);
             result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+            Logger.Log("Obtained Offset Line : {0}", result);
             SqlAssert.IsTrue(offsetGeom.STEquals(result));
 
             geom = "LINESTRING(2 2 0, 4 4 4, 6 6 6, 10 5 8)".GetGeom();
@@ -573,7 +558,9 @@ namespace SQLSpatialTools.UnitTests.Functions
             offset = 2;
             tolerance = 0.5;
             Logger.LogLine("Input Line : {0}", geom.ToString());
+            Logger.Log("Expected Offset Line : {0}", offsetGeom);
             result = Geometry.OffsetGeometrySegment(geom, startMeasure, endMeasure, offset, tolerance);
+            Logger.Log("Obtained Offset Line : {0}", result);
             SqlAssert.IsTrue(offsetGeom.STEquals(result));
         }
 

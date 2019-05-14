@@ -17,7 +17,7 @@ namespace SQLSpatialTools.Types
     internal class LRSMultiLine : IEnumerable
     {
         private readonly List<LRSLine> _lines;
-        internal int SRID;
+        internal readonly int SRID;
         private string _wkt;
 
         /// <summary>
@@ -37,14 +37,6 @@ namespace SQLSpatialTools.Types
         ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
         /// </value>
         internal bool IsEmpty => !_lines.Any() || _lines.Count == 0;
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is not empty or not.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is multi line; otherwise, <c>false</c>.
-        /// </value>
-        internal bool IsNotEmpty => !IsEmpty;
 
         /// <summary>
         /// Gets the number of line segments in the MULTILINESTRING.
@@ -221,11 +213,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSLine GetFirstLine()
         {
-            if (_lines.Any())
-            {
-                return _lines.First();
-            }
-            return null;
+            return _lines.Any() ? _lines.First() : null;
         }
 
         /// <summary>
@@ -234,11 +222,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSLine GetLastLine()
         {
-            if (_lines.Any())
-            {
-                return _lines.Last();
-            }
-            return null;
+            return _lines.Any() ? _lines.Last() : null;
         }
 
         /// <summary>
@@ -247,11 +231,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetStartPoint()
         {
-            if (_lines.Any())
-            {
-                return _lines.First().GetStartPoint();
-            }
-            return null;
+            return _lines.Any() ? _lines.First().GetStartPoint() : null;
         }
 
         /// <summary>
@@ -269,11 +249,7 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetEndPoint()
         {
-            if (_lines.Any())
-            {
-                return _lines.Last().GetEndPoint();
-            }
-            return null;
+            return _lines.Any() ? _lines.Last().GetEndPoint() : null;
         }
 
         /// <summary>
@@ -291,14 +267,13 @@ namespace SQLSpatialTools.Types
         /// <returns></returns>
         internal LRSPoint GetPointAtM(double measure)
         {
-            if (_lines.Any())
+            if (!_lines.Any()) return null;
+
+            foreach (var line in _lines)
             {
-                foreach (var line in _lines)
-                {
-                    LRSPoint point = line.GetPointAtM(measure);
-                    if (point != null)
-                        return point;
-                }
+                var point = line.GetPointAtM(measure);
+                if (point != null)
+                    return point;
             }
             return null;
         }
@@ -307,28 +282,20 @@ namespace SQLSpatialTools.Types
         /// Removes the first.
         /// </summary>
         /// <returns></returns>
-        internal List<LRSLine> RemoveFirst()
+        internal void RemoveFirst()
         {
-            if (_lines.Any())
-            {
-                _lines.RemoveAt(0);
-                return _lines;
-            }
-            return null;
+            if (!_lines.Any()) return;
+            _lines.RemoveAt(0);
         }
 
         /// <summary>
         /// Removes the last.
         /// </summary>
         /// <returns></returns>
-        internal List<LRSLine> RemoveLast()
+        internal void RemoveLast()
         {
-            if (_lines.Any())
-            {
-                _lines.RemoveAt(_lines.Count - 1);
-                return _lines;
-            }
-            return null;
+            if (!_lines.Any()) return;
+            _lines.RemoveAt(_lines.Count - 1);
         }
 
         #endregion

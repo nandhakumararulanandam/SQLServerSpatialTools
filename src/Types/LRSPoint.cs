@@ -394,34 +394,6 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
-        /// Gets the parallel point.
-        /// </summary>
-        /// <param name="offset">The offset.</param>
-        /// <param name="progress"></param>
-        /// <param name="points">The points.</param>
-        /// <param name="tolerance"></param>
-        /// <returns>Point parallel to the current point.</returns>
-        // ReSharper disable once UnusedMember.Global
-        internal List<LRSPoint> GetParallelPoint(double offset, double tolerance, LinearMeasureProgress progress, ref List<LRSPoint> points)
-        {
-            var lrsPoints = new List<LRSPoint>();
-
-            // first equation
-            var newX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - _offsetAngle)));
-            var newY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - _offsetAngle)));
-
-            lrsPoints.Add(new LRSPoint(
-                newX,
-                newY,
-                null,
-                M,
-                _srid
-                ));
-
-            return lrsPoints;
-        }
-
-        /// <summary>
         /// Compute and populate parallel points on bend lines.
         /// </summary>
         /// <param name="offset">The offset.</param>
@@ -429,7 +401,7 @@ namespace SQLSpatialTools.Types
         /// <param name="points">The points.</param>
         /// <param name="tolerance"></param>
         /// <returns>Point parallel to the current point.</returns>
-        internal List<LRSPoint> GetAndPopulateParallelPointsOnBendLines(double offset, double tolerance, LinearMeasureProgress progress, ref List<LRSPoint> points)
+        internal List<LRSPoint> GetAndPopulateParallelPoints(double offset, double tolerance, LinearMeasureProgress progress, ref List<LRSPoint> points)
         {
             var lrsPoints = new List<LRSPoint>();
 
@@ -440,12 +412,13 @@ namespace SQLSpatialTools.Types
 
             var diffInDistance = Math.Round(parallelPoint.GetDistance(this), 5);
 
-            var angleToCompare = progress == LinearMeasureProgress.Increasing ? _angle - 90 : _angle + 90;
-            var isAcuteAngle = angleToCompare < 90;
+            var negativeOffset =  offset < 0;
 
-            //var doComputePoint = isNegative ? OffsetDistance >= offset : OffsetDistance <= offset;
+            var isParallelAngle = negativeOffset
+                ? !(_angle > 45 && _angle <= 180 || _angle > -180 && _angle <= -45)
+                : (_angle > 45 && _angle <= 180 || _angle > -180 && _angle <= -45);
 
-            if (diffInDistance.EqualsTo(offset) || isAcuteAngle)
+            if (diffInDistance.EqualsTo(Math.Abs(offset)) || isParallelAngle)
             {
                 lrsPoints.Add(new LRSPoint(
                     parallelX,
@@ -476,7 +449,7 @@ namespace SQLSpatialTools.Types
                 // if computed first point is within tolerance of second point then add only first point
                 if (firstPoint.IsXYWithinTolerance(secondPoint, tolerance))
                 {
-                    lrsPoints.Add(firstPoint);
+                    lrsPoints.Add(negativeOffset ? secondPoint : firstPoint);
                 }
                 else
                 {

@@ -522,7 +522,7 @@ namespace SQLSpatialTools.Types
             CalculateOffset(offset, progress);
 
             var parallelLine = new LRSLine(SRID);
-            _points.ForEach(point => parallelLine.AddPoint(point.GetParallelPoint(offset, tolerance, progress, ref _points)));
+            _points.ForEach(point => parallelLine.AddPoint(point.GetAndPopulateParallelPoints(offset, tolerance, progress, ref _points)));
             return parallelLine;
         }
 
