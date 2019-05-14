@@ -31,7 +31,7 @@ GO
 
 --#region General Geometry Functions
 CREATE FUNCTION FilterArtifactsGeometry (
-    @g GEOMETRY
+    @geometry GEOMETRY
     ,@filterEmptyShapes BIT
     ,@filterPoints BIT
     ,@lineStringTolerance FLOAT(53)
@@ -43,7 +43,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].Filte
 GO
 
 CREATE FUNCTION GeomFromXYMText (
-    @g NVARCHAR(MAX)
+    @geometry NVARCHAR(MAX)
     ,@targetSrid INT
     )
 RETURNS GEOMETRY
@@ -52,8 +52,8 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].GeomF
 GO
 
 CREATE FUNCTION InterpolateBetweenGeom (
-    @start GEOMETRY
-    ,@end GEOMETRY
+    @startPoint GEOMETRY
+    ,@endPoint GEOMETRY
     ,@distance FLOAT
     )
 RETURNS GEOMETRY
@@ -62,7 +62,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].Inter
 GO
 
 CREATE FUNCTION LocateAlongGeom (
-    @g GEOMETRY
+    @geometry GEOMETRY
     ,@distance FLOAT
     )
 RETURNS GEOMETRY
@@ -70,20 +70,20 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].LocatePointAlongGeom
 GO
 
-CREATE FUNCTION MakeValidForGeography (@g GEOMETRY)
+CREATE FUNCTION MakeValidForGeography (@geometry GEOMETRY)
 RETURNS GEOMETRY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].MakeValidForGeography
 GO
 
-CREATE FUNCTION ReverseLinestring (@g GEOMETRY)
+CREATE FUNCTION ReverseLinestring (@geometry GEOMETRY)
 RETURNS GEOMETRY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].ReverseLinestring
 GO
 
 CREATE FUNCTION ShiftGeometry (
-    @g GEOMETRY
+    @geometry GEOMETRY
     ,@xShift FLOAT
     ,@yShift FLOAT
     )
@@ -93,7 +93,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geometry].Shift
 GO
 
 CREATE FUNCTION VacuousGeometryToGeography (
-    @toConvert GEOMETRY
+    @geometryToConvert GEOMETRY
     ,@targetSrid INT
     )
 RETURNS GEOGRAPHY
@@ -114,14 +114,14 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].ConvexHullGeographyFromText
 GO
 
-CREATE FUNCTION ConvexHullGeography (@geog GEOGRAPHY)
+CREATE FUNCTION ConvexHullGeography (@geography GEOGRAPHY)
 RETURNS GEOGRAPHY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].ConvexHullGeography
 GO
 
 CREATE FUNCTION DensifyGeography (
-    @geog GEOGRAPHY
+    @geography GEOGRAPHY
     ,@maxAngle FLOAT
     )
 RETURNS GEOGRAPHY
@@ -130,7 +130,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].Dens
 GO
 
 CREATE FUNCTION FilterArtifactsGeography (
-    @geog GEOGRAPHY
+    @geography GEOGRAPHY
     ,@filterEmptyShapes BIT
     ,@filterPoints BIT
     ,@lineStringTolerance FLOAT(53)
@@ -142,8 +142,8 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].Filt
 GO
 
 CREATE FUNCTION InterpolateBetweenGeog (
-    @start GEOGRAPHY
-    ,@end GEOGRAPHY
+    @startPoint GEOGRAPHY
+    ,@endPoint GEOGRAPHY
     ,@distance FLOAT
     )
 RETURNS GEOGRAPHY
@@ -151,7 +151,7 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].InterpolateBetweenGeog
 GO
 
-CREATE FUNCTION IsValidGeographyFromGeometry (@inputGeometry GEOMETRY)
+CREATE FUNCTION IsValidGeographyFromGeometry (@geometry GEOMETRY)
 RETURNS BIT
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].IsValidGeographyFromGeometry
@@ -167,7 +167,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].IsVa
 GO
 
 CREATE FUNCTION LocateAlongGeog (
-    @g GEOGRAPHY
+    @geography GEOGRAPHY
     ,@distance FLOAT
     )
 RETURNS GEOGRAPHY
@@ -175,7 +175,7 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].LocatePointAlongGeog
 GO
 
-CREATE FUNCTION MakeValidGeographyFromGeometry (@inputGeometry GEOMETRY)
+CREATE FUNCTION MakeValidGeographyFromGeometry (@geometry GEOMETRY)
 RETURNS GEOGRAPHY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].MakeValidGeographyFromGeometry
@@ -191,7 +191,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.General.Geography].Make
 GO
 
 CREATE FUNCTION VacuousGeographyToGeometry (
-    @toConvert GEOGRAPHY
+    @geographyToConvert GEOGRAPHY
     ,@targetSrid INT
     )
 RETURNS GEOMETRY
@@ -203,31 +203,31 @@ GO
 
 --#region LRS Geometric Functions
 CREATE FUNCTION LRS_ClipGeometrySegment (
-    @g GEOMETRY
+    @geometry GEOMETRY
     ,@startMeasure FLOAT
     ,@endMeasure FLOAT
-    ,@tolerance FLOAT
+    ,@tolerance FLOAT(53)
     )
 RETURNS GEOMETRY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ClipGeometrySegment
 GO
 
-CREATE FUNCTION LRS_GetEndMeasure (@geomSegment1 GEOMETRY)
+CREATE FUNCTION LRS_GetEndMeasure (@geometry GEOMETRY)
 RETURNS FLOAT
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].GetEndMeasure
 GO
 
-CREATE FUNCTION LRS_GetStartMeasure (@geomSegment1 GEOMETRY)
+CREATE FUNCTION LRS_GetStartMeasure (@geometry GEOMETRY)
 RETURNS FLOAT
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].GetStartMeasure
 GO
 
 CREATE FUNCTION LRS_InterpolateBetweenGeom (
-    @start GEOMETRY
-    ,@end GEOMETRY
+    @startPoint GEOMETRY
+    ,@endPoint GEOMETRY
     ,@measure FLOAT
     )
 RETURNS GEOMETRY
@@ -236,9 +236,9 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].Interpola
 GO
 
 CREATE FUNCTION LRS_IsConnected (
-    @g1 GEOMETRY
-    ,@g2 GEOMETRY
-    ,@tolerance FLOAT
+    @geometry1 GEOMETRY
+    ,@geometry2 GEOMETRY
+    ,@tolerance FLOAT(53)
     )
 RETURNS BIT
 AS
@@ -246,7 +246,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].IsConnect
 GO
 
 CREATE FUNCTION LRS_IsValidPoint (
-    @g GEOMETRY
+    @geometry GEOMETRY
     )
 RETURNS BIT
 AS
@@ -254,7 +254,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].IsValidPo
 GO
 
 CREATE FUNCTION LRS_LocatePointAlongGeom (
-    @g GEOMETRY
+    @geometry GEOMETRY
     ,@distance FLOAT
     )
 RETURNS GEOMETRY
@@ -263,9 +263,9 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].LocatePoi
 GO
 
 CREATE FUNCTION LRS_MergeGeometrySegments (
-    @g1 GEOMETRY
-    ,@g2 GEOMETRY
-    ,@tolerance FLOAT
+    @geometry1 GEOMETRY
+    ,@geometry2 GEOMETRY
+    ,@tolerance FLOAT(53)
     )
 RETURNS GEOMETRY
 AS
@@ -273,9 +273,9 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].MergeGeom
 GO
 
 CREATE FUNCTION LRS_MergeAndResetGeometrySegments (
-    @g1 GEOMETRY
-    ,@g2 GEOMETRY
-    ,@tolerance FLOAT
+    @geometry1 GEOMETRY
+    ,@geometry2 GEOMETRY
+    ,@tolerance FLOAT(53)
     )
 RETURNS GEOMETRY
 AS
@@ -283,11 +283,11 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].MergeAndR
 GO
 
 CREATE FUNCTION LRS_OffsetGeometrySegments (
-    @g GEOMETRY
+    @geometry GEOMETRY
     ,@startMeasure FLOAT
     ,@endMeasure FLOAT
     ,@offset FLOAT
-    ,@tolerance FLOAT
+    ,@tolerance FLOAT(53)
     )
 RETURNS GEOMETRY
 AS
@@ -295,7 +295,7 @@ EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].OffsetGeo
 GO
 
 CREATE FUNCTION LRS_PopulateGeometryMeasures (
-    @g GEOMETRY
+    @geometry GEOMETRY
     ,@startMeasure FLOAT
     ,@endMeasure FLOAT
     )
@@ -304,41 +304,41 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].PopulateGeometryMeasures
 GO
 
-CREATE FUNCTION LRS_ResetMeasure(@g GEOMETRY)
+CREATE FUNCTION LRS_ResetMeasure(@geometry GEOMETRY)
 RETURNS GEOMETRY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ResetMeasure
 GO
 
-CREATE FUNCTION LRS_ReverseLinearGeometry (@g GEOMETRY)
+CREATE FUNCTION LRS_ReverseLinearGeometry (@geometry GEOMETRY)
 RETURNS GEOMETRY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ReverseLinearGeometry
 GO
 
-CREATE FUNCTION LRS_ScaleGeometryMeasures (@g GEOMETRY
-    ,@scaleMeasure FLOAT(53))
+CREATE FUNCTION LRS_ScaleGeometryMeasures (@geometry GEOMETRY
+    ,@scaleMeasure FLOAT)
 RETURNS GEOMETRY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ScaleGeometryMeasures
 GO
 
-CREATE PROCEDURE LRS_SplitGeometrySegment @g GEOMETRY
-    ,@splitMeasure FLOAT(53)
-    ,@geomSegement1 GEOMETRY OUTPUT
-    ,@geomSegement2 GEOMETRY OUTPUT
+CREATE PROCEDURE LRS_SplitGeometrySegment @geometry GEOMETRY
+    ,@splitMeasure FLOAT
+    ,@geometry1 GEOMETRY OUTPUT
+    ,@geometry2 GEOMETRY OUTPUT
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].SplitGeometrySegment
 GO
 
-CREATE FUNCTION LRS_TranslateMeasure (@g GEOMETRY
-    ,@translateMeasure FLOAT(53))
+CREATE FUNCTION LRS_TranslateMeasure (@geometry GEOMETRY
+    ,@translateMeasure FLOAT)
 RETURNS GEOMETRY
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].TranslateMeasure
 GO
 
-CREATE FUNCTION LRS_ValidateLRSGeometry (@g GEOMETRY)
+CREATE FUNCTION LRS_ValidateLRSGeometry (@geometry GEOMETRY)
 RETURNS NVARCHAR(10)
 AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ValidateLRSGeometry
@@ -347,14 +347,14 @@ GO
 --#endregion
 
 -- Create aggregates.
-CREATE AGGREGATE GEOMETRYEnvelopeAggregate (@geom GEOMETRY)
+CREATE AGGREGATE GEOMETRYEnvelopeAggregate (@geometry GEOMETRY)
 RETURNS GEOMETRY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Aggregates.GeometryEnvelopeAggregate]
 GO
 
-CREATE AGGREGATE GeographyCollectionAggregate (@geog GEOGRAPHY)
+CREATE AGGREGATE GeographyCollectionAggregate (@geography GEOGRAPHY)
 RETURNS GEOGRAPHY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Aggregates.GeographyCollectionAggregate]
 GO
 
-CREATE AGGREGATE GeographyUnionAggregate (@geog GEOGRAPHY)
+CREATE AGGREGATE GeographyUnionAggregate (@geography GEOGRAPHY)
 RETURNS GEOGRAPHY EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Aggregates.GeographyUnionAggregate]
 GO
