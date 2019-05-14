@@ -29,20 +29,17 @@ namespace SQLSpatialTools.Sinks.Geometry
         }
 
         /// <summary>
-        /// Start the geometry.  Throw if it isn't a LineString.
+        /// Start the geometry
         /// </summary>
         /// <param name="type">Geometry Type</param>
         public void BeginGeometry(OpenGisGeometryType type)
         {
-            if (type != OpenGisGeometryType.LineString)
-                throw new ArgumentException("This operation may only be executed on LineString instances.");
-
             _target.BeginGeometry(type);
         }
 
         /// <summary>
         /// Start the figure.  
-        /// Note that since we only operate on LineStrings, this should only be executed once.
+        /// Note that since we only operate on LineStrings, Multilinestring and Point these should only be executed.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>

@@ -840,7 +840,7 @@ namespace SQLSpatialTools.Functions.LRS
         /// <returns></returns>
         public static SqlGeometry ResetMeasure(SqlGeometry geometry)
         {
-            Ext.ThrowIfNotLine(geometry);
+            Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
 
             var geomBuilder = new SqlGeometryBuilder();
