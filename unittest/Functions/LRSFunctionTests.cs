@@ -933,5 +933,72 @@ namespace SQLSpatialTools.UnitTests.Functions
             else
                 SqlAssert.IsTrue(expected.STEquals(result));
         }
+
+        [TestMethod]
+        public void GetMergePositionTest()
+        {
+            //EndStart connected
+            var geom1 = "LINESTRING (1 1 10, 55 55 690)".GetGeom();
+            var geom2 = "MULTILINESTRING ((54.7 55 690, 100 100 3488), (121 124 4000, 200 201 5000))".GetGeom();
+            var tolerance = 0.3;
+            var result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.EndStart.ToString());
+
+            //StartStart connected
+            geom1 = "MULTILINESTRING ((1 1 10, 55 55 690), (60 61 700, 71 72 800))".GetGeom();
+            geom2 = "MULTILINESTRING ((1 0.8 100, 100 100 3488), (200 201 5000, 300 301 5005))".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.StartStart.ToString());
+
+            //StartEnd connected
+            geom1 = "LINESTRING (1 1 10, 55 55 690)".GetGeom();
+            geom2 = "LINESTRING (5 5 690, 0.71 1 1045)".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.StartEnd.ToString());
+
+            //StartEnd connected
+            geom1 = "LINESTRING (1 1 10, 55 55 690)".GetGeom();
+            geom2 = "POINT (1 1 100)".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.StartEnd.ToString());
+
+            //EndEnd connected
+            geom1 = "LINESTRING (1 1 10, 55 55 690)".GetGeom();
+            geom2 = "LINESTRING (5 5 690, 54.9111 55 4555)".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.EndEnd.ToString());
+
+            //BothEnds connected
+            geom1 = "LINESTRING (1 1 10, 44 50 45, 55 55 690)".GetGeom();
+            geom2 = "LINESTRING (1 1 690, 55 54.71 3488)".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.BothEnds.ToString());
+
+            //StartEnd connected
+            geom1 = "LINESTRING (1 1 10, 55 55 690)".GetGeom();
+            geom2 = "LINESTRING (55 5 5690, 1 0.87 3488)".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.StartEnd.ToString());
+
+            //Not connected
+            geom1 = "LINESTRING (1 1 10, 55 55 690)".GetGeom();
+            geom2 = "LINESTRING (5 5 690, 100 100 3488)".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual("false", result);
+
+            //CrossEnds connected
+            geom1 = "LINESTRING (1 1 10, 55 55 690)".GetGeom();
+            geom2 = "LINESTRING (55 55 5690, 1 0.87 3488)".GetGeom();
+            tolerance = 0.3;
+            result = Geometry.GetMergePosition(geom1, geom2, tolerance);
+            Assert.AreEqual(result, MergePosition.CrossEnds.ToString());
+        }
     }
 }

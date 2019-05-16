@@ -76,7 +76,10 @@ IF OBJECT_ID('LRS_ClipGeometrySegment') IS NOT NULL
     DROP FUNCTION LRS_ClipGeometrySegment
 
 IF OBJECT_ID('LRS_GetEndMeasure') IS NOT NULL
-    DROP FUNCTION LRS_GetEndMeasure
+    DROP FUNCTION LRS_GetEndMeasure    
+
+IF OBJECT_ID('LRS_GetMergePosition') IS NOT NULL
+    DROP FUNCTION LRS_GetMergePosition
 
 IF OBJECT_ID('LRS_GetStartMeasure') IS NOT NULL
     DROP FUNCTION LRS_GetStartMeasure

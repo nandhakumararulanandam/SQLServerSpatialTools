@@ -219,6 +219,16 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].GetEndMeasure
 GO
 
+CREATE FUNCTION LRS_GetMergePosition (
+    @geometry1 GEOMETRY
+    ,@geometry2 GEOMETRY
+    ,@tolerance FLOAT(53)
+    )
+RETURNS NVARCHAR(20)
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].GetMergePosition
+GO
+
 CREATE FUNCTION LRS_GetStartMeasure (@geometry GEOMETRY)
 RETURNS FLOAT
 AS

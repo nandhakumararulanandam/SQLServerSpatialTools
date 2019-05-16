@@ -280,6 +280,22 @@ namespace SQLSpatialTools.Functions.LRS
         }
 
         /// <summary>
+        /// Method returns the Merge position of two LRS segments bound by the tolerance, if the segments are connected
+        /// Otherwise return False in string format
+        /// </summary>
+        /// <param name="geometry1">Geometry Segment 1</param>
+        /// <param name="geometry2">Geometry Segment 2</param>
+        /// <param name="tolerance">tolerance</param>
+        /// <returns>Merge position if connected else false</returns>
+        public static string GetMergePosition(SqlGeometry geometry1, SqlGeometry geometry2, double tolerance = Constants.Tolerance)
+        {
+            // if the segments are connected, return the merge position
+            var isConnected = CheckIfConnected(geometry1, geometry2, tolerance, out var mergePosition);
+            // for not connected segments, return false in string type
+            return isConnected ? mergePosition.ToString() : "false";
+        }
+
+        /// <summary>
         /// Checks if two geometric segments are spatially connected.
         /// </summary>
         /// <param name="geometry1"></param>
@@ -305,6 +321,14 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ThrowIfSRIDDoesNotMatch(geometry1, geometry2);
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
+
+            // check for point type
+            if (geometry1.IsPoint() && geometry2.IsPoint())
+            {
+                var result = geometry1.IsXYWithinRange(geometry2, tolerance);
+                mergePosition = result ? MergePosition.BothEnds : MergePosition.None;
+                return result;
+            }
 
             // Geometry 1 points
             var geometry1StartPoint = geometry1.STStartPoint();

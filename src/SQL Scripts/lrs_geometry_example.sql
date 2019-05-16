@@ -1,6 +1,8 @@
 ﻿-- Script that shows examples on exposed LRS Functions in SQLSpatialTools Library
 -- LRS Geometric Functions
 DECLARE @geom geometry;
+DECLARE @geom1 geometry
+DECLARE @geom2 geometry
 DECLARE @srid INT = 4326;
 DECLARE @distance FLOAT;
 DECLARE @measure FLOAT;
@@ -20,13 +22,21 @@ SELECT 'Clipped Segment' AS 'FunctionInfo'
 SELECT 'Start Measure' AS 'FunctionInfo'
     ,[dbo].[LRS_GetStartMeasure](@geom) AS 'Measure'
 
--- 3. Get End Measure
+-- 3. Get Merge Position
+SET @geom1 = GEOMETRY::STGeomFromText('LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)', @srid);
+SET @geom2 = GEOMETRY::STGeomFromText('LINESTRING(5 5 0 0, 2 2 0 0)', @srid);
+SET @tolerance = 0.5;
+
+SELECT 'Merge Position' AS 'FunctionInfo'
+    ,[dbo].LRS_GetMergePosition(@geom1, @geom2, @tolerance) AS 'IsConnected';
+
+-- 4. Get End Measure
 SELECT 'End Measure' AS 'FunctionInfo'
     ,[dbo].[LRS_GetEndMeasure](@geom) AS 'Measure'
 
--- 4. Interpolate points between Geom
-DECLARE @geom1 geometry = GEOMETRY::STGeomFromText('POINT(0 0 0 0)', @srid);
-DECLARE @geom2 geometry = GEOMETRY::STGeomFromText('POINT(10 0 0 10)', @srid);
+-- 5. Interpolate points between Geom
+SET @geom1 = GEOMETRY::STGeomFromText('POINT(0 0 0 0)', @srid);
+SET @geom2 = GEOMETRY::STGeomFromText('POINT(10 0 0 10)', @srid);
 
 SET @measure = 5;
 
@@ -34,7 +44,7 @@ SELECT 'Interpolate Points' AS 'FunctionInfo'
     ,[dbo].[LRS_InterpolateBetweenGeom](@geom1, @geom2, @measure) AS 'Geometry'
     ,[dbo].[LRS_InterpolateBetweenGeom](@geom1, @geom2, @measure).ToString() AS 'Geometry in String';
 
--- 5. Is Spatially Connected
+-- 6. Is Spatially Connected
 SET @geom1 = GEOMETRY::STGeomFromText('LINESTRING(0 0 0 0, 1 1 0 0, 3 4 0 0, 5.5 5 0 0)', @srid);
 SET @geom2 = GEOMETRY::STGeomFromText('LINESTRING(5 5 0 0, 2 2 0 0)', @srid);
 SET @tolerance = 0.5;
@@ -42,13 +52,13 @@ SET @tolerance = 0.5;
 SELECT 'Is Spatially Connected' AS 'FunctionInfo'
     ,[dbo].[LRS_IsConnected](@geom1, @geom2, @tolerance) AS 'IsConnected';
 
--- 6. IsValid LRS Point
+-- 7. IsValid LRS Point
 SET @geom = GEOMETRY::STGeomFromText('POINT(0 0 0)', @srid);
 
 SELECT 'Is Valid LRS Point' AS 'FunctionInfo'
     ,[dbo].[LRS_IsValidPoint](@geom) AS 'IsValidLRSPoint';
 
--- 7. Locate Point Along the Geometry Segment
+-- 8. Locate Point Along the Geometry Segment
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (0 0 0 0, 10 0 0 10)', @srid);
 SET @measure = 5.0;
 
@@ -56,7 +66,7 @@ SELECT 'Point to Locate' AS 'FunctionInfo'
     ,[dbo].[LRS_LocatePointAlongGeom](@geom, @measure) AS 'Geometry'
     ,[dbo].[LRS_LocatePointAlongGeom](@geom, @measure).ToString() AS 'Geometry in String';
 
--- 8. Merge two Geometry Segments to one Geometry Segment.
+-- 9. Merge two Geometry Segments to one Geometry Segment.
 SET @geom1 = GEOMETRY::STGeomFromText('LINESTRING (10 1 NULL 10, 25 1 NULL 25)', @srid);
 SET @geom2 = GEOMETRY::STGeomFromText('LINESTRING (30 1 NULL 30, 40 1 NULL 40 )', @srid);
 
@@ -64,7 +74,7 @@ SELECT 'Merge Geometry Segments' AS 'FunctionInfo'
     ,[dbo].[LRS_MergeGeometrySegments](@geom1, @geom2, @tolerance) AS 'Geometry'
     ,[dbo].[LRS_MergeGeometrySegments](@geom1, @geom2, @tolerance).ToString() AS 'Geometry in String';
 
--- 9. Merge two Geometry Segments to one Geometry Segment and reset there measures
+-- 10. Merge two Geometry Segments to one Geometry Segment and reset there measures
 SET @geom1 = GEOMETRY::STGeomFromText('LINESTRING (10 15 9, 10 14 12, 10 10 20)', @srid);
 SET @geom2 = GEOMETRY::STGeomFromText('LINESTRING (9.5 14.5 100, 10 18 10, 10 10 5)', @srid);
 
@@ -72,7 +82,7 @@ SELECT 'Merge and Reset Geometry Segments' AS 'FunctionInfo'
     ,[dbo].[LRS_MergeAndResetGeometrySegments](@geom1, @geom2, @tolerance) AS 'Geometry'
     ,[dbo].[LRS_MergeAndResetGeometrySegments](@geom1, @geom2, @tolerance).ToString() AS 'Geometry in String';
 
--- 10. OffsetGeometrySegment Function
+-- 11. OffsetGeometrySegment Function
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING(5 10 0, 20 5 30.628, 35 10 61.257, 55 10 100)', @srid);
 SET @startMeasure = 0;
 SET @endMeasure = 61.5;
@@ -81,7 +91,7 @@ SELECT 'Offset Segment' AS 'FunctionInfo'
     ,[dbo].[LRS_OffsetGeometrySegments](@geom, @startMeasure, @endMeasure, @offset, @tolerance) AS 'Geometry'
     ,[dbo].[LRS_OffsetGeometrySegments](@geom, @startMeasure, @endMeasure, @offset, @tolerance).ToString() AS 'Geometry in String'
 
--- 11. Populate geometry measures.
+-- 12. Populate geometry measures.
 SET @startMeasure = 10;
 SET @endMeasure = 40;
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (10 1 10 100, 15 1 10 NULL, 20 1 10 NULL, 25 1 10 250 )', @srid);
@@ -90,7 +100,7 @@ SELECT 'Populate Geometric Measures' AS 'FunctionInfo'
     ,[dbo].[LRS_PopulateGeometryMeasures](@geom, @startMeasure, @endMeasure) AS 'Geometry'
     ,[dbo].[LRS_PopulateGeometryMeasures](@geom, @startMeasure, @endMeasure).ToString() AS 'Geometry in String';
 
--- 12. Reset Measure
+-- 13. Reset Measure
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (1 1 0 10, 5 5 0 25)', @srid);
 
 SELECT 'Reset Measure' AS 'FunctionInfo'
@@ -98,7 +108,7 @@ SELECT 'Reset Measure' AS 'FunctionInfo'
     ,@geom.ToString() AS 'Input Line'
     ,[dbo].[LRS_ResetMeasure](@geom).ToString() AS 'Geometry in String'
 
--- 13. Reverse Line String
+-- 14. Reverse Line String
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (1 1 0 0, 5 5 0 0)', @srid);
 
 SELECT 'Reverse Linear Geometry' AS 'FunctionInfo'
@@ -106,7 +116,7 @@ SELECT 'Reverse Linear Geometry' AS 'FunctionInfo'
     ,@geom.ToString() AS 'Input Line'
     ,[dbo].[LRS_ReverseLinearGeometry](@geom).ToString() AS 'Geometry in String'
 
--- 14. Scale Geometry Measures
+-- 15. Scale Geometry Measures
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (1 1 0 10, 5 5 0 20)', @srid);
 SET @measure = 5;
 
@@ -115,7 +125,7 @@ SELECT 'Scale Geometry Measures' AS 'FunctionInfo'
     ,@geom.ToString() AS 'Input Line'
     ,[dbo].[LRS_ScaleGeometryMeasures](@geom, @measure).ToString() AS 'Geometry in String'
 
--- 15. Split Geometry Segment
+-- 16. Split Geometry Segment
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (10 1 NULL 10, 25 1 NULL 25 )', @srid);
 SET @measure = 15;
 EXECUTE [dbo].[LRS_SplitGeometrySegment] 
@@ -129,7 +139,7 @@ SELECT 'Split Line Segment' AS 'FunctionInfo'
     ,@geom1.ToString() AS 'Line Segment 1'
     ,@geom2.ToString() AS 'Line Segment 2'
 
--- 16. Translate Linear Geometry Measure
+-- 17. Translate Linear Geometry Measure
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (1 1 0 10, 5 5 0 20)', @srid);
 SET @measure = 5;
 
@@ -138,7 +148,7 @@ SELECT 'Translate Measures' AS 'FunctionInfo'
     ,@geom.ToString() AS 'Input Line'
     ,[dbo].[LRS_TranslateMeasure](@geom, @measure).ToString() AS 'Geometry in String'
 
--- 17. Validate LRS Segment
+-- 18. Validate LRS Segment
 SET @geom1 = GEOMETRY::STGeomFromText('LINESTRING (1 1 0 0, 5 5 0 0)', @srid);
 SET @geom2 = GEOMETRY::STGeomFromText('LINESTRING (2 2 0, 2 4 2, 8 4 8, 12 4 12, 12 10 29, 8 10 22, 5 14 27)', @srid);
 SET @geom = GEOMETRY::STGeomFromText('LINESTRING (2 2, 2 4, 8 4)', @srid);
