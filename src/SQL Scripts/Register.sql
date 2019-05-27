@@ -326,11 +326,13 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ReverseLinearGeometry
 GO
 
-CREATE FUNCTION LRS_ScaleGeometryMeasures (@geometry GEOMETRY
-    ,@scaleMeasure FLOAT)
+CREATE FUNCTION LRS_ScaleGeometrySegment (@geometry GEOMETRY
+    ,@startMeasure FLOAT
+    ,@endMeasure FLOAT
+    ,@shiftMeasure FLOAT)
 RETURNS GEOMETRY
 AS
-EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ScaleGeometryMeasures
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ScaleGeometrySegment
 GO
 
 CREATE PROCEDURE LRS_SplitGeometrySegment @geometry GEOMETRY

@@ -114,8 +114,8 @@ IF OBJECT_ID('LRS_ResetMeasure') IS NOT NULL
 IF OBJECT_ID('LRS_ReverseLinearGeometry') IS NOT NULL
     DROP FUNCTION LRS_ReverseLinearGeometry
 
-IF OBJECT_ID('LRS_ScaleGeometryMeasures') IS NOT NULL
-    DROP FUNCTION LRS_ScaleGeometryMeasures
+IF OBJECT_ID('LRS_ScaleGeometrySegment') IS NOT NULL
+    DROP FUNCTION LRS_ScaleGeometrySegment
 
 IF OBJECT_ID('LRS_SplitGeometrySegment') IS NOT NULL
     DROP PROCEDURE LRS_SplitGeometrySegment

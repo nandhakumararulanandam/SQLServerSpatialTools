@@ -8,9 +8,9 @@ using System;
 namespace SQLSpatialTools.Sinks.Geometry
 {
     /// <summary>
-    /// This class implements a geometry sink that scales the measure values of input geometry.
+    /// This class implements a geometry sink that multiplies the measure values of input geometry.
     /// </summary>
-    internal class ScaleMeasureGeometrySink : IGeometrySink110
+    internal class MultiplyMeasureGeometrySink : IGeometrySink110
     {
         private readonly SqlGeometryBuilder _target;
         private readonly double _scaleMeasure;
@@ -20,7 +20,7 @@ namespace SQLSpatialTools.Sinks.Geometry
         /// </summary>
         /// <param name="target"></param>
         /// <param name="scaleMeasure"></param>
-        public ScaleMeasureGeometrySink(SqlGeometryBuilder target, double scaleMeasure)
+        public MultiplyMeasureGeometrySink(SqlGeometryBuilder target, double scaleMeasure)
         {
             _target = target;
             _scaleMeasure = scaleMeasure;

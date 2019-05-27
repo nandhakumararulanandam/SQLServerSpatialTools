@@ -431,6 +431,7 @@ namespace SQLSpatialTools.UnitTests.Functions
             }
             catch (Exception)
             {
+                // ignored
             }
 
             try
@@ -442,6 +443,7 @@ namespace SQLSpatialTools.UnitTests.Functions
             }
             catch (Exception)
             {
+                // ignored
             }
 
             try
@@ -453,6 +455,7 @@ namespace SQLSpatialTools.UnitTests.Functions
             }
             catch (Exception)
             {
+                // ignored
             }
 
             geom1 = "MULTILINESTRING((100 100 0, 200 200 100), (3 4 0, 7 8 4, 10 10 6))".GetGeom();
@@ -740,16 +743,16 @@ namespace SQLSpatialTools.UnitTests.Functions
         }
 
         [TestMethod]
-        public void ScaleGeometryMeasureTest()
+        public void MultiplyGeometryMeasureTest()
         {
-            Logger.LogLine("Scale Geometry Measures.");
+            Logger.LogLine("Multiply Geometry Measures.");
             // Check for Multi Line
             var geom = "MULTILINESTRING((1 1 1,2 2 2),(3 3 3, 5 5 7))".GetGeom();
             var scaleMeasure = -2;
             var scaledStartPoint = "POINT (1 1 2)".GetGeom();
             Logger.LogLine("Scale Measure : {0}", scaleMeasure);
             Logger.Log("Input Geom : {0}", geom.ToString());
-            var scaledGeom = Geometry.ScaleGeometryMeasures(geom, scaleMeasure);
+            var scaledGeom = Geometry.MultiplyGeometryMeasures(geom, scaleMeasure);
             Logger.Log("Reversed Geom : {0}", scaledGeom);
             SqlAssert.IsTrue(scaledGeom.STStartPoint().STEquals(scaledStartPoint));
 
@@ -760,7 +763,7 @@ namespace SQLSpatialTools.UnitTests.Functions
             geom = " LINESTRING(0 0 0, 10 0 40)".GetGeom();
             scaledStartPoint = "POINT (0 0 0)".GetGeom();
             Logger.LogLine("Input Geom : {0}", geom.ToString());
-            scaledGeom = Geometry.ScaleGeometryMeasures(geom, scaleMeasure);
+            scaledGeom = Geometry.MultiplyGeometryMeasures(geom, scaleMeasure);
             Logger.Log("Reversed Geom : {0}", scaledGeom);
             SqlAssert.IsTrue(scaledGeom.STStartPoint().STEquals(scaledStartPoint));
 
@@ -771,7 +774,7 @@ namespace SQLSpatialTools.UnitTests.Functions
             geom = " POINT(10 0 40)".GetGeom();
             scaledStartPoint = "POINT (10 0 200)".GetGeom();
             Logger.LogLine("Input Geom : {0}", geom.ToString());
-            scaledGeom = Geometry.ScaleGeometryMeasures(geom, scaleMeasure);
+            scaledGeom = Geometry.MultiplyGeometryMeasures(geom, scaleMeasure);
             Logger.Log("Reversed Geom : {0}", scaledGeom);
             SqlAssert.IsTrue(scaledGeom.STStartPoint().STEquals(scaledStartPoint));
         }
@@ -815,28 +818,69 @@ namespace SQLSpatialTools.UnitTests.Functions
             DoSplitTest(30, geom);
         }
 
-        private void DoSplitTest(double measure, SqlGeometry geom)
+        [TestMethod]
+        public void ScaleGeometryMeasureTest()
         {
+            var geom = "LINESTRING (2 2 0 6, 2 4 0 2, 8 4 0 8)".GetGeom();
+            var shiftMeasure = 2;
             try
             {
-                SqlGeometry geomSegment1, geomSegment2;
-
-                Logger.LogLine("Splitting for measure Geom : {0}", measure);
-                Geometry.SplitGeometrySegment(geom, measure, out geomSegment1, out geomSegment2);
-                Logger.Log("Segment 1 Geom : {0}", geomSegment1);
-                Logger.Log("Segment 2 Geom : {0}", geomSegment2);
+                Geometry.ScaleGeometrySegment(geom, 5, 25, shiftMeasure);
+                Assert.Fail("Exception not thrown when not linear.");
             }
-            catch (Exception ex)
+            catch (ArgumentException)
             {
-                Logger.Log("Error : {0}", ex.Message);
+                // ignored
             }
+
+            geom = "LINESTRING (2 2 0 6, 2 4 0 7, 8 4 0 8)".GetGeom();
+            var result = Geometry.ScaleGeometrySegment(geom, 7, 5, shiftMeasure);
+            var expected = "LINESTRING (2 2 0 9, 2 4 0 8, 8 4 0 7)".GetGeom();
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log("Expected : {0}", expected);
+            Logger.Log("Result : {0}", result);
+            SqlAssert.IsTrue(expected.STEquals(result));
+
+            geom = "LINESTRING (2 2 0 6, 2 4 0 7, 8 4 0 8)".GetGeom();
+            result = Geometry.ScaleGeometrySegment(geom, -7, -5, -5);
+            expected = "LINESTRING (2 2 0 -12, 2 4 0 -11, 8 4 0 -10)".GetGeom();
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log("Expected : {0}", expected);
+            Logger.Log("Result : {0}", result);
+            SqlAssert.IsTrue(expected.STEquals(result));
+
+            geom = "MULTILINESTRING((1 1 1,2 2 2, 3 3 3),(4 4 4, 5 5 5, 6 6 6), (8 8 8, 9 9 9, 10 10 10), (11 11 11, 12 12 12, 13 13 13, 14 14 14))".GetGeom();
+            result = Geometry.ScaleGeometrySegment(geom, 5, 20, shiftMeasure);
+            expected = "MULTILINESTRING ((1 1 0 2, 2 2 0 4, 3 3 0 5), (4 4 0 6, 5 5 0 7, 6 6 0 8), (8 8 0 10, 9 9 0 11, 10 10 0 12), (11 11 0 13, 12 12 0 14, 13 13 0 15, 14 14 0 16))".GetGeom();
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log("Expected : {0}", expected);
+            Logger.Log("Result : {0}", result);
+            SqlAssert.IsTrue(expected.STEquals(result));
+
+            geom = "POINT(2 4 6)".GetGeom();
+            shiftMeasure = 5;
+            result = Geometry.ScaleGeometrySegment(geom, 0, 25, shiftMeasure);
+            expected = "POINT (2 4 30)".GetGeom();
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log("Expected : {0}", expected);
+            Logger.Log("Result : {0}", result);
+            SqlAssert.IsTrue(expected.STEquals(result));
+
+            geom = "POINT(2 4 6)".GetGeom();
+            shiftMeasure = 5;
+            result = Geometry.ScaleGeometrySegment(geom, 25, 0, shiftMeasure);
+            expected = "POINT (2 4 5)".GetGeom();
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log("Expected : {0}", expected);
+            Logger.Log("Result : {0}", result);
+            SqlAssert.IsTrue(expected.STEquals(result));
         }
 
         [TestMethod]
         public void TranslateMeasureGeometryTest()
         {
             var geom = "LINESTRING (2 2 6, 2 4 2, 8 4 8)".GetGeom();
-            var translateMeasure = 2;
+            const int translateMeasure = 2;
             var result = Geometry.TranslateMeasure(geom, translateMeasure);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log("Result : {0}", result);
@@ -1046,6 +1090,26 @@ namespace SQLSpatialTools.UnitTests.Functions
             tolerance = 0.3;
             result = Geometry.GetMergePosition(geom1, geom2, tolerance);
             Assert.AreEqual(result, MergePosition.CrossEnds.ToString());
+        }
+
+        /// <summary>
+        /// Does the split test.
+        /// </summary>
+        /// <param name="measure">The measure.</param>
+        /// <param name="geom">The geom.</param>
+        private void DoSplitTest(double measure, SqlGeometry geom)
+        {
+            try
+            {
+                Logger.LogLine("Splitting for measure Geom : {0}", measure);
+                Geometry.SplitGeometrySegment(geom, measure, out var geomSegment1, out var geomSegment2);
+                Logger.Log("Segment 1 Geom : {0}", geomSegment1);
+                Logger.Log("Segment 2 Geom : {0}", geomSegment2);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error : {0}", ex.Message);
+            }
         }
     }
 }

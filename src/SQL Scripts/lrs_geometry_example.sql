@@ -117,16 +117,18 @@ SELECT 'Reverse Linear Geometry' AS 'FunctionInfo'
     ,[dbo].[LRS_ReverseLinearGeometry](@geom).ToString() AS 'Geometry in String'
 
 -- 15. Scale Geometry Measures
-SET @geom = GEOMETRY::STGeomFromText('LINESTRING (1 1 0 10, 5 5 0 20)', @srid);
+SET @geom = GEOMETRY::STGeomFromText('LINESTRING (2 2 0 6, 2 4 0 7, 8 4 0 8)', @srid);
+SET @startMeasure = 10;
+SET @endMeasure = 40;
 SET @measure = 5;
 
 SELECT 'Scale Geometry Measures' AS 'FunctionInfo'
-    ,[dbo].[LRS_ScaleGeometryMeasures](@geom, @measure) AS 'Geometry'
+    ,[dbo].[LRS_ScaleGeometrySegment](@geom, @startMeasure, @endMeasure, @measure) AS 'Geometry'
     ,@geom.ToString() AS 'Input Line'
-    ,[dbo].[LRS_ScaleGeometryMeasures](@geom, @measure).ToString() AS 'Geometry in String'
+    ,[dbo].[LRS_ScaleGeometrySegment](@geom, @startMeasure, @endMeasure, @measure).ToString() AS 'Geometry in String'
 
 -- 16. Split Geometry Segment
-SET @geom = GEOMETRY::STGeomFromText('LINESTRING (10 1 NULL 10, 25 1 NULL 25 )', @srid);
+SET @geom = GEOMETRY::STGeomFromText('LINESTRING (10 1 NULL 10, 25 1 NULL 25)', @srid);
 SET @measure = 15;
 EXECUTE [dbo].[LRS_SplitGeometrySegment] 
    @geom
@@ -134,7 +136,7 @@ EXECUTE [dbo].[LRS_SplitGeometrySegment]
   ,@geom1 OUTPUT
   ,@geom2 OUTPUT
 
-SELECT 'Split Line Segment' AS 'FunctionInfo'   
+SELECT 'Split Line Segment' AS 'FunctionInfo'
     ,@geom.ToString() AS 'Input Line'
     ,@geom1.ToString() AS 'Line Segment 1'
     ,@geom2.ToString() AS 'Line Segment 2'

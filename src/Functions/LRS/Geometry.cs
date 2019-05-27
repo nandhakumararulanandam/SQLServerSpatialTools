@@ -533,7 +533,7 @@ namespace SQLSpatialTools.Functions.LRS
                         // Single negation of measure is needed for geometry 2,
                         // if both segments are differ in measure variation
                         if (!isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+                            geometry2 = MultiplyGeometryMeasures(geometry2, -1);
 
                         offsetM = geometry1.STEndPoint().GetPointOffset(geometry2.STStartPoint());
                         geometry2 = TranslateMeasure(geometry2, offsetM);
@@ -547,7 +547,7 @@ namespace SQLSpatialTools.Functions.LRS
                         // Double negation is needed for geometry 2, i.e., both segments differ from measure variation,
                         // also, geometry 2 has been traversed from ending point to the starting point
                         if (isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+                            geometry2 = MultiplyGeometryMeasures(geometry2, -1);
 
                         offsetM = geometry1.STEndPoint().GetPointOffset(geometry2.STEndPoint());
                         // Reverse the geometry 2, since it has been traversed from ending point to the starting point
@@ -563,7 +563,7 @@ namespace SQLSpatialTools.Functions.LRS
                         // Double negation is needed for geometry 2, i.e., both segments differ from measure variation,
                         // also, geometry 2 has been traversed from ending point to the starting point
                         if (isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+                            geometry2 = MultiplyGeometryMeasures(geometry2, -1);
 
                         offsetM = geometry1.STStartPoint().GetPointOffset(geometry2.STStartPoint());
                         // Reverse the geometry 2, since it has been traversed from ending point to the starting point
@@ -579,7 +579,7 @@ namespace SQLSpatialTools.Functions.LRS
                         // Single negation of measure is needed for geometry 2
                         // if both segments are differ in measure variation
                         if (!isSameDirection)
-                            geometry2 = ScaleGeometryMeasures(geometry2, -1);
+                            geometry2 = MultiplyGeometryMeasures(geometry2, -1);
 
                         offsetM = (geometry1.STStartPoint().M.Value - geometry2.STEndPoint().M.Value);
                         // scale the measures of geometry 2 based on the offset measure difference between them
@@ -736,7 +736,7 @@ namespace SQLSpatialTools.Functions.LRS
             var isSameDirection = geometry1.STSameDirection(geometry2);
             var firstSegmentDirection = geometry1.STLinearMeasureProgress();
             if (!isSameDirection)
-                geometry2 = ScaleGeometryMeasures(geometry2, -1);
+                geometry2 = MultiplyGeometryMeasures(geometry2, -1);
 
             var offsetM = geometry1.GetOffset(geometry2);
             var doUpdateM = false;
@@ -756,6 +756,28 @@ namespace SQLSpatialTools.Functions.LRS
             mergedLRSMultiLine.Add(geometry2.GetLRSMultiLine(doUpdateM, offsetM));
 
             return mergedLRSMultiLine.ToSqlGeometry();
+        }
+
+        /// <summary>
+        /// Multiply the measure values of Linear Geometry
+        /// Works only for POINT, LINESTRING, MULTILINESTRING Geometry.
+        /// </summary>
+        /// <param name="geometry">Input Geometry</param>
+        /// <param name="multiplyMeasure">Measure to be Multiplied</param>
+        /// <returns></returns>
+        public static SqlGeometry MultiplyGeometryMeasures(SqlGeometry geometry, double multiplyMeasure)
+        {
+            Ext.ThrowIfNotLRSType(geometry);
+            Ext.ValidateLRSDimensions(ref geometry);
+
+            // if scale measure is zero; return the input
+            if (multiplyMeasure.EqualsTo(0))
+                return geometry;
+
+            var geometryBuilder = new SqlGeometryBuilder();
+            var geomSink = new MultiplyMeasureGeometrySink(geometryBuilder, multiplyMeasure);
+            geometry.Populate(geomSink);
+            return geometryBuilder.ConstructedGeometry;
         }
 
         /// <summary>
@@ -922,19 +944,22 @@ namespace SQLSpatialTools.Functions.LRS
         }
 
         /// <summary>
-        /// Scale the measure values of Linear Geometry
+        /// Scale the measure values of the Linear Geometry
         /// Works only for POINT, LINESTRING, MULTILINESTRING Geometry.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
-        /// <param name="scaleMeasure"></param>
+        /// <param name="startMeasure">Start Measure</param>
+        /// <param name="endMeasure">End Measure</param>
+        /// <param name="shiftMeasure">Measure to be Multiplied</param>
         /// <returns></returns>
-        public static SqlGeometry ScaleGeometryMeasures(SqlGeometry geometry, double scaleMeasure)
+        public static SqlGeometry ScaleGeometrySegment(SqlGeometry geometry, double startMeasure, double endMeasure, double shiftMeasure)
         {
             Ext.ThrowIfNotLRSType(geometry);
             Ext.ValidateLRSDimensions(ref geometry);
+            Ext.ThrowIfMeasureNotLinear(geometry);
 
             var geometryBuilder = new SqlGeometryBuilder();
-            var geomSink = new ScaleMeasureGeometrySink(geometryBuilder, scaleMeasure);
+            var geomSink = new ScaleGeometrySink(geometryBuilder, geometry.GetStartPointMeasure(), geometry.GetEndPointMeasure(), startMeasure, endMeasure, shiftMeasure);
             geometry.Populate(geomSink);
             return geometryBuilder.ConstructedGeometry;
         }

@@ -662,6 +662,16 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Throw if measure is not linear for LRS System.
+        /// </summary>
+        /// <param name="inputGeometry">SQL Geometry</param>
+        internal static void ThrowIfMeasureNotLinear(SqlGeometry inputGeometry)
+        {
+            if (!inputGeometry.STHasLinearMeasure())
+                throw new ArgumentException(ErrorMessage.LinearMeasureRange);
+        }
+
+        /// <summary>
         /// Throw if measure is not withing the range of two geometries.
         /// </summary>
         /// <param name="measure">Measure</param>
