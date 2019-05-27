@@ -62,7 +62,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>SpatialTools.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\SpatialTools.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.SqlServer.Types, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
@@ -86,7 +86,6 @@
     <Compile Include="Sinks\Geometry\TranslateMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ReverseAndTranslateGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\LineStringMergeGeometrySink.cs" />
-    <Compile Include="Sinks\Geometry\ValidateLinearMeasureGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\LocateMAlongGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\ResetMGeometrySink.cs" />
     <Compile Include="KMLProcessor\Constants.cs" />
@@ -163,7 +162,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="SpatialTools.pfx" />
     <None Include="SQL Scripts\aggregate_example.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

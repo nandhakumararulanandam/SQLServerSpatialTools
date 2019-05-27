@@ -22,16 +22,6 @@ namespace SQLSpatialTools.Utility
                 return v._value;
             }
 
-            public static implicit operator SqlInt32(Numeric v)
-            {
-                return v._value;
-            }
-
-            public static implicit operator Numeric(int value)
-            {
-                return new Numeric(value);
-            }
-
             public static implicit operator Numeric(SqlInt32 value)
             {
                 return new Numeric((int)value);

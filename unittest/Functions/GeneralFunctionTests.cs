@@ -73,6 +73,45 @@ namespace SQLSpatialTools.UnitTests.Functions
                 var sqlGeometry = Geometry.InterpolateBetweenGeom(geom1, geom2, distance);
                 Logger.Log("Obtained Point: {0}", sqlGeometry.ToString());
                 SqlAssert.IsTrue(sqlGeometry.STEquals(returnPoint));
+
+                try
+                {
+                    geom1 = "LINESTRING(0 0 0 0, 1 1 1 1)".GetGeom();
+                    Geometry.InterpolateBetweenGeom(geom1, geom2, distance);
+                }
+                catch (ArgumentException)
+                {
+                }
+
+                try
+                {
+                    geom1 = "POINT(0 0 0 0)".GetGeom();
+                    geom2 = "POINT(0 0 0 0)".GetGeom(0);
+                    Geometry.InterpolateBetweenGeom(geom1, geom2, distance);
+                }
+                catch (ArgumentException)
+                {
+                }
+
+                try
+                {
+                    geom1 = "POINT(0 0 0 0)".GetGeom();
+                    geom2 = "POINT(0 0 0 1)".GetGeom();
+                    Geometry.InterpolateBetweenGeom(geom1, geom2, 10);
+                }
+                catch (ArgumentException)
+                {
+                }
+
+                try
+                {
+                    geom1 = "POINT(0 0 0 0)".GetGeom();
+                    geom2 = "POINT(0 0 0 1)".GetGeom();
+                    Geometry.InterpolateBetweenGeom(geom1, geom2, -5);
+                }
+                catch (ArgumentException)
+                {
+                }
             }
 
             [TestMethod]
@@ -88,6 +127,24 @@ namespace SQLSpatialTools.UnitTests.Functions
                 Logger.Log("Expected point: {0}", returnPoint);
                 Logger.Log("Located  point: {0} at distance of {1} Measure", locatedPoint, distance);
                 SqlAssert.IsTrue(locatedPoint.STEquals(returnPoint));
+
+                geom = "LINESTRING (0 0 0 5, 10 0 0 10)".GetGeom();
+                returnPoint = "POINT (0 0 0 5)".GetGeom();
+                locatedPoint = Geometry.LocatePointAlongGeom(geom, 0);
+                SqlAssert.IsTrue(locatedPoint.STEquals(returnPoint));
+
+                try
+                {
+                    Geometry.LocatePointAlongGeom(geom, 15);
+                }
+                catch (ArgumentException) { }
+
+                try
+                {
+                    geom = "POINT (0 0 0 0)".GetGeom();
+                    Geometry.LocatePointAlongGeom(geom, 15);
+                }
+                catch (ArgumentException) { }
             }
 
             [TestMethod]
@@ -117,6 +174,15 @@ namespace SQLSpatialTools.UnitTests.Functions
                 var reversedLineSegment = Geometry.ReverseLinestring(geom);
                 Logger.Log("Reversed Line string : {0}", reversedLineSegment.ToString());
                 SqlAssert.IsTrue(reversedLineSegment.STStartPoint().STEquals(endPoint));
+
+                try
+                {
+                    geom = "POINT (1 1)".GetGeom();
+                    Geometry.ReverseLinestring(geom);
+                }
+                catch (ArgumentException)
+                {
+                }
             }
 
             [TestMethod]

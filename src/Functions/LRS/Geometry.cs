@@ -451,6 +451,9 @@ namespace SQLSpatialTools.Functions.LRS
             Ext.ValidateLRSDimensions(ref geometry1);
             Ext.ValidateLRSDimensions(ref geometry2);
 
+            // return object 
+            SqlGeometry returnGeom = null;
+
             // returning geometry2 if both the geometries are points
             if (geometry1.CheckGeomPoint() && geometry2.CheckGeomPoint())
                 return geometry2;
@@ -462,7 +465,7 @@ namespace SQLSpatialTools.Functions.LRS
             if (geometry2.CheckGeomPoint())
                 return geometry1;
 
-            var isConnected = CheckIfConnected(geometry1, geometry2, tolerance, out MergePosition mergePosition);
+            var isConnected = CheckIfConnected(geometry1, geometry2, tolerance, out var mergePosition);
             var mergeType = geometry1.GetMergeType(geometry2);
 
             if (isConnected)
@@ -470,19 +473,21 @@ namespace SQLSpatialTools.Functions.LRS
                 switch (mergeType)
                 {
                     case MergeInputType.LSLS:
-                        return MergeConnectedLineStrings(geometry1, geometry2, mergePosition, out _);
+                        returnGeom = MergeConnectedLineStrings(geometry1, geometry2, mergePosition, out _);
+                        break;
                     case MergeInputType.LSMLS:
                     case MergeInputType.MLSLS:
                     case MergeInputType.MLSMLS:
-                        return MergeConnectedMultiLineStrings(geometry1, geometry2, mergePosition);
+                        returnGeom = MergeConnectedMultiLineStrings(geometry1, geometry2, mergePosition);
+                        break;
                 }
             }
             else
             {
                 // construct multi line
-                return MergeDisconnectedLineSegments(geometry1, geometry2);
+                returnGeom = MergeDisconnectedLineSegments(geometry1, geometry2);
             }
-            return null;
+            return returnGeom;
         }
 
         /// <summary>
@@ -631,7 +636,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetLastLine().ToSqlGeometry();
                         targetSegment = segment2.GetLastLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out var measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -655,7 +660,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetLastLine().ToSqlGeometry();
                         targetSegment = segment2.GetFirstLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out var measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -677,7 +682,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetFirstLine().ToSqlGeometry();
                         targetSegment = segment2.GetLastLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out var measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -699,7 +704,7 @@ namespace SQLSpatialTools.Functions.LRS
                         sourceSegment = segment1.GetFirstLine().ToSqlGeometry();
                         targetSegment = segment2.GetFirstLine().ToSqlGeometry();
                         //  Generating merged segment of geometry1 and geometry2
-                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out double measureDifference);
+                        mergedSegment = MergeConnectedLineStrings(sourceSegment, targetSegment, mergePosition, out var measureDifference);
 
                         var mergedGeom = mergedSegment.GetLRSMultiLine();
 
@@ -1041,16 +1046,8 @@ namespace SQLSpatialTools.Functions.LRS
             if (geometry.IsNullOrEmpty() || !geometry.STIsValid() || geometry.IsGeometryCollection())
                 return LRSErrorCodes.InvalidLRS.Value();
 
-            // return invalid if geometry doesn't or have null values
-            if (!geometry.STHasLinearMeasure())
-                return LRSErrorCodes.InvalidLRSMeasure.Value();
-
-            // checks if the measures are in linear range.
-            var geomBuilder = new SqlGeometryBuilder();
-            var geomSink = new ValidateLinearMeasureGeometrySink(geomBuilder, geometry.STLinearMeasureProgress());
-            geometry.Populate(geomSink);
-
-            return geomSink.IsLinearMeasure() ? LRSErrorCodes.ValidLRS.Value() : LRSErrorCodes.InvalidLRSMeasure.Value();
+            // return invalid if geometry doesn't or have null values or checks if the measures are in linear range.
+            return geometry.STHasLinearMeasure() ? LRSErrorCodes.ValidLRS.Value() : LRSErrorCodes.InvalidLRSMeasure.Value();
         }
     }
 }

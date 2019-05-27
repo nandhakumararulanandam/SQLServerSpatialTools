@@ -200,49 +200,6 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
-        /// Compares measure values of each point in a LineString; if the two geom segments are equal.
-        /// </summary>
-        /// <param name="sqlGeometry">Input Line Segment</param>
-        /// <param name="targetGeometry">Target Line Segment</param>
-        /// <returns></returns>
-        public static bool STEqualsMeasure(this SqlGeometry sqlGeometry, SqlGeometry targetGeometry)
-        {
-            if (!(sqlGeometry.IsLineString() || targetGeometry.IsLineString()))
-                return false;
-            if (sqlGeometry.STIsEmpty() || targetGeometry.STIsEmpty())
-                return false;
-
-            // check if two geometries are equal
-            if (!sqlGeometry.STEquals(targetGeometry))
-                return false;
-
-            var inputNumPoints = sqlGeometry.STNumPoints();
-            var targetNumPoints = targetGeometry.STNumPoints();
-
-            if (inputNumPoints != targetNumPoints)
-                return false;
-
-            for (var pointIterator = 1; pointIterator <= inputNumPoints; pointIterator++)
-            {
-                var sourcePoint = sqlGeometry.STPointN(pointIterator);
-                var targetPoint = targetGeometry.STPointN(pointIterator);
-
-                // when both source and target point has null measure; then they are equal.
-                if (!sourcePoint.HasM && !targetPoint.HasM)
-                    continue;
-
-                // when source has measure and target doesn't have measure then they are not equal
-                // vice a versa
-                if ((sourcePoint.HasM && !targetPoint.HasM) || (!sourcePoint.HasM && targetPoint.HasM))
-                    return false;
-
-                if (sourcePoint.M != targetPoint.M)
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// for checking whether geometry measure is increasing or decreasing 
         /// </summary>
         /// <param name="geometry"></param>
@@ -263,15 +220,16 @@ namespace SQLSpatialTools.Utility
                     return false;
 
                 if (iterator == 1)
+                {
+                    previousM = currentPoint.M.Value;
                     continue;
+                }
 
                 switch (measureProgress)
                 {
                     case LinearMeasureProgress.Increasing when previousM > currentPoint.M:
                     case LinearMeasureProgress.Decreasing when previousM < currentPoint.M:
                         return false;
-                    case LinearMeasureProgress.None:
-                        break;
                     default:
                         previousM = currentPoint.M.Value;
                         break;
@@ -796,24 +754,31 @@ namespace SQLSpatialTools.Utility
         /// <returns>Dimensional Info 2D, 2DM, 3D or 3DM</returns>
         public static DimensionalInfo STGetDimension(this SqlGeometry sqlGeometry)
         {
+            // return object
+            var dmDimensionalInfo = DimensionalInfo.None;
+
             // STNumPoint can be performed only on valid geometries.
             if (!sqlGeometry.STIsValid() || sqlGeometry.STNumPoints() <= 0)
-                return DimensionalInfo.None;
+            {
+                dmDimensionalInfo = DimensionalInfo.None;
+            }
+            else
+            {
+                var firstPoint = sqlGeometry.STPointN(1);
+                if (firstPoint.Z.IsNull && firstPoint.M.IsNull)
+                    dmDimensionalInfo = DimensionalInfo.Dim2D;
 
-            var firstPoint = sqlGeometry.STPointN(1);
-            if (firstPoint.Z.IsNull && firstPoint.M.IsNull)
-                return DimensionalInfo.Dim2D;
+                else if (firstPoint.Z.IsNull && !firstPoint.M.IsNull)
+                    dmDimensionalInfo = DimensionalInfo.Dim2DWithMeasure;
 
-            if (firstPoint.Z.IsNull && !firstPoint.M.IsNull)
-                return DimensionalInfo.Dim2DWithMeasure;
+                else if (!firstPoint.Z.IsNull && firstPoint.M.IsNull)
+                    dmDimensionalInfo = DimensionalInfo.Dim3D;
 
-            if (!firstPoint.Z.IsNull && firstPoint.M.IsNull)
-                return DimensionalInfo.Dim3D;
+                else if (!firstPoint.Z.IsNull && !firstPoint.M.IsNull)
+                    dmDimensionalInfo = DimensionalInfo.Dim3DWithMeasure;
+            }
 
-            if (!firstPoint.Z.IsNull && !firstPoint.M.IsNull)
-                return DimensionalInfo.Dim3DWithMeasure;
-
-            return DimensionalInfo.None;
+            return dmDimensionalInfo;
         }
 
         /// <summary>
@@ -835,8 +800,7 @@ namespace SQLSpatialTools.Utility
                     sqlGeometry = sqlGeometry.ConvertTo2DimensionWithMeasure();
                     break;
                 case DimensionalInfo.Dim2D:
-                    ThrowException(ErrorMessage.TwoDimensionalCoordinates);
-                    break;
+                    throw new ArgumentException(ErrorMessage.TwoDimensionalCoordinates);
                 // skip for invalid types where Dimensional information can't be inferred
                 default:
                     return;

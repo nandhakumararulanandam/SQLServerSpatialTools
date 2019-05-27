@@ -6,6 +6,7 @@ using System;
 using Microsoft.SqlServer.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.LRS;
+using SQLSpatialTools.Sinks.Geometry;
 using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
 
@@ -150,7 +151,7 @@ namespace SQLSpatialTools.UnitTests.Functions
             endMeasure = 27;
             Logger.LogLine("Clip input geom with a Start Measure: {0} and End Measure: {1}", startMeasure, endMeasure);
             var retGeom = "LINESTRING(15 1 NULL 15, 25 1 NULL 25)".GetGeom();
-            clippedGeom =  Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
+            clippedGeom = Geometry.ClipGeometrySegment(geom, startMeasure, endMeasure);
             SqlAssert.IsTrue(retGeom.STIsValid());
             SqlAssert.IsTrue(clippedGeom.STEquals(retGeom));
 
@@ -373,6 +374,10 @@ namespace SQLSpatialTools.UnitTests.Functions
             tolerance = 0.5;
             result = Geometry.IsConnected(geom1, geom2, tolerance);
             SqlAssert.IsTrue(result);
+
+            geom1 = "POINT(0 0 NULL 0)".GetGeom();
+            geom2 = "POINT(0 0 NULL 0)".GetGeom();
+            SqlAssert.IsTrue(Geometry.IsConnected(geom1, geom2, tolerance));
         }
 
         [TestMethod]
@@ -403,18 +408,54 @@ namespace SQLSpatialTools.UnitTests.Functions
             var geom = "LINESTRING (0 0 0 0, 10 0 0 10)".GetGeom();
             Logger.Log("Input Geom : {0}", geom.ToString());
             var returnPoint = "POINT (5 0 NULL 5)".GetGeom();
-            var distance = 5;
+            const int distance = 5;
 
             var locatedPoint = Geometry.LocatePointAlongGeom(geom, distance);
             Logger.Log("Located point : {0} at distance of {1} Measure", locatedPoint.ToString(), distance);
 
             SqlAssert.IsTrue(locatedPoint.STEquals(returnPoint));
+
+            geom = "POINT(0 0 5)".GetGeom();
+            Geometry.LocatePointAlongGeom(geom, distance);
         }
 
         [TestMethod]
         public void MergeGeometrySegmentsTest()
         {
             var geom1 = "MULTILINESTRING((100 100 0, 200 200 100), (3 4 0, 7 8 4, 10 10 6))".GetGeom();
+            var geomBuilder = new SqlGeometryBuilder();
+            try
+            {
+                var segment1 = new LineStringMergeGeometrySink(geomBuilder, true, geom1.STNumPoints());
+                geom1.Populate(segment1);
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                geom1 = "POINT(1 1 1 1)".GetGeom();
+                geomBuilder = new SqlGeometryBuilder();
+                var segment1 = new BuildMultiLineFromLinesSink(geomBuilder, 2);
+                geom1.Populate(segment1);
+            }
+            catch (Exception)
+            {
+            }
+
+            try
+            {
+                geom1 = "POLYGON((1 1, 3 3, 3 1, 1 1))".GetGeom();
+                geomBuilder = new SqlGeometryBuilder();
+                var segment1 = new BuildMultiLineFromLinesSink(geomBuilder, 2);
+                geom1.Populate(segment1);
+            }
+            catch (Exception)
+            {
+            }
+
+            geom1 = "MULTILINESTRING((100 100 0, 200 200 100), (3 4 0, 7 8 4, 10 10 6))".GetGeom();
             var geom2 = "MULTILINESTRING((11 2 0, 12 4 2, 15 5 4), (5 4 4, 6 8 6, 9 11 8))".GetGeom();
             Logger.Log("Input Geom 1: {0}", geom1.ToString());
             Logger.Log("Input Geom 2: {0}", geom2.ToString());
@@ -497,7 +538,7 @@ namespace SQLSpatialTools.UnitTests.Functions
             SqlAssert.IsTrue(offsetGeom.STEquals(result));
 
             geom = "LINESTRING (5 10 10, 20 5 30.628, 35 10 61.257, 55 10 100)".GetGeom();
-            offsetGeom = "LINESTRING (28.854631868795604 10.059729063044122 50, 34.367544467966326 11.897366596101028 60.984336290508338, 35 12 62.195459508852288, 55 12 100)".GetGeom();
+            offsetGeom = "LINESTRING (28.854631868795604 10.059729063044122 NULL 50, 34.675444679663244 12 NULL 61.594145747453567, 55 12 NULL 100)".GetGeom();
             startMeasure = 50;
             endMeasure = 100.5;
             offset = 2;
@@ -845,6 +886,12 @@ namespace SQLSpatialTools.UnitTests.Functions
             Assert.AreEqual(LRSErrorCodes.InvalidLRSMeasure.Value(), result);
 
             geom = "LINESTRING (2 2 6, 2 4 2, 8 4 8)".GetGeom();
+            result = Geometry.ValidateLRSGeometry(geom);
+            Logger.LogLine("Input : {0}", geom.ToString());
+            Logger.Log(result);
+            Assert.AreEqual(LRSErrorCodes.InvalidLRSMeasure.Value(), result);
+
+            geom = "LINESTRING (2 2 12, 2 4 2, 8 4 8)".GetGeom();
             result = Geometry.ValidateLRSGeometry(geom);
             Logger.LogLine("Input : {0}", geom.ToString());
             Logger.Log(result);

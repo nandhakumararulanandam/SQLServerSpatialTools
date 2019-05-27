@@ -29,12 +29,6 @@ namespace SQLSpatialTools.UnitTests.Extension
             MST.Assert.AreEqual(Math.Round((double)sqlDouble, 4), Math.Round(targetValue, 4));
         }
 
-        public static void Contains(string inputMessage, string searchString)
-        {
-            if (!inputMessage.Contains(searchString))
-                MST.Assert.Fail(string.Format(CultureInfo.CurrentCulture, "Not expected exception, \"{0}\" not found in the message", searchString));
-        }
-
         public static string GetResult(this bool result)
         {
             return result ? "Passed" : "Failed";

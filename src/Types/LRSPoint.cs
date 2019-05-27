@@ -27,7 +27,6 @@ namespace SQLSpatialTools.Types
         internal double? OffsetBearing;
         private double _offsetAngle;
         internal double OffsetDistance;
-        internal int Id { private get; set; }
 
         #region Constructors
 
@@ -57,7 +56,6 @@ namespace SQLSpatialTools.Types
             if (sqlGeometry.IsNullOrEmpty() || !sqlGeometry.IsPoint())
                 return;
 
-            if (sqlGeometry == null) return;
             X = sqlGeometry.STX.Value;
             Y = sqlGeometry.STY.Value;
             Z = sqlGeometry.HasZ ? sqlGeometry.Z.Value : (double?)null;
@@ -130,12 +128,13 @@ namespace SQLSpatialTools.Types
         /// <param name="points">The points.</param>
         /// <param name="currentPoint">The current point.</param>
         /// <returns></returns>
-        private static LRSPoint GetPreviousPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
+        internal static LRSPoint GetPreviousPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
         {
-            var index = points.FindIndex(e => e.Id == currentPoint.Id);
-            if (index > 0 && index < points.Count)
+            var index = points.IndexOf(currentPoint);
+            // return null for first and last point
+            if (index > 0 && index < points.Count - 1)
                 return points[index - 1];
-            return currentPoint;
+            return null;
         }
 
         /// <summary>
@@ -144,12 +143,13 @@ namespace SQLSpatialTools.Types
         /// <param name="points">The points.</param>
         /// <param name="currentPoint">The current point.</param>
         /// <returns></returns>
-        private static LRSPoint GetNextPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
+        internal static LRSPoint GetNextPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
         {
-            var index = points.FindIndex(e => e.Id == currentPoint.Id);
-            if (index > 0 && index < points.Count)
+            var index = points.IndexOf(currentPoint);
+            // return null for first and last point
+            if (index > 0 && index < points.Count - 1)
                 return points[index + 1];
-            return currentPoint;
+            return null;
         }
 
         #endregion
@@ -219,11 +219,11 @@ namespace SQLSpatialTools.Types
         // ReSharper disable NonReadonlyMemberInGetHashCode
         public override int GetHashCode()
         {
-            var hashCode = -1911090832;
-            hashCode = hashCode * -1521134295 + X.GetHashCode();
-            hashCode = hashCode * -1521134295 + Y.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<double?>.Default.GetHashCode(Z);
-            hashCode = hashCode * -1521134295 + EqualityComparer<double?>.Default.GetHashCode(M);
+            var hashCode = 1911090832;
+            hashCode = hashCode * 1521134295 + X.GetHashCode();
+            hashCode = hashCode * 1521134295 + Y.GetHashCode();
+            hashCode = hashCode * 1521134295 + EqualityComparer<double?>.Default.GetHashCode(Z);
+            hashCode = hashCode * 1521134295 + EqualityComparer<double?>.Default.GetHashCode(M);
             return hashCode;
         }
         // ReSharper restore NonReadonlyMemberInGetHashCode
@@ -240,9 +240,6 @@ namespace SQLSpatialTools.Types
         /// </returns>
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(_wkt))
-                return _wkt;
-
             _wkt = $"POINT ({X} {Y} {M})";
 
             return _wkt;
@@ -417,86 +414,6 @@ namespace SQLSpatialTools.Types
                 M,
                 _srid
                 ));
-
-            return lrsPoints;
-        }
-
-        /// <summary>
-        /// Compute and populate parallel points on bend lines.
-        /// </summary>
-        /// <param name="offset">The offset.</param>
-        /// <param name="progress"></param>
-        /// <param name="points">The points.</param>
-        /// <param name="tolerance"></param>
-        /// <returns>Point parallel to the current point.</returns>
-        internal List<LRSPoint> GetAndPopulateParallelPointsOnBendLines(double offset, double tolerance, LinearMeasureProgress progress, ref List<LRSPoint> points)
-        {
-            var lrsPoints = new List<LRSPoint>();
-
-            // first equation
-            var parallelX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - _offsetAngle)));
-            var parallelY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - _offsetAngle)));
-            var parallelPoint = new LRSPoint(parallelX, parallelY, null, M, _srid);
-
-            var diffInDistance = Math.Round(parallelPoint.GetDistance(this), 5);
-
-            var angleToCompare = progress == LinearMeasureProgress.Increasing ? _angle - 90 : _angle + 90;
-            var isAcuteAngle = angleToCompare < 90;
-
-            //var doComputePoint = isNegative ? OffsetDistance >= offset : OffsetDistance <= offset;
-
-            if (diffInDistance.EqualsTo(offset) || isAcuteAngle)
-            {
-                lrsPoints.Add(new LRSPoint(
-                    parallelX,
-                    parallelY,
-                    null,
-                    M,
-                    _srid
-                    ));
-            }
-            else
-            {
-                var previousPoint = GetPreviousPoint(ref points, this);
-                var prevRadians = Util.ToRadians(90 - previousPoint._offsetAngle);
-
-                var nextPoint = GetNextPoint(ref points, this);
-                var nextRadians = Util.ToRadians(90 - nextPoint._offsetAngle);
-
-                // first point
-                var firstPointX = X + (offset * Math.Cos(prevRadians));
-                var firstPointY = Y + (offset * Math.Sin(prevRadians));
-                var firstPoint = new LRSPoint(firstPointX, firstPointY, null, M, _srid);
-
-                // second point
-                var secondPointX = X + (offset * Math.Cos(nextRadians));
-                var secondPointY = Y + (offset * Math.Sin(nextRadians));
-                var secondPoint = new LRSPoint(secondPointX, secondPointY, null, M, _srid);
-
-                // if computed first point is within tolerance of second point then add only first point
-                if (firstPoint.IsXYWithinTolerance(secondPoint, tolerance))
-                {
-                    lrsPoints.Add(firstPoint);
-                }
-                else
-                {
-                    // add first point
-                    lrsPoints.Add(firstPoint);
-
-                    // compute middle point
-                    var fraction = Math.Abs(offset / OffsetDistance);
-                    var middleX = (X * (1 - fraction)) + (parallelX * fraction);
-                    var middleY = (Y * (1 - fraction)) + (parallelY * fraction);
-                    var middlePoint = new LRSPoint(middleX, middleY, null, M, _srid);
-
-                    // if not within tolerance add middle point
-                    if (!firstPoint.IsXYWithinTolerance(middlePoint, tolerance))
-                        lrsPoints.Add(middlePoint);
-
-                    // add second point
-                    lrsPoints.Add(secondPoint);
-                }
-            }
 
             return lrsPoints;
         }

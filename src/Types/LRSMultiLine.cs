@@ -68,15 +68,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         ///   <c>true</c> if this instance is a 2 point line string; otherwise, <c>false</c>.
         /// </value>
-        internal bool Is2PointLine => IsLine && Count == 2;
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is POINT.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is a point; otherwise, <c>false</c>.
-        /// </value>
-        internal bool IsPoint => IsLine && _lines.First().IsPoint;
+        internal bool Is2PointLine => IsLine && GetFirstLine().Count == 2;
 
         /// <summary>
         /// Gets the length.
@@ -310,26 +302,25 @@ namespace SQLSpatialTools.Types
         /// </returns>
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(_wkt))
-                return _wkt;
-
             if (IsEmpty)
             {
                 _wkt = string.Empty;
                 return "MULTILINESTRING EMPTY";
             }
 
-            var wktBuilder = new StringBuilder();
+            if(IsLine)
+                return GetFirstLine().ToString();
 
+            var wktBuilder = new StringBuilder();
             if (IsMultiLine)
-                wktBuilder.Append("MULTILINESTRING(");
+                wktBuilder.Append("MULTILINESTRING (");
 
             var lineIterator = 1;
 
             foreach (var line in _lines)
             {
                 if (line.IsLine)
-                    wktBuilder.Append(line.ToString().Replace("LINESTRING", string.Empty));
+                    wktBuilder.Append(line.ToString().Replace("LINESTRING ", string.Empty));
 
                 if (lineIterator != _lines.Count)
                     wktBuilder.Append(", ");
@@ -363,9 +354,6 @@ namespace SQLSpatialTools.Types
         {
             if (IsEmpty)
                 return SqlGeometry.Null;
-
-            if (IsPoint)
-                return _lines.First().GetStartPoint().ToSqlGeometry(ref geomBuilder);
 
             return BuildSqlGeometry(ref geomBuilder) ? geomBuilder.ConstructedGeometry : null;
         }

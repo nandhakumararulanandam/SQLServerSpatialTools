@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.SqlServer.Types;
+using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Sinks.Geometry
 {
@@ -47,6 +48,8 @@ namespace SQLSpatialTools.Sinks.Geometry
         {
             // Memorize the point.
             _lastPoint = SqlGeometry.Point(x, y, _srid);
+            if (_distance.EqualsTo(0))
+                _foundPoint = _lastPoint;
         }
 
         // This is where the real work is done.

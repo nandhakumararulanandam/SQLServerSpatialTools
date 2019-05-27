@@ -54,7 +54,7 @@ namespace SQLSpatialTools.Types
         /// <value>
         /// The count.
         /// </value>
-        internal int Count => _points.Any() ? _points.Count : 0;
+        public int Count => _points.Any() ? _points.Count : 0;
 
         /// <summary>
         /// Determines whether this instance is LINESTRING.
@@ -89,8 +89,6 @@ namespace SQLSpatialTools.Types
         internal void AddPoint(LRSPoint lrsPoint)
         {
             UpdateLength(lrsPoint);
-            // set the indexer
-            lrsPoint.Id = _points.Count + 1;
             _points.Add(lrsPoint);
         }
 
@@ -101,6 +99,18 @@ namespace SQLSpatialTools.Types
         internal void AddPoint(List<LRSPoint> lrsPoints)
         {
             lrsPoints.ForEach(AddPoint);
+        }
+
+        /// <summary>
+        /// Adds the point.
+        /// </summary>
+        /// <param name="points">The lrs points.</param>
+        internal void AddPoint(params LRSPoint[] points)
+        {
+            foreach (var lrsPoint in points)
+            {
+                AddPoint(lrsPoint);
+            }
         }
 
         /// <summary>
@@ -297,39 +307,6 @@ namespace SQLSpatialTools.Types
         }
 
         /// <summary>
-        /// Determines whether the line is within the range of clip start and end measure.
-        /// </summary>
-        /// <param name="startMeasure">The start measure.</param>
-        /// <param name="endMeasure">The end measure.</param>
-        /// <param name="clipStartPoint"></param>
-        /// <param name="clipEndPoint"></param>
-        /// <returns>
-        ///   <c>true</c> if [is within range] [the specified start measure]; otherwise, <c>false</c>.
-        /// </returns>
-        internal bool IsWithinRange(double startMeasure, double endMeasure, LRSPoint clipStartPoint, LRSPoint clipEndPoint)
-        {
-            var pointCounter = 0;
-
-            var lastLRSPoint = new LRSPoint(0, 0, null, null, SRID);
-
-            foreach (var point in this)
-            {
-                var currentM = point.M ?? 0;
-
-                if (point == clipEndPoint || point == clipStartPoint || (startMeasure > lastLRSPoint.M && startMeasure < currentM))
-                    pointCounter++;
-                else if (currentM >= startMeasure && currentM <= endMeasure)
-                    pointCounter++;
-                lastLRSPoint = point;
-            }
-
-            IsInRange = pointCounter > 1;
-            IsCompletelyInRange = pointCounter == _points.Count;
-
-            return IsInRange;
-        }
-
-        /// <summary>
         /// Calculates the slope.
         /// </summary>
         internal void CalculateSlope()
@@ -356,21 +333,18 @@ namespace SQLSpatialTools.Types
         /// </returns>
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(_wkt))
-                return _wkt;
-
             if (IsEmpty)
             {
-                _wkt = string.Empty;
+                _wkt = "LINESTRING EMPTY";
                 return _wkt;
             }
 
             var wktBuilder = new StringBuilder();
 
             if (IsLine)
-                wktBuilder.Append("LINESTRING(");
+                wktBuilder.Append("LINESTRING (");
             else if (IsPoint)
-                wktBuilder.Append("POINT(");
+                wktBuilder.Append("POINT (");
 
             var pointIterator = 1;
 
@@ -522,7 +496,11 @@ namespace SQLSpatialTools.Types
             CalculateOffset(offset, progress);
 
             var parallelLine = new LRSLine(SRID);
-            _points.ForEach(point => parallelLine.AddPoint(point.GetParallelPoint(offset, tolerance, progress, ref _points)));
+            foreach (var point in _points)
+            {
+                parallelLine.AddPoint(point.GetParallelPoint(offset, tolerance, progress, ref _points));
+            }
+
             return parallelLine;
         }
 

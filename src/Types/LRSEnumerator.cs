@@ -19,7 +19,7 @@ namespace SQLSpatialTools.Types
 
         // Enumerators are positioned before the first element
         // until the first MoveNext() call.
-        int _position = -1;
+        private int _position = -1;
 
         public LRSEnumerator(List<T> list)
         {
@@ -47,7 +47,7 @@ namespace SQLSpatialTools.Types
                 {
                     return _listOfItems[_position];
                 }
-                catch (IndexOutOfRangeException)
+                catch (ArgumentOutOfRangeException)
                 {
                     throw new InvalidOperationException();
                 }

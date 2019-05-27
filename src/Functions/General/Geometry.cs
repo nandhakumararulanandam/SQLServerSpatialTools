@@ -102,7 +102,8 @@ namespace SQLSpatialTools.Functions.General
             {
                 throw new ArgumentException(ErrorMessage.DistanceMustBeBetweenTwoPoints);
             }
-            else if (distance < 0)
+
+            if (distance < 0)
             {
                 throw new ArgumentException(ErrorMessage.DistanceMustBePositive);
             }
@@ -119,9 +120,6 @@ namespace SQLSpatialTools.Functions.General
         // and runs a pipeline using the sink.
         public static SqlGeometry LocatePointAlongGeom(SqlGeometry geometry, double distance)
         {
-            if (!geometry.IsLineString())
-                throw new ArgumentException(ErrorMessage.LineStringCompatible);
-
             var geometryBuilder = new SqlGeometryBuilder();
             var geometrySink = new LocateAlongGeometrySink(distance, geometryBuilder);
             geometry.Populate(geometrySink);
