@@ -2,6 +2,7 @@
 // Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //------------------------------------------------------------------------------
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -435,23 +436,23 @@ namespace SQLSpatialTools.Types
         /// <summary>
         /// Calculate offset angle between points
         /// </summary>
-        /// <param name="progress"></param>
-        private void CalculateOffsetAngle(LinearMeasureProgress progress)
+        /// <param name="isNegativeOffset"></param>
+        private void CalculateOffsetAngle(bool isNegativeOffset)
         {
             var pointCount = _points.Count;
             for (var i = 0; i < pointCount; i++)
             {
                 var currentPoint = _points[i];
-                // except last point
-                if (i != pointCount - 1)
+                // first point
+                if (i == 0)
                 {
-                    var nextPoint = _points[i + 1];
-                    nextPoint.SetOffsetAngle(currentPoint, progress);
+                    _points[i].SetOffsetAngle(null, isNegativeOffset);
                 }
-                // last point
+                // except first point
                 else
                 {
-                    _points[0].SetOffsetAngle(currentPoint, progress);
+                    var previousPoint = _points[i - 1];
+                    currentPoint.SetOffsetAngle(previousPoint, isNegativeOffset);
                 }
             }
         }
@@ -460,8 +461,7 @@ namespace SQLSpatialTools.Types
         /// Calculate offset distance between points 
         /// </summary>
         /// <param name="offset">Offset value</param>
-        /// <param name="progress">Measure Progress</param>
-        private void CalculateOffset(double offset, LinearMeasureProgress progress)
+        private void CalculateOffset(double offset)
         {
             var pointCount = _points.Count;
             for (var i = 0; i < pointCount; i++)
@@ -477,7 +477,7 @@ namespace SQLSpatialTools.Types
                 {
                     // for the last point specified offset is offset distance.
                     // if decrease offset distance should be negative
-                    currentPoint.OffsetDistance = progress == LinearMeasureProgress.Increasing ? offset : -offset;
+                    currentPoint.OffsetDistance = Math.Abs(offset);
                 }
             }
         }
@@ -486,19 +486,20 @@ namespace SQLSpatialTools.Types
         /// Compute a parallel line to input line segment 
         /// </summary>
         /// <param name="offset">Offset Value</param>
-        /// <param name="progress">Measure Progress</param>
         /// <param name="tolerance">The tolerance.</param>
         /// <returns>Parallel Line</returns>
-        internal LRSLine ComputeParallelLine(double offset, LinearMeasureProgress progress, double tolerance)
+        internal LRSLine ComputeParallelLine(double offset, double tolerance)
         {
             CalculateOffsetBearing();
-            CalculateOffsetAngle(progress);
-            CalculateOffset(offset, progress);
+            CalculateOffsetAngle(offset < 0);
+            CalculateOffset(offset);
 
             var parallelLine = new LRSLine(SRID);
+
+            // compute parallel point and add additional vertices
             foreach (var point in _points)
             {
-                parallelLine.AddPoint(point.GetParallelPoint(offset, tolerance, progress, ref _points));
+                parallelLine.AddPoint(point.GetAndPopulateParallelPoints(offset, tolerance, ref _points));
             }
 
             return parallelLine;

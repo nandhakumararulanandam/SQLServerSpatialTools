@@ -813,7 +813,7 @@ namespace SQLSpatialTools.Functions.LRS
             if (clippedGeometry.IsPoint())
             {
                 // Computing offset
-                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress(), tolerance);
+                var parallelSegment = lrsSegment.ComputeOffset(offset, tolerance);
 
                 // get the offset point at clipped measure
                 var offsetPoint = parallelSegment.GetPointAtM(clippedGeometry.M.Value);
@@ -825,7 +825,7 @@ namespace SQLSpatialTools.Functions.LRS
                 lrsSegment.RemoveCollinearPoints();
 
                 // Computing offset
-                var parallelSegment = lrsSegment.ComputeOffset(offset, geometry.STLinearMeasureProgress(), tolerance);
+                var parallelSegment = lrsSegment.ComputeOffset(offset, tolerance);
 
                 // if it is a two point line string; then check for distance
                 if (parallelSegment.Is2PointLine)

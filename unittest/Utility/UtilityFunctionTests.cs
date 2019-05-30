@@ -91,9 +91,8 @@ namespace SQLSpatialTools.UnitTests.Utility
 
             double? m = 10.0;
             double? mStart = 11.0;
-            double? mEnd = null;
 
-            Assert.IsFalse(m.IsWithinRange(mStart, mEnd));
+            Assert.IsFalse(m.IsWithinRange(mStart, null));
         }
 
         [TestMethod]
@@ -290,6 +289,7 @@ namespace SQLSpatialTools.UnitTests.Utility
             try
             {
                 enumerator.MoveNext();
+                // ReSharper disable once RedundantAssignment
                 currentPoint = enumerator.Current;
             }
             catch (InvalidOperationException)
@@ -334,6 +334,7 @@ namespace SQLSpatialTools.UnitTests.Utility
         public void IsNullOrEmptyTest()
         {
             SqlGeometry geom = null;
+            // ReSharper disable once ExpressionIsAlwaysNull
             Assert.AreEqual(geom.IsNullOrEmpty(), true);
 
             geom = "LINESTRING EMPTY".GetGeom();

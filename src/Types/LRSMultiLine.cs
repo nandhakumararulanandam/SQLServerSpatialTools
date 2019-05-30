@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Types;
-using SQLSpatialTools.Utility;
 
 namespace SQLSpatialTools.Types
 {
@@ -162,13 +161,12 @@ namespace SQLSpatialTools.Types
         /// Computes the offset.
         /// </summary>
         /// <param name="offset">The offset.</param>
-        /// <param name="progress">The progress.</param>
         /// <param name="tolerance">The tolerance.</param>
         /// <returns></returns>
-        internal LRSMultiLine ComputeOffset(double offset, LinearMeasureProgress progress, double tolerance)
+        internal LRSMultiLine ComputeOffset(double offset, double tolerance)
         {
             var parallelMultiLine = new LRSMultiLine(SRID);
-            _lines.ForEach(line => parallelMultiLine._lines.Add(line.ComputeParallelLine(offset, progress, tolerance)));
+            _lines.ForEach(line => parallelMultiLine._lines.Add(line.ComputeParallelLine(offset, tolerance)));
             return parallelMultiLine;
         }
 

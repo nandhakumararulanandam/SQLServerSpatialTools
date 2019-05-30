@@ -131,10 +131,8 @@ namespace SQLSpatialTools.Types
         internal static LRSPoint GetPreviousPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
         {
             var index = points.IndexOf(currentPoint);
-            // return null for first and last point
-            if (index > 0 && index < points.Count - 1)
-                return points[index - 1];
-            return null;
+            // return null if index is -1; null for first point
+            return index > 0 ? points[index - 1] : null;
         }
 
         /// <summary>
@@ -146,10 +144,8 @@ namespace SQLSpatialTools.Types
         internal static LRSPoint GetNextPoint(ref List<LRSPoint> points, LRSPoint currentPoint)
         {
             var index = points.IndexOf(currentPoint);
-            // return null for first and last point
-            if (index > 0 && index < points.Count - 1)
-                return points[index + 1];
-            return null;
+            // return null if index is -1 or last index
+            return index >= 0 && index < points.Count - 1 ? points[index + 1] : null;
         }
 
         #endregion
@@ -288,11 +284,85 @@ namespace SQLSpatialTools.Types
         /// Gets the arc to tangent.
         /// </summary>
         /// <param name="nextPoint">The next point.</param>
-        /// <returns></returns>
-        private double GetAtan(LRSPoint nextPoint)
+        /// <returns>In Radian</returns>
+        private double GetAtanInRadian(LRSPoint nextPoint)
         {
             var offsetPoint = GetOffsetPoint(nextPoint);
             return Math.Atan2(offsetPoint.Y, offsetPoint.X);
+        }
+
+        /// <summary>
+        /// Gets the atan2 in degrees.
+        /// This does angle correct when atan2 value is negative
+        /// </summary>
+        /// <param name="point1">The point1.</param>
+        /// <param name="point2">The point2.</param>
+        /// <returns>Atan2 in degrees</returns>
+        private double GetAtanInDegree(LRSPoint point1, LRSPoint point2)
+        {
+            var atan = point1.GetAtanInRadian(point2);
+            return Util.ToDegrees(atan <= 0 ? (2 * Math.PI) + atan : atan);
+        }
+
+        /// <summary>
+        /// Gets the first point radian.
+        /// </summary>
+        /// <param name="previousPoint">The previous point.</param>
+        /// <param name="middlePoint">The middle point.</param>
+        /// <returns></returns>
+        private double GetFirstPointRadian(LRSPoint previousPoint, LRSPoint middlePoint)
+        {
+            var atan = GetAtanInDegree(middlePoint, previousPoint);
+            atan = 90 - atan;
+            atan = atan <= 0 ? 360 + atan : atan;
+
+            return Util.ToRadians(360 - atan);
+        }
+
+        /// <summary>
+        /// Gets the second point radian.
+        /// </summary>
+        /// <param name="nextPoint">The next point.</param>
+        /// <param name="middlePoint">The middle point.</param>
+        /// <returns></returns>
+        private double GetSecondPointRadian(LRSPoint nextPoint, LRSPoint middlePoint)
+        {
+            var atan = GetAtanInDegree(middlePoint, nextPoint);
+            atan = 90 - atan;
+            atan = atan <= 0 ? 360 + atan : atan;
+
+            return Util.ToRadians(180 - atan);
+        }
+
+        /// <summary>
+        /// Gets the deviation angle of 3 points.
+        /// </summary>
+        /// <param name="pointA">The point a.</param>
+        /// <param name="pointO">The point o.</param>
+        /// <param name="pointB">The point b.</param>
+        /// <param name="isNegativeOffset">if set to <c>true</c> [is negative offset].</param>
+        /// <returns></returns>
+        private double GetAOBAngle(LRSPoint pointA, LRSPoint pointO, LRSPoint pointB, bool isNegativeOffset)
+        {
+            const double angleCorrection = Math.PI / 2;
+            const double angleConversion = 2 * Math.PI;
+
+            var atanAo = pointA.GetAtanInRadian(pointO) + angleCorrection;
+            var atanBo = pointB.GetAtanInRadian(pointO) + angleCorrection;
+
+            // angle conversion
+            atanAo = Util.ToDegrees(atanAo <= 0 ? angleConversion + atanAo : atanAo);
+            atanBo = Util.ToDegrees(atanBo <= 0 ? angleConversion + atanBo : atanBo);
+
+            var deviationAngle =
+                360 - (atanAo > atanBo
+                    ? 360 - (atanAo - atanBo)
+                    : atanBo - atanAo);
+
+            // for positive offset; offset curve will be to the left of input geom;
+            // so for positive deviation angle the computed angle should be subtracted from 360
+            // for negative offset; offset curve will be to the right of input geom
+            return isNegativeOffset ? deviationAngle : 360 - deviationAngle;
         }
 
         /// <summary>
@@ -311,7 +381,7 @@ namespace SQLSpatialTools.Types
         /// <param name="nextPoint">The next point.</param>
         private double CalculateOffsetBearing(LRSPoint nextPoint)
         {
-            _angle = Util.ToDegrees(GetAtan(nextPoint));
+            _angle = Util.ToDegrees(GetAtanInRadian(nextPoint));
             return (90 - _angle + 360) % 360;
         }
 
@@ -319,35 +389,44 @@ namespace SQLSpatialTools.Types
         /// Sets the offset angle.
         /// </summary>
         /// <param name="previousPoint">The current point.</param>
-        /// <param name="progress">The Linear Measure Progress.</param>
-        internal void SetOffsetAngle(LRSPoint previousPoint, LinearMeasureProgress progress)
+        /// <param name="isNegativeOffset">Is Offset is Negative</param>
+        internal void SetOffsetAngle(LRSPoint previousPoint, bool isNegativeOffset)
         {
-            _offsetAngle = CalculateOffsetAngle(previousPoint, progress);
+            _offsetAngle = CalculateOffsetAngle(previousPoint, isNegativeOffset);
         }
 
         /// <summary>
         /// Calculates the offset angle.
         /// </summary>
         /// <param name="previousPoint">The current point.</param>
-        /// <param name="progress">The Linear Measure Progress.</param>
-        private double CalculateOffsetAngle(LRSPoint previousPoint, LinearMeasureProgress progress)
+        /// <param name="isNegativeOffset">Is Offset is Negative</param>
+        private double CalculateOffsetAngle(LRSPoint previousPoint, bool isNegativeOffset)
         {
             double offsetAngle = 0;
 
             var previousPointOffsetBearing = previousPoint?.OffsetBearing;
 
             // Left
-            if (progress == LinearMeasureProgress.Increasing)
+            if (!isNegativeOffset)
             {
                 if (OffsetBearing == null)
                 {
-                    if (previousPointOffsetBearing != null) offsetAngle = (double) previousPointOffsetBearing - 90;
+                    if (previousPointOffsetBearing != null) offsetAngle = (double)previousPointOffsetBearing - 90;
                 }
                 else if (previousPointOffsetBearing == null)
                     offsetAngle = (double)OffsetBearing - 90;
                 else
                     //(360 + b1.OffsetBearing - ((360 - ((b2.OffsetBearing + 180) - b1.OffsetBearing)) / 2)) % 360
-                    offsetAngle = (360 + (double)OffsetBearing - ((360 - (((double)previousPointOffsetBearing + 180) - (double)OffsetBearing)) / 2)) % 360;
+                    offsetAngle = (
+                                      360 + (double)OffsetBearing -
+                                      (
+                                          (
+                                              360 - (
+                                                     ((double)previousPointOffsetBearing + 180) - (double)OffsetBearing
+                                                    )
+                                          ) / 2
+                                      )
+                                   ) % 360;
             }
             // Right
             else
@@ -355,7 +434,7 @@ namespace SQLSpatialTools.Types
 
                 if (OffsetBearing == null)
                 {
-                    if (previousPointOffsetBearing != null) offsetAngle = (double) previousPointOffsetBearing + 90;
+                    if (previousPointOffsetBearing != null) offsetAngle = (double)previousPointOffsetBearing + 90;
                 }
                 else if (previousPointOffsetBearing == null)
                     offsetAngle = (double)OffsetBearing + 90;
@@ -387,33 +466,103 @@ namespace SQLSpatialTools.Types
         private static double CalculateOffsetDistance(double offset, double offsetBearing, double offsetAngle)
         {
             // offset / (SIN(RADIANS(((OffsetBearing - OffsetAngleLeft) + 360) % 360)))
-            return offset / (Math.Sin(Util.ToRadians(((offsetBearing - offsetAngle) + 360) % 360)));
+            var denominator = (Math.Sin(Util.ToRadians(((offsetBearing - offsetAngle) + 360) % 360)));
+            return offset / denominator;
         }
 
         /// <summary>
         /// Gets the parallel point.
         /// </summary>
-        /// <param name="offset">The offset.</param>
-        /// <param name="progress"></param>
-        /// <param name="points">The points.</param>
-        /// <param name="tolerance"></param>
         /// <returns>Point parallel to the current point.</returns>
-        // ReSharper disable once UnusedMember.Global
-        internal List<LRSPoint> GetParallelPoint(double offset, double tolerance, LinearMeasureProgress progress, ref List<LRSPoint> points)
+        private LRSPoint GetParallelPoint()
         {
-            var lrsPoints = new List<LRSPoint>();
-
-            // first equation
             var newX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - _offsetAngle)));
             var newY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - _offsetAngle)));
 
-            lrsPoints.Add(new LRSPoint(
+            return new LRSPoint(
                 newX,
                 newY,
                 null,
                 M,
                 _srid
-                ));
+                );
+        }
+
+        /// <summary>
+        /// Compute and populate parallel points on bend lines.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        /// <param name="points">The points.</param>
+        /// <param name="tolerance"></param>
+        /// <returns>Point parallel to the current point.</returns>
+        internal List<LRSPoint> GetAndPopulateParallelPoints(double offset, double tolerance, ref List<LRSPoint> points)
+        {
+            // list to capture additional vertices.
+            var lrsPoints = new List<LRSPoint>();
+
+            // parallel point to the current point
+            var parallelPoint = GetParallelPoint();
+
+            // get previous and next point
+            var previousPoint = GetPreviousPoint(ref points, this);
+            var nextPoint = GetNextPoint(ref points, this);
+
+            // offset distance between parallel point and input point
+            var diffInDistance = Math.Round(parallelPoint.GetDistance(this), 5);
+            // offset distance difference between parallel point and input point
+            var offsetDiff = Math.Abs(diffInDistance - offset);
+
+            if (offsetDiff <= tolerance || previousPoint == null || nextPoint == null)
+            {
+                lrsPoints.Add(parallelPoint);
+            }
+            else
+            {
+                var negativeOffset = offset < 0;
+                var deviationAngle = GetAOBAngle(previousPoint, this, nextPoint, negativeOffset);
+
+                if (deviationAngle <= 90)
+                {
+                    var firsPointRadian = GetFirstPointRadian(previousPoint, this);
+                    var nextPointRadian = GetSecondPointRadian(nextPoint, this);
+
+                    // first point
+                    var firstPointX = X + (offset * Math.Cos(firsPointRadian));
+                    var firstPointY = Y + (offset * Math.Sin(firsPointRadian));
+                    var firstPoint = new LRSPoint(firstPointX, firstPointY, null, M, _srid);
+
+                    // second point
+                    var secondPointX = X + (offset * Math.Cos(nextPointRadian));
+                    var secondPointY = Y + (offset * Math.Sin(nextPointRadian));
+                    var secondPoint = new LRSPoint(secondPointX, secondPointY, null, M, _srid);
+
+                    // if computed first point is within tolerance of second point then add only first point
+                    if (firstPoint.GetDistance(secondPoint) <= tolerance)
+                    {
+                        lrsPoints.Add(firstPoint);
+                    }
+                    else
+                    {
+                        // add first point
+                        lrsPoints.Add(firstPoint);
+
+                        // compute middle point
+                        var fraction = Math.Abs(offset / OffsetDistance);
+                        var middleX = (X * (1 - fraction)) + (parallelPoint.X * fraction);
+                        var middleY = (Y * (1 - fraction)) + (parallelPoint.Y * fraction);
+                        var middlePoint = new LRSPoint(middleX, middleY, null, M, _srid);
+
+                        // if not within tolerance add middle point
+                        if (firstPoint.GetDistance(middlePoint) > tolerance)
+                            lrsPoints.Add(middlePoint);
+
+                        // add second point
+                        lrsPoints.Add(secondPoint);
+                    }
+                }
+                else
+                    lrsPoints.Add(parallelPoint);
+            }
 
             return lrsPoints;
         }
