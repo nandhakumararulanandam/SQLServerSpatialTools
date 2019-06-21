@@ -110,6 +110,19 @@ namespace SQLSpatialTools.UnitTests.DDD
             public double Tolerance { get; set; }
         }
 
+        public class PolygonToLineData : BaseDataSet
+        {
+            public const short ParamCount = 3;
+            public const string TableName = "LRS_PolygonToLineData";
+            public const string DataFile = @"Dataset\LRS\PolygonToLine.data";
+            public static readonly string SelectQuery =
+                $"SELECT [Id], [InputGeom], [ExpectedResult1], [Comments] FROM [{TableName}];";
+            public static readonly string InsertQuery =
+                $"INSERT INTO [{TableName}] ([InputGeom], [ExpectedResult1], [Comments]) VALUES (N'[0]', N'[1]', N'[2]');";
+
+            public string InputGeom { get; set; }
+        }
+
         public class MergeAndResetGeometrySegmentsData : BaseDataSet
         {
             public const short ParamCount = 5;

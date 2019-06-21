@@ -19,9 +19,9 @@ namespace SQLSpatialTools.UnitTests.DDD
     {
         private static OracleConnector _oracleConnectorObj;
         private readonly OracleConnection _oracleConnection;
-        private readonly Regex _geomTypeRegex;
+        private readonly Regex _dimensionParseRegex;
         private readonly Regex _dimensionGroupRegex;
-        private readonly Regex _dimensionRegex;
+        private readonly Regex _dimensionSplitRegex;
 
         /// <summary>
         /// Obtain the Oracle Connector instance.
@@ -42,11 +42,11 @@ namespace SQLSpatialTools.UnitTests.DDD
         {
             var connStr = ConfigurationManager.AppSettings.Get("oracle_connection");
             if (string.IsNullOrWhiteSpace(connStr))
-                throw new ArgumentNullException(message:"Oracle Connection string is empty", paramName:connStr);
+                throw new ArgumentNullException(message: "Oracle Connection string is empty", paramName: connStr);
 
-            _geomTypeRegex = new Regex(OracleLRSQuery.GeomTypeMatch, RegexOptions.Compiled);
+            _dimensionParseRegex = new Regex(OracleLRSQuery.DimensionParse, RegexOptions.Compiled);
             _dimensionGroupRegex = new Regex(OracleLRSQuery.DimensionGroup, RegexOptions.Compiled);
-            _dimensionRegex = new Regex(OracleLRSQuery.DimensionMatch, RegexOptions.Compiled);
+            _dimensionSplitRegex = new Regex(OracleLRSQuery.DimensionMatch, RegexOptions.Compiled);
 
             _oracleConnection = new OracleConnection { ConnectionString = connStr };
 
@@ -196,7 +196,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoClipGeometrySegment(LRSDataSet.ClipGeometrySegmentData testObj)
         {
             var inputGeom = testObj.InputGeom.GetGeom();
-            var query = inputGeom.IsPoint() 
+            var query = inputGeom.IsPoint()
                 ? string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentPointQuery, GetOracleOrdinatePoint(inputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance)
                 : string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.ClipGeomSegmentQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Tolerance);
             var result = ExecuteScalar<string>(query, out var errorInfo);
@@ -264,6 +264,19 @@ namespace SQLSpatialTools.UnitTests.DDD
         internal void DoOffsetGeometrySegment(LRSDataSet.OffsetGeometrySegmentData testObj)
         {
             var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.OffsetGeometryQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.StartMeasure, testObj.EndMeasure, testObj.Offset, testObj.Tolerance);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
+        }
+
+        /// <summary>
+        /// Test PolygonToLine Function against Oracle.
+        /// </summary>
+        /// <param name="testObj">The test object.</param>
+        internal void DoPolygonToLineTest(LRSDataSet.PolygonToLineData testObj)
+        {
+            var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPolygonToLineQuery, ConvertTo3DCoordinates(testObj.InputGeom));
             var result = ExecuteScalar<string>(query, out var errorInfo);
             testObj.OracleError = errorInfo;
             testObj.OracleQuery = query;
@@ -383,69 +396,81 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <summary>
         /// Converts the input WKT in 4d(x,y,z,m), 3d(x,y,m) 2d(x,y) to P(x,y,m) values.
         /// </summary>
-        /// <param name="geomSegmentWKT"></param>
-        /// <returns></returns>
-        internal string ConvertTo3DCoordinates(string geomSegmentWKT)
+        /// <param name="geomText">Input Geom text</param>
+        /// <returns>3D WKT text</returns>
+        internal string ConvertTo3DCoordinates(string geomText)
         {
-            var convertedStr = new StringBuilder();
-            var matches = _geomTypeRegex.Matches(geomSegmentWKT);
+            var inputText = geomText;
+            var matches = _dimensionParseRegex.Matches(geomText);
 
+            // evaluate first point if its a 2D point.
+            var is2DPoint = false;
+
+            var iterator = 1;
             foreach (Match match in matches)
             {
-                convertedStr.Append(match.Groups["type"].Value + " ");
-                convertedStr.Append("(");
+                var dimContent = _dimensionGroupRegex.Match(match.Value);
+                var suffix = dimContent.Groups["suffix"].Value;
 
-                var dimGroups = _dimensionGroupRegex.Matches(match.Groups["content"].Value);
-
-                var groupIterator = 1;
-                foreach (Match dimGroup in dimGroups)
+                if (iterator ==1)
                 {
-                    if (dimGroups.Count > 1)
-                        convertedStr.Append("(");
-
-                    var dimensions = _dimensionRegex.Matches(dimGroup.Groups["group"].Value);
-                    var iterator = 1;
-                    foreach (Match dim in dimensions)
-                    {
-                        var x = dim.Groups["x"];
-                        var y = dim.Groups["y"];
-                        var z = dim.Groups["z"];
-                        var m = dim.Groups["m"];
-
-                        z = z != null
-                            ? string.IsNullOrWhiteSpace(z.Value)
-                              || z.Value.ToLower(CultureInfo.CurrentCulture).Trim()
-                                  .Equals("null", StringComparison.CurrentCulture) ? null : z
-                            : null;
-
-                        m = m != null
-                            ? string.IsNullOrWhiteSpace(m.Value)
-                              || m.Value.ToLower(CultureInfo.CurrentCulture).Trim()
-                                  .Equals("null", StringComparison.CurrentCulture) ? null : m
-                            : null;
-
-                        var thirdDim = m == null ? (z != null ? z.Value : "0") : m.Value;
-
-                        convertedStr.Append(string.Format(CultureInfo.CurrentCulture, "{0} {1} {2}", x.Value, y.Value, thirdDim));
-
-                        if (iterator != dimensions.Count)
-                            convertedStr.Append(", ");
-
-                        iterator++;
-                    }
-                    if (dimGroups.Count > 1)
-                        convertedStr.Append(")");
-
-                    if (dimGroups.Count > 1 && groupIterator != dimGroups.Count)
-                        convertedStr.Append(", ");
-
-                    groupIterator++;
+                    var countMatches = Regex.Matches(dimContent.Value, @"\d+");
+                    is2DPoint = countMatches.Count == 2;
                 }
-
-                convertedStr.Append(")");
+                inputText = _dimensionParseRegex.Replace(inputText, $"[{iterator}]{suffix}", 1);
+                iterator++;
             }
 
-            return convertedStr.ToString();
+            iterator = 1;
+            foreach (Match match in matches)
+            {
+                var subRegex = new Regex($"\\[{iterator}\\]");
+                inputText = subRegex.Replace(inputText, EvalutateMatch(match, is2DPoint), 1);
+                iterator++;
+            }
+
+            return inputText;
+        }
+
+        /// <summary>
+        /// Evaluates the match to find the 3 dimensional replace text for the match.
+        /// </summary>
+        /// <param name="match">Match</param>
+        /// <param name="is2DPoint">Is 2 Dimensional point</param>
+        /// <returns></returns>
+        public string EvalutateMatch(Match match, bool is2DPoint)
+        {
+            var dimContent = _dimensionGroupRegex.Match(match.Value.Trim());
+            var textToParse = dimContent.Groups["content"].Value;
+            if (string.IsNullOrWhiteSpace(textToParse))
+                textToParse = match.Value.Trim();
+
+            var dimension = _dimensionSplitRegex.Match(textToParse);
+            var x = dimension.Groups["x"];
+            var y = dimension.Groups["y"];
+
+            // if 2D point don't check for z and m values.
+            if(is2DPoint)
+                return $"{x.Value} {y.Value}".Trim();
+
+            var z = dimension.Groups["z"];
+            var m = dimension.Groups["m"];
+
+            z = z != null
+                ? string.IsNullOrWhiteSpace(z.Value)
+                  || z.Value.ToLower(CultureInfo.CurrentCulture).Trim()
+                      .Equals("null", StringComparison.CurrentCulture) ? null : z
+                : null;
+
+            m = m != null
+                ? string.IsNullOrWhiteSpace(m.Value)
+                  || m.Value.ToLower(CultureInfo.CurrentCulture).Trim()
+                      .Equals("null", StringComparison.CurrentCulture) ? null : m
+                : null;
+
+            var thirdDim = m == null ? (z != null ? z.Value : "0") : m.Value;
+
+            return $"{x.Value} {y.Value} {thirdDim}".Trim();
         }
 
         #endregion Utility Functions

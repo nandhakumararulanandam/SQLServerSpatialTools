@@ -15,17 +15,17 @@ GO
 -- ClipGeometrySegment
 CREATE TABLE [LRS_ClipGeometrySegmentData] (
   [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [StartMeasure] float NOT NULL
 , [EndMeasure] float NOT NULL
 , [Tolerance] float NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [OracleQuery] nvarchar(4000)
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
@@ -40,16 +40,16 @@ GO
 -- Get End Measure
 CREATE TABLE [LRS_GetEndMeasureData] (
   [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [ExecutionTime] datetime
 , [Comments] nvarchar(1000)
@@ -62,16 +62,16 @@ GO
 -- GetStartMeasure
 CREATE TABLE [LRS_GetStartMeasureData] (
   [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [ExecutionTime] datetime
 , [Comments] nvarchar(1000)
@@ -87,11 +87,11 @@ CREATE TABLE [LRS_InterpolateBetweenGeomData] (
 , [InputGeom1] nvarchar(1000) NOT NULL
 , [InputGeom2] nvarchar(1000) NOT NULL
 , [Measure] float NOT NULL
-, [SqlObtainedResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [SqlElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -108,10 +108,10 @@ CREATE TABLE [LRS_IsConnectedData] (
 , [Tolerance] float NOT NULL
 , [OutputComparison1] bit
 , [SqlObtainedResult1] bit
-, [OracleResult1] nvarchar(1000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
@@ -127,18 +127,18 @@ GO
 -- LocatePointAlongGeom
 CREATE TABLE [LRS_LocatePointAlongGeomData] (
  [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [Measure] float NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -154,15 +154,15 @@ CREATE TABLE [LRS_MergeGeometrySegmentsData] (
 , [InputGeom2] nvarchar(1000) NOT NULL
 , [Tolerance] float NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [OracleError] nvarchar(1000)
 , [SqlError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -177,15 +177,15 @@ CREATE TABLE [LRS_MergeAndResetGeometrySegmentsData] (
 , [InputGeom2] nvarchar(1000) NOT NULL
 , [Tolerance] float NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [OracleError] nvarchar(1000)
 , [SqlError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -197,21 +197,21 @@ GO
 -- OffsetGeometrySegment
 CREATE TABLE [LRS_OffsetGeometrySegmentData] (
   [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [StartMeasure] float NOT NULL
 , [EndMeasure] float NOT NULL
 , [Offset] float NOT NULL
 , [Tolerance] float NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -223,19 +223,19 @@ GO
 -- PopulateGeometryMeasures
 CREATE TABLE [LRS_PopulateGeometryMeasuresData] (
  [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [StartMeasure] float
 , [EndMeasure] float
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -246,12 +246,12 @@ GO
 -- ResetMeasureTest
 CREATE TABLE [LRS_ResetMeasureData] (
   [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
-, [SqlObtainedResult1] nvarchar(1000)
+, [InputGeom] nvarchar(4000) NOT NULL
+, [SqlObtainedResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [SqlElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -263,17 +263,17 @@ GO
 -- ReverseLinearGeometry
 CREATE TABLE [LRS_ReverseLinearGeometryData] (
  [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [OracleError] nvarchar(1000)
 , [SqlError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -285,22 +285,22 @@ GO
 -- SplitGeometrySegment
 CREATE TABLE [LRS_SplitGeometrySegmentData] (
  [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [Measure] float NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [OutputComparison2] bit
-, [SqlObtainedResult2] nvarchar(1000)
-, [OracleResult2] nvarchar(1000)
+, [SqlObtainedResult2] nvarchar(4000)
+, [OracleResult2] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
-, [ExpectedResult2] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
+, [ExpectedResult2] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
@@ -311,20 +311,41 @@ GO
 -- Validate LRS Geometry
 CREATE TABLE [LRS_ValidateLRSGeometryData] (
   [Id] int IDENTITY (1,1) NOT NULL
-, [InputGeom] nvarchar(1000) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
 , [OutputComparison1] bit
-, [SqlObtainedResult1] nvarchar(1000)
-, [OracleResult1] nvarchar(1000)
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
 , [SqlError] nvarchar(1000)
 , [OracleError] nvarchar(1000)
-, [OracleQuery] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
 , [SqlElapsedTime] nvarchar(100)
 , [OracleElapsedTime] nvarchar(100)
 , [ExecutionTime] datetime
-, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [ExpectedResult1] nvarchar(4000) NOT NULL
 , [Result] nvarchar(50)
 , [Comments] nvarchar(1000)
 );
 GO
 ALTER TABLE [LRS_ValidateLRSGeometryData] ADD CONSTRAINT [PK_ValidateLRSGeometryData] PRIMARY KEY ([Id]);
+GO
+
+-- PolygonToLine
+CREATE TABLE [LRS_PolygonToLineData] (
+ [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
+, [OutputComparison1] bit
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
+, [OracleError] nvarchar(1000)
+, [SqlError] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
+, [SqlElapsedTime] nvarchar(100)
+, [OracleElapsedTime] nvarchar(100)
+, [ExecutionTime] datetime
+, [ExpectedResult1] nvarchar(4000) NOT NULL
+, [Result] nvarchar(50)
+, [Comments] nvarchar(1000)
+);
+GO
+ALTER TABLE [LRS_PolygonToLineData] ADD CONSTRAINT [PK_PolygonToLineData] PRIMARY KEY ([Id]);
 GO

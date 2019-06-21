@@ -825,6 +825,63 @@ namespace SQLSpatialTools.UnitTests.DDD
                 Logger.Log("No test cases found");
         }
 
+        [TestMethod]
+        public void PolygonToLineTest()
+        {
+            var dataSet = _dbConnection.Query<LRSDataSet.PolygonToLineData>(LRSDataSet.PolygonToLineData.SelectQuery);
+
+            var polygonToLineData = dataSet.ToList();
+            if (!polygonToLineData.Any())
+                Logger.Log("No test cases found");
+
+            var testIterator = 1; _passCount = 0; _failCount = 0;
+            foreach (var test in polygonToLineData)
+            {
+                Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
+                try
+                {
+                    var geom = test.InputGeom.GetGeom();
+                    var expectedGeom = test.ExpectedResult1.GetGeom();
+
+                    Logger.LogLine("Input geom 1:{0}", geom);
+                    Logger.LogLine("Expected Result: {0}", expectedGeom);
+
+                    MSSQLTimer.Restart();
+                    // OSS Function Execution
+
+                    test.SqlObtainedResult1 = Geometry.PolygonToLine(geom).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result : {0}", test.SqlObtainedResult1);
+                }
+                catch (Exception ex)
+                {
+                    test.Result = "Failed";
+                    test.SqlError = ex.Message;
+                    Logger.LogError(ex);
+                }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                _oracleConnector.DoPolygonToLineTest(test);
+                OracleTimer.Stop();
+
+                #endregion
+
+                // Update results to database
+                UpdateTestResults(test, LRSDataSet.PolygonToLineData.TableName, testIterator);
+
+                Logger.Log("Test Result : {0}", test.Result);
+                testIterator++;
+            }
+        }
+
         [ClassCleanup]
         public static void Cleanup()
         {

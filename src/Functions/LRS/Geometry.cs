@@ -1074,5 +1074,24 @@ namespace SQLSpatialTools.Functions.LRS
             // return invalid if geometry doesn't or have null values or checks if the measures are in linear range.
             return geometry.STHasLinearMeasure() ? LRSErrorCodes.ValidLRS.Value() : LRSErrorCodes.InvalidLRSMeasure.Value();
         }
+
+        /// <summary>
+        /// Utility method for converting Polygon types to LineString types.
+        /// </summary>
+        /// <param name="geometry">The Input SqlGeometry</param>
+        /// <returns>SqlGeometry</returns>
+        public static SqlGeometry PolygonToLine(SqlGeometry geometry)
+        {
+            // Do manipulation only if it a polygon type
+            // else return the input geometry as is
+            if (geometry.IsPolygon(false))
+                return geometry.GetLineWKTFromPolygon().GetGeom(geometry.STSrid);
+            else if (geometry.IsMultiPolygon(false))
+                return geometry.GetLineWKTFromMultiPolygon().GetGeom(geometry.STSrid);
+            else if (geometry.IsCurvePolygon(false))
+                return geometry.GetLineWKTFromCurvePolygon().GetGeom(geometry.STSrid);
+            else
+                return geometry;
+        }
     }
 }

@@ -84,6 +84,9 @@ namespace SQLSpatialTools.UnitTests.DDD
                 LRSDataSet.ValidateLRSGeometryData.ParamCount, LRSDataSet.ValidateLRSGeometryData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.OffsetGeometrySegmentData.DataFile,
                 LRSDataSet.OffsetGeometrySegmentData.ParamCount, LRSDataSet.OffsetGeometrySegmentData.InsertQuery));
+            ExecuteQuery(ParseDataSet(LRSDataSet.PolygonToLineData.DataFile,
+                LRSDataSet.PolygonToLineData.ParamCount, LRSDataSet.PolygonToLineData.InsertQuery));
+
         }
 
         /// <summary>

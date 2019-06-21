@@ -9,11 +9,19 @@ using Microsoft.SqlServer.Types;
 using System.Globalization;
 using SQLSpatialTools.Sinks.Geometry;
 using SQLSpatialTools.Types;
+using System.Text.RegularExpressions;
+using System.Text;
+using System.Collections.Generic;
 
 namespace SQLSpatialTools.Utility
 {
     public static class SpatialExtensions
     {
+        private const string _geomTypeRegexString = @"^(?<type>\w+)?\s?\(";
+        private const string _polygonSegmentRegex = @"POLYGON\s*?\((?<segments>.*)\)";
+        private const string _multipolygonSegmentRegex = @"MULTIPOLYGON\s*?\((?<segments>.*)\)";
+        private const string _segmentMatchRegex = @"\(.*?\)";
+
         #region OGC Type Checks
 
         /// <summary>
@@ -96,6 +104,18 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Check if Geometry is Polygon
+        /// </summary>
+        /// <param name="sqlGeometry"></param>
+        /// <returns>true; false</returns>
+        public static bool IsPolygon(this SqlGeometry sqlGeometry, bool checkValid = true)
+        {
+            if (checkValid)
+                return sqlGeometry.IsPolygon();
+            return GetGeomText(sqlGeometry.ToString()).Equals("POLYGON");
+        }
+
+        /// <summary>
         /// Check if Geometry is CurvePolygon
         /// </summary>
         /// <param name="sqlGeometry"></param>
@@ -103,6 +123,18 @@ namespace SQLSpatialTools.Utility
         public static bool IsCurvePolygon(this SqlGeometry sqlGeometry)
         {
             return sqlGeometry.STGeometryType().Compare(OGCType.CurvePolygon.GetString());
+        }
+
+        /// <summary>
+        /// Check if Geometry is CurvePolygon
+        /// </summary>
+        /// <param name="sqlGeometry"></param>
+        /// <returns>true; false</returns>
+        public static bool IsCurvePolygon(this SqlGeometry sqlGeometry, bool checkValid = true)
+        {
+            if (checkValid)
+                return sqlGeometry.IsCurvePolygon();
+            return GetGeomText(sqlGeometry.ToString()).Equals("CURVEPOLYGON");
         }
 
         /// <summary>
@@ -143,6 +175,29 @@ namespace SQLSpatialTools.Utility
         public static bool IsMultiPolygon(this SqlGeometry sqlGeometry)
         {
             return sqlGeometry.STGeometryType().Compare(OGCType.MultiPolygon.GetString());
+        }
+
+        /// <summary>
+        /// Check if Geometry is MultiPolygon
+        /// </summary>
+        /// <param name="sqlGeometry"></param>
+        /// <returns>true; false</returns>
+        public static bool IsMultiPolygon(this SqlGeometry sqlGeometry, bool checkValid = true)
+        {
+            if (checkValid)
+                return sqlGeometry.IsMultiPolygon();
+            return GetGeomText(sqlGeometry.ToString()).Equals("MULTIPOLYGON");
+        }
+
+        /// <summary>
+        /// Get geometry type.
+        /// </summary>
+        /// <param name="geomText">Geometry text</param>
+        /// <returns>Geometry type</returns>
+        public static string GetGeomText(this string geomText)
+        {
+            var match = Regex.Match(geomText, _geomTypeRegexString);
+            return match.Groups["type"].Value.ToUpper();
         }
 
         #endregion
@@ -1012,6 +1067,17 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Converts WKT string to SqlGeometry object.
+        /// </summary>
+        /// <param name="geomWKT">geometry in WKT representation</param>
+        /// <param name="srid">Spatial reference identifier</param>
+        /// <returns>SqlGeometry</returns>
+        public static SqlGeometry GetGeom(this string geomWKT, SqlInt32 srid)
+        {
+            return GetGeom(geomWKT, (int)srid);
+        }
+
+        /// <summary>
         /// Convert WKT string to SqlGeography object.
         /// </summary>
         /// <param name="geogString">geography in WKT string representation</param>
@@ -1020,6 +1086,180 @@ namespace SQLSpatialTools.Utility
         public static SqlGeography GetGeog(this string geogString, int srid = Constants.DefaultSRID)
         {
             return SqlGeography.STGeomFromText(new SqlChars(geogString), srid);
+        }
+
+        /// <summary>
+        /// Converts Polygon to Multi Linestring or LineString
+        /// Does only based on string matching and replacement.
+        /// </summary>
+        /// <param name="geometry">Input SqlGeometry</param>
+        /// <returns></returns>
+        public static string GetLineWKTFromPolygon(this SqlGeometry geometry)
+        {
+            var inputText = geometry.ToString();
+            Match match = Regex.Match(inputText, _polygonSegmentRegex, RegexOptions.IgnoreCase);
+
+            if (match.Success)
+            {
+                var content = match.Groups["segments"].Value;
+                var segments = Regex.Matches(content, _segmentMatchRegex);
+                if (segments.Count == 1)
+                    return $"LINESTRING {content}";
+
+                if (segments.Count > 1)
+                    return $"MULTILINESTRING ({content})";
+
+                return "LINESTRING EMPTY";
+            }
+            return inputText;
+        }
+
+        /// <summary>
+        /// Converts MultiPolygon to Multi linestring
+        /// Does only based on string replacement
+        /// </summary>
+        /// <param name="geometry">Input SqlGeometry</param>
+        /// <returns></returns>
+        public static string GetLineWKTFromMultiPolygon(this SqlGeometry geometry)
+        {
+            var inputText = geometry.ToString();
+            Match match = Regex.Match(inputText, _multipolygonSegmentRegex, RegexOptions.IgnoreCase);
+
+            if (match.Success)
+            {
+                var content = match.Groups["segments"].Value;
+                content = content.Replace("((", "(").Replace("))", ")");
+                return $"MULTILINESTRING ({content})";
+            }
+            return inputText;
+        }
+
+        /// <summary>
+        /// Converts CurvePolygon to Line representation.
+        /// Does only based on string matching and replacement.
+        /// </summary>
+        /// <param name="geometry">Input SqlGeometry</param>
+        /// <returns>WKT format</returns>
+        public static string GetLineWKTFromCurvePolygon(this SqlGeometry geometry)
+        {
+            var geomText = geometry.ToString();
+
+            var patternCurvePolygon = @"CURVEPOLYGON\s*\((?<content>.*)\)";
+            var regexCurvePolygon = new Regex(patternCurvePolygon, RegexOptions.IgnoreCase);
+
+            var patternCompoundCurve = @"COMPOUNDCURVE\s*\((?<content>.*?\)\)\,?)";
+            var regexCompoundCurve = new Regex(patternCompoundCurve, RegexOptions.IgnoreCase);
+
+            var match = regexCurvePolygon.Match(geomText);
+            var curvePolygonContent = match.Groups["content"].Value;
+
+            var geomWKTBuilder = new StringBuilder();
+            var ccIterator = 1;
+
+            // compound curve
+            var ccMatches = regexCompoundCurve.Matches(curvePolygonContent);
+
+            // within compound curve
+            if (ccMatches.Count > 0)
+            {
+                // start of multi curve
+                geomWKTBuilder.Append("GEOMETRYCOLLECTION(");
+
+                // for each compound curves
+                foreach (Match ccMatch in ccMatches)
+                {
+                    geomWKTBuilder.Append("COMPOUNDCURVE(");
+
+                    GetCCSubComponent(ccMatch.Groups["content"].Value, ref geomWKTBuilder);
+
+                    geomWKTBuilder.Append(")");
+                    if (ccIterator != ccMatches.Count)
+                        geomWKTBuilder.Append(", ");
+                    ccIterator++;
+                }
+
+                // end of multi curve
+                geomWKTBuilder.Append(")");
+            }
+            else
+            {
+                GetMCSubComponent(curvePolygonContent, ref geomWKTBuilder);
+            }
+
+            return geomWKTBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Get WKT of a Compound Curve segment
+        /// </summary>
+        /// <param name="textToMatch">Sub component</param>
+        /// <param name="wktBuilder">String builder</param>
+        private static void GetCCSubComponent(string textToMatch, ref StringBuilder wktBuilder)
+        {
+            var patternSubComponents = @"(?<type>\w+)?\s*\((?<content>.*?\d)\s*?\)";
+            var regexSubComponents = new Regex(patternSubComponents, RegexOptions.IgnoreCase);
+            var subIterator = 1;
+            // inner contents of compound curve
+            var ccContents = regexSubComponents.Matches(textToMatch);
+
+            foreach (Match ccContent in ccContents)
+            {
+                var geomType = ccContent.Groups["type"].Value.ToUpper();
+                var content = ccContent.Groups["content"].Value;
+
+                wktBuilder.Append($"{geomType}({content})");
+                if (subIterator != ccContents.Count)
+                    wktBuilder.Append(", ");
+                subIterator++;
+            }
+        }
+
+        /// <summary>
+        /// Get WKT of a Multi Curve segment
+        /// Since SQL Server doesn't support Multi Curve it is converted to GeometryCollection.
+        /// </summary>
+        /// <param name="textToMatch">Sub component</param>
+        /// <param name="wktBuilder">String builder</param>
+        private static void GetMCSubComponent(string textToMatch, ref StringBuilder wktBuilder)
+        {
+            var patternSubComponents = @"(?<type>\w+)?\s*\((?<content>.*?\d)\s*?\)";
+            var regexSubComponents = new Regex(patternSubComponents, RegexOptions.IgnoreCase);
+            var subIterator = 1;
+            // inner contents of compound curve
+            var ccContents = regexSubComponents.Matches(textToMatch);
+
+            var types = new List<KeyValuePair<string, string>>();
+
+            foreach (Match ccContent in ccContents)
+            {
+                var type = ccContent.Groups["type"];
+                var geomType = type != null && !string.IsNullOrEmpty(type.Value) ? type.Value.ToUpper() : "LINESTRING";
+                var content = ccContent.Groups["content"].Value;
+                types.Add(new KeyValuePair<string, string>(geomType, content));
+            }
+
+            var isMultiLine = types.Count(e => e.Key == "LINESTRING") == types.Count && types.Count > 1;
+
+            if (types.Count > 1 && !isMultiLine)
+                wktBuilder.Append("GEOMETRYCOLLECTION(");
+
+            if (isMultiLine)
+                wktBuilder.Append("MULTILINESTRING(");
+
+            foreach (var entry in types)
+            {
+                if (isMultiLine)
+                    wktBuilder.Append($"({entry.Value})");
+                else
+                    wktBuilder.Append($"{entry.Key}({entry.Value})");
+
+                if (subIterator != types.Count)
+                    wktBuilder.Append(", ");
+                subIterator++;
+            }
+
+            if (types.Count > 1 || isMultiLine)
+                wktBuilder.Append(")");
         }
 
         #endregion

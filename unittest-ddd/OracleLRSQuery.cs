@@ -149,12 +149,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                   + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2}, {3}, {4})"
                                                   + ") from dual";
 
+        public const string GetPolygonToLineQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                + "SDO_UTIL.POLYGONTOLINE("
+                                                + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
+                                                + "))from dual";
+
         #endregion Oracle Queries
 
-        public const string GeomTypeMatch = @"(?<type>\w+)\s*?(?<content>\(.*\))";
-        public const string DimensionGroup = @"\((?<group>.*?)\)";
+        public const string DimensionParse = @"([-\dNULL\.\s]+[\,\)])";
+        public const string DimensionGroup = @"(?<content>[-\dNULL\.\s]+)(?<suffix>[\,\)])";
         public const string DimensionMatch = @"((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+)\s+(?<z>([\d\.\-]+)|(null)|(NULL))\s+(?<m>([\d\.]+)|(null)|(NULL)))"
                                              + @"|((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+)\s+(?<z>([\d\.\-]+)|(null)|(NULL)))"
-                                             + @"|((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+))";
+                                             + @"|((?<x>[\d\.\-]+)\s+(?<y>[\d\.\-]+\s?))";
     }
 }
