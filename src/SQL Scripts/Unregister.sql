@@ -126,6 +126,10 @@ IF OBJECT_ID('LRS_TranslateMeasure') IS NOT NULL
 IF OBJECT_ID('LRS_ValidateLRSGeometry') IS NOT NULL
     DROP FUNCTION LRS_ValidateLRSGeometry
 
+-- Utility Functions
+IF OBJECT_ID('Util_PolygonToLine') IS NOT NULL
+    DROP FUNCTION Util_PolygonToLine
+
 -- Drop the types...
 IF TYPE_ID('Projection') IS NOT NULL
     DROP TYPE Projection

@@ -107,7 +107,7 @@
     <None Include="Dataset\LRS\OffsetGeometrySegment.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\PolygonToLine.data">
+    <None Include="Dataset\Util\PolygonToLine.data">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Dataset\LRS\ValidateLRSGeometryTest.data">

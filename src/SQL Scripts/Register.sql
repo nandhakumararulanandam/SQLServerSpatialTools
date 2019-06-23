@@ -356,6 +356,12 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ValidateLRSGeometry
 GO
 
+CREATE FUNCTION Util_PolygonToLine (@geometry GEOMETRY)
+RETURNS GEOMETRY
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].PolygonToLine
+GO
+
 --#endregion
 
 -- Create aggregates.
