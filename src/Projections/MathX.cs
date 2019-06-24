@@ -44,7 +44,7 @@ namespace SQLSpatialTools.Projections
 			{
 				throw new ArgumentOutOfRangeException(name, string.Format(CultureInfo.InvariantCulture, Resource.InputLatitudeIsOutOfRange, latDeg, max));
 			}
-			return Clamp(Math.PI / 2, Util.ToRadians(latDeg));
+			return Clamp(Math.PI / 2, SpatialUtil.ToRadians(latDeg));
 		}
 
 		public static double InputLong(double longDeg, double max, string name)
@@ -53,7 +53,7 @@ namespace SQLSpatialTools.Projections
 			{
 				throw new ArgumentOutOfRangeException(nameof(longDeg), string.Format(CultureInfo.InvariantCulture, Resource.InputLongitudeIsOutOfRange, longDeg, max));
 			}
-			return NormalizeLongitudeRad(Util.ToRadians(longDeg));
+			return NormalizeLongitudeRad(SpatialUtil.ToRadians(longDeg));
 		}
 
 		// Remainder(2, 1.5) == 0.5

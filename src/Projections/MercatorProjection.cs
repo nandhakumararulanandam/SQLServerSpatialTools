@@ -13,7 +13,7 @@ namespace SQLSpatialTools.Projections
 	internal sealed class MercatorProjection : Projection
 	{
 		private const double MaxLatitudeDeg = 89.5;
-		private readonly double _maxY = Math.Log(Math.Tan(Math.PI / 4 + Util.ToRadians(MaxLatitudeDeg) / 2));
+		private readonly double _maxY = Math.Log(Math.Tan(Math.PI / 4 + SpatialUtil.ToRadians(MaxLatitudeDeg) / 2));
 
 		// longitude0: Reference longitude
 		//

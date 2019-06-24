@@ -79,6 +79,9 @@
   <ItemGroup>
     <Compile Include="Functions\General\Geometry.cs" />
     <Compile Include="Functions\LRS\Geometry.cs" />
+    <Compile Include="Functions\Util\Geometry.cs" />
+    <Compile Include="Sinks\Geometry\ExtractPolygonGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\ExtractGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\BuildMultiLineFromLinesSink.cs" />
     <Compile Include="Sinks\Geometry\ClipMGeometrySegmentSink.cs" />
     <Compile Include="Sinks\Geometry\ReverseLinearGeometrySink.cs" />
@@ -158,7 +161,7 @@
     <Compile Include="Sinks\Geometry\UnProjector.cs" />
     <Compile Include="Sinks\Geometry\ConvertXYZ2XYMGeometrySink.cs" />
     <Compile Include="Utility\SQLTypeConversions.cs" />
-    <Compile Include="Utility\Util.cs" />
+    <Compile Include="Utility\SpatialUtil.cs" />
     <Compile Include="Types\Vector3.cs" />
   </ItemGroup>
   <ItemGroup>

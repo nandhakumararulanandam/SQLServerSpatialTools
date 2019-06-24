@@ -359,7 +359,7 @@ GO
 CREATE FUNCTION Util_PolygonToLine (@geometry GEOMETRY)
 RETURNS GEOMETRY
 AS
-EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].PolygonToLine
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.Util.Geometry].PolygonToLine
 GO
 
 --#endregion

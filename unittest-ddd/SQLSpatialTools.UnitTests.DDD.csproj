@@ -88,62 +88,67 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataManipulator.cs" />
-    <Compile Include="LRSDataSet.cs" />
-    <Compile Include="LRSFunctionTests.cs" />
-    <Compile Include="OracleConnector.cs" />
-    <Compile Include="OracleLRSQuery.cs" />
+    <Compile Include="Dataset\BaseDataSet.cs" />
+    <Compile Include="Dataset\DataManipulator.cs" />
+    <Compile Include="Dataset\UtilDataSet.cs" />
+    <Compile Include="Dataset\LRSDataSet.cs" />
+    <Compile Include="Functions\BaseDDDFunctionTest.cs" />
+    <Compile Include="Functions\OverallSummaryTest.cs" />
+    <Compile Include="Functions\UtilFunctionTests.cs" />
+    <Compile Include="Functions\LRSFunctionTests.cs" />
+    <Compile Include="OracleBridge\OracleConnector.cs" />
+    <Compile Include="OracleBridge\OracleLRSQuery.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlRegisterAndValidateTests.cs" />
-    <Compile Include="UtilityFunctionsTest.cs" />
+    <Compile Include="Functions\SqlRegisterAndValidateTests.cs" />
+    <Compile Include="Functions\OracleConnectorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Dataset\LRS\MergeAndResetGeometrySegments.data">
+    <None Include="TestData\LRS\MergeAndResetGeometrySegments.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\OffsetGeometrySegment.data">
+    <None Include="TestData\LRS\OffsetGeometrySegment.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\Util\PolygonToLine.data">
+    <None Include="TestData\Util\PolygonToLine.data">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\ValidateLRSGeometryTest.data">
+    <None Include="TestData\LRS\ValidateLRSGeometryTest.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\LocatePointAlongGeom.data">
+    <None Include="TestData\LRS\LocatePointAlongGeom.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\MergeGeometrySegments.data">
+    <None Include="TestData\LRS\MergeGeometrySegments.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\ResetMeasure.data">
+    <None Include="TestData\LRS\ResetMeasure.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\SplitGeometrySegment.data">
+    <None Include="TestData\LRS\SplitGeometrySegment.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\ReverseLinearGeometry.data">
+    <None Include="TestData\LRS\ReverseLinearGeometry.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\PopulateGeometryMeasures.data">
+    <None Include="TestData\LRS\PopulateGeometryMeasures.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\IsConnected.data">
+    <None Include="TestData\LRS\IsConnected.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\InterpolateBetweenGeom.data">
+    <None Include="TestData\LRS\InterpolateBetweenGeom.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\GetStartMeasure.data">
+    <None Include="TestData\LRS\GetStartMeasure.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\GetEndMeasure.data">
+    <None Include="TestData\LRS\GetEndMeasure.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Dataset\LRS\ClipGeometrySegment.data">
+    <None Include="TestData\LRS\ClipGeometrySegment.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
@@ -159,12 +164,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Dataset\CreateDBSchema.sql">
+    <None Include="TestData\CreateDBSchema.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Dataset\Validate_DDD_TestCases.sql">
+    <Content Include="TestData\Validate_DDD_TestCases.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Readme.txt" />

@@ -271,8 +271,8 @@ namespace SQLSpatialTools.Types.SQL
 				throw new ArgumentOutOfRangeException(nameof(longitude), string.Format(CultureInfo.InvariantCulture, Resource.OutputLongitudeIsOutOfRange, longitude));
 			}
 
-			latitudeDeg = MathX.Clamp(90, Util.ToDegrees(latitude));
-			longitudeDeg = MathX.NormalizeLongitudeDeg(Util.ToDegrees(longitude + _projection.CentralLongitudeRad));
+			latitudeDeg = MathX.Clamp(90, SpatialUtil.ToDegrees(latitude));
+			longitudeDeg = MathX.NormalizeLongitudeDeg(SpatialUtil.ToDegrees(longitude + _projection.CentralLongitudeRad));
 		}
 	}
 }

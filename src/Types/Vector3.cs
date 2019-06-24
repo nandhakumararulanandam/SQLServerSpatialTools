@@ -95,7 +95,7 @@ namespace SQLSpatialTools.Types
         // Angle in degrees between vectors a and b.
         public double AngleInDegrees(Vector3 a)
         {
-            return Util.ToDegrees(Angle(a));
+            return SpatialUtil.ToDegrees(Angle(a));
         }   
     }
 }

@@ -3,22 +3,17 @@
 //------------------------------------------------------------------------------
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Diagnostics;
 
 namespace SQLSpatialTools.UnitTests.Extension
 {
     public class BaseUnitTest
     {
         protected TestLogger Logger;
-        protected Stopwatch MSSQLTimer;
-        protected Stopwatch OracleTimer;
 
         [TestInitialize]
         public void Initialize()
         {
             Logger = new TestLogger(TestContext);
-            MSSQLTimer = new Stopwatch();
-            OracleTimer = new Stopwatch();
         }
 
         /// <summary>

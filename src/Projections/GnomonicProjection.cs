@@ -22,7 +22,7 @@ namespace SQLSpatialTools.Projections
 		public GnomonicProjection(Dictionary<String, double> parameters)
 			: base(parameters)
 		{
-			_center = Util.SphericalRadToCartesian(InputLatitude("latitude1", 90), InputLongitude("longitude1", 360));
+			_center = SpatialUtil.SphericalRadToCartesian(InputLatitude("latitude1", 90), InputLongitude("longitude1", 360));
 
 			// This projection is designed for numerical computations rather than cartography.
 			// The choice of coordinate basis for the tangent plane - which affects the 
@@ -59,7 +59,7 @@ namespace SQLSpatialTools.Projections
 
 		protected internal override void Project(double latitude, double longitude, out double x, out double y)
 		{
-			var vector = Util.SphericalRadToCartesian(latitude, longitude);
+			var vector = SpatialUtil.SphericalRadToCartesian(latitude, longitude);
 			var r = vector * _center;
 
 			if (r < _tolerance)
@@ -75,8 +75,8 @@ namespace SQLSpatialTools.Projections
 		protected internal override void Unproject(double x, double y, out double latitude, out double longitude)
 		{
 			var vector = _center + _xAxis * x + _yAxis * y;
-			latitude = Util.Latitude(vector);
-			longitude = Util.Longitude(vector);
+			latitude = SpatialUtil.Latitude(vector);
+			longitude = SpatialUtil.Longitude(vector);
 		}
 
 		private readonly Vector3 _center;

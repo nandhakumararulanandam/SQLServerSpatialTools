@@ -42,7 +42,7 @@ namespace SQLSpatialTools.Sinks.Geography
         public void AddLine(double latitude, double longitude, double? z, double? m)
         {
             // Transforming from geodetic coordinates to a unit vector.
-			var endPoint = Util.SphericalDegToCartesian(latitude, longitude);
+			var endPoint = SpatialUtil.SphericalDegToCartesian(latitude, longitude);
 
             var angle = endPoint.Angle(_startPoint);
             if (angle > MinAngle)
@@ -58,7 +58,7 @@ namespace SQLSpatialTools.Sinks.Geography
                 var yAxis = (_startPoint).CrossProduct(zAxis);
 
                 // Calculating how many points we need.
-                var count = Convert.ToInt32(Math.Ceiling(angle / Util.ToRadians(_angle)));
+                var count = Convert.ToInt32(Math.Ceiling(angle / SpatialUtil.ToRadians(_angle)));
 
                 // Scaling the angle so that points are equally placed.
                 var exactAngle = angle / count;
@@ -75,7 +75,7 @@ namespace SQLSpatialTools.Sinks.Geography
                     var newPoint = (_startPoint * x + yAxis * y).Unitize();
 
                     // Adding the point.
-                    _sink.AddLine(Util.LatitudeDeg(newPoint), Util.LongitudeDeg(newPoint), null, null);
+                    _sink.AddLine(SpatialUtil.LatitudeDeg(newPoint), SpatialUtil.LongitudeDeg(newPoint), null, null);
 
                     // Rotating to get next point.
                     var r = x * cosine - y * sine;
@@ -97,7 +97,7 @@ namespace SQLSpatialTools.Sinks.Geography
         public void BeginFigure(double latitude, double longitude, double? z, double? m)
         {
             // Starting the figure, remembering the vector that corresponds to the first point.
-			_startPoint = Util.SphericalDegToCartesian(latitude, longitude);
+			_startPoint = SpatialUtil.SphericalDegToCartesian(latitude, longitude);
             _sink.BeginFigure(latitude, longitude, z, m);
         }
 

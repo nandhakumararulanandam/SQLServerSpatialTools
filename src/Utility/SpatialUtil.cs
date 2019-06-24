@@ -11,7 +11,7 @@ namespace SQLSpatialTools.Utility
     /// <summary>
     /// This class contains functions that are meant to be used internally in this library.
     /// </summary>
-    internal static class Util
+    internal static class SpatialUtil
     {
         // Convert a SqlGeography to an X,Y,Z vector.
         public static Vector3 GeographicToCartesian(SqlGeography point)

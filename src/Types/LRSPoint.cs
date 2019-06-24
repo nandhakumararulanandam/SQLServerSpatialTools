@@ -301,7 +301,7 @@ namespace SQLSpatialTools.Types
         private double GetAtanInDegree(LRSPoint point1, LRSPoint point2)
         {
             var atan = point1.GetAtanInRadian(point2);
-            return Util.ToDegrees(atan <= 0 ? (2 * Math.PI) + atan : atan);
+            return SpatialUtil.ToDegrees(atan <= 0 ? (2 * Math.PI) + atan : atan);
         }
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace SQLSpatialTools.Types
             atan = 90 - atan;
             atan = atan <= 0 ? 360 + atan : atan;
 
-            return Util.ToRadians(360 - atan);
+            return SpatialUtil.ToRadians(360 - atan);
         }
 
         /// <summary>
@@ -331,7 +331,7 @@ namespace SQLSpatialTools.Types
             atan = 90 - atan;
             atan = atan <= 0 ? 360 + atan : atan;
 
-            return Util.ToRadians(180 - atan);
+            return SpatialUtil.ToRadians(180 - atan);
         }
 
         /// <summary>
@@ -351,8 +351,8 @@ namespace SQLSpatialTools.Types
             var atanBo = pointB.GetAtanInRadian(pointO) + angleCorrection;
 
             // angle conversion
-            atanAo = Util.ToDegrees(atanAo <= 0 ? angleConversion + atanAo : atanAo);
-            atanBo = Util.ToDegrees(atanBo <= 0 ? angleConversion + atanBo : atanBo);
+            atanAo = SpatialUtil.ToDegrees(atanAo <= 0 ? angleConversion + atanAo : atanAo);
+            atanBo = SpatialUtil.ToDegrees(atanBo <= 0 ? angleConversion + atanBo : atanBo);
 
             var deviationAngle =
                 360 - (atanAo > atanBo
@@ -381,7 +381,7 @@ namespace SQLSpatialTools.Types
         /// <param name="nextPoint">The next point.</param>
         private double CalculateOffsetBearing(LRSPoint nextPoint)
         {
-            _angle = Util.ToDegrees(GetAtanInRadian(nextPoint));
+            _angle = SpatialUtil.ToDegrees(GetAtanInRadian(nextPoint));
             return (90 - _angle + 360) % 360;
         }
 
@@ -466,7 +466,7 @@ namespace SQLSpatialTools.Types
         private static double CalculateOffsetDistance(double offset, double offsetBearing, double offsetAngle)
         {
             // offset / (SIN(RADIANS(((OffsetBearing - OffsetAngleLeft) + 360) % 360)))
-            var denominator = (Math.Sin(Util.ToRadians(((offsetBearing - offsetAngle) + 360) % 360)));
+            var denominator = (Math.Sin(SpatialUtil.ToRadians(((offsetBearing - offsetAngle) + 360) % 360)));
             return offset / denominator;
         }
 
@@ -476,8 +476,8 @@ namespace SQLSpatialTools.Types
         /// <returns>Point parallel to the current point.</returns>
         private LRSPoint GetParallelPoint()
         {
-            var newX = X + (OffsetDistance * Math.Cos(Util.ToRadians(90 - _offsetAngle)));
-            var newY = Y + (OffsetDistance * Math.Sin(Util.ToRadians(90 - _offsetAngle)));
+            var newX = X + (OffsetDistance * Math.Cos(SpatialUtil.ToRadians(90 - _offsetAngle)));
+            var newY = Y + (OffsetDistance * Math.Sin(SpatialUtil.ToRadians(90 - _offsetAngle)));
 
             return new LRSPoint(
                 newX,
@@ -510,7 +510,7 @@ namespace SQLSpatialTools.Types
             // offset distance between parallel point and input point
             var diffInDistance = Math.Round(parallelPoint.GetDistance(this), 5);
             // offset distance difference between parallel point and input point
-            var offsetDiff = Math.Abs(diffInDistance - offset);
+            var offsetDiff = Math.Abs(Math.Abs(diffInDistance) - Math.Abs(offset));
 
             if (offsetDiff <= tolerance || previousPoint == null || nextPoint == null)
             {

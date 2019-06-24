@@ -182,7 +182,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (string.IsNullOrEmpty(errorInfo))
             {
                 var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetOneResultFromTempTable);
-                var result = ExecuteScalar<LRSDataSet.MergeAndResetResult>(query2, out errorInfo);
+                var result = ExecuteScalar<BaseDataSet.OralceTwoResult>(query2, out errorInfo);
                 testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
                 testObj.OracleResult1 = result.Output1;
             }
@@ -271,19 +271,6 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
-        /// Test PolygonToLine Function against Oracle.
-        /// </summary>
-        /// <param name="testObj">The test object.</param>
-        internal void DoPolygonToLineTest(LRSDataSet.PolygonToLineData testObj)
-        {
-            var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPolygonToLineQuery, ConvertTo3DCoordinates(testObj.InputGeom));
-            var result = ExecuteScalar<string>(query, out var errorInfo);
-            testObj.OracleError = errorInfo;
-            testObj.OracleQuery = query;
-            testObj.OracleResult1 = result;
-        }
-
-        /// <summary>
         /// Test Populate Measure Function against Oracle.
         /// </summary>
         /// <param name="testObj">The test object.</param>
@@ -356,7 +343,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             if (string.IsNullOrEmpty(errorInfo))
             {
                 var query2 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetTwoResultFromTempTable);
-                var result = ExecuteScalar<LRSDataSet.SplitGeomResult>(query2, out errorInfo);
+                var result = ExecuteScalar<BaseDataSet.OralceTwoResult>(query2, out errorInfo);
                 testObj.OracleQuery = string.Format(CultureInfo.CurrentCulture, "{0}\n{1}", query1, query2);
                 testObj.OracleResult1 = result.Output1;
                 testObj.OracleResult2 = result.Output2;
@@ -381,7 +368,24 @@ namespace SQLSpatialTools.UnitTests.DDD
 
         #endregion LRS Test Functions
 
-        #region Utility Functions
+        #region Util Functions
+
+        /// <summary>
+        /// Test PolygonToLine Function against Oracle.
+        /// </summary>
+        /// <param name="testObj">The test object.</param>
+        internal void DoPolygonToLineTest(UtilDataSet.PolygonToLineData testObj)
+        {
+            var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetPolygonToLineQuery, ConvertTo3DCoordinates(testObj.InputGeom));
+            var result = ExecuteScalar<string>(query, out var errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
+        }
+
+        #endregion Util Functions
+
+        #region Helper Functions
 
         /// <summary>
         /// Gets the oracle ordinate point.
@@ -473,6 +477,6 @@ namespace SQLSpatialTools.UnitTests.DDD
             return $"{x.Value} {y.Value} {thirdDim}".Trim();
         }
 
-        #endregion Utility Functions
+        #endregion Helper Functions
     }
 }

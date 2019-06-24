@@ -20,5 +20,7 @@ namespace SQLSpatialTools.Utility
         public const string DistanceMustBeBetweenTwoPoints = "The distance value provided exceeds the distance between the two points.";
         public const string DistanceMustBePositive = "The distance must be positive.";
         public const string TwoDimensionalCoordinates = "Cannot operate on 2 Dimensional co-ordinates without measure values.";
+        public const string InvalidElementIndex = "Invalid index for element to be extracted.";
+        public const string InvalidSubElementIndex = "Invalid index for sub-element to be extracted.";
     }
 }

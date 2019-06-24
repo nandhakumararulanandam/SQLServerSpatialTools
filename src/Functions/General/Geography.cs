@@ -75,8 +75,8 @@ namespace SQLSpatialTools.Functions.General
             // aren't working on a sphere.
 
             // We are going to do our binary search using 3D Cartesian values, however
-            var startCart = Util.GeographicToCartesian(start);
-            var endCart = Util.GeographicToCartesian(end);
+            var startCart = SpatialUtil.GeographicToCartesian(start);
+            var endCart = SpatialUtil.GeographicToCartesian(end);
 
             SqlGeography current;
             double currentDistance;
@@ -85,7 +85,7 @@ namespace SQLSpatialTools.Functions.General
             do
             {
                 var currentCart = (startCart + endCart) / 2;
-                current = Util.CartesianToGeographic(currentCart, srid);
+                current = SpatialUtil.CartesianToGeographic(currentCart, srid);
                 currentDistance = start.STDistance(current).Value;
 
                 if (distance <= currentDistance)

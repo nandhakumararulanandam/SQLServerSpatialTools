@@ -8,7 +8,7 @@ using SQLSpatialTools.UnitTests.Extension;
 namespace SQLSpatialTools.UnitTests.DDD
 {
     [TestClass]
-    public class UtilityFunctionsTest : BaseUnitTest
+    public class OracleConnectorTest : BaseUnitTest
     {
         [TestMethod]
         public void ConvertTo3DCoordinatesTest()
@@ -67,5 +67,6 @@ namespace SQLSpatialTools.UnitTests.DDD
             var result= input.TrimDecimalPoints();
             Assert.AreEqual(expected, result);
         }
+
     }
 }

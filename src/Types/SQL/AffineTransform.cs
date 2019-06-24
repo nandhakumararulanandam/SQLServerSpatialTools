@@ -29,7 +29,7 @@ namespace SQLSpatialTools.Types.SQL
 		[SqlMethod(IsDeterministic = true, IsPrecise = false)]
 		public static AffineTransform Rotate(double angleDeg)
 		{
-			var angle = Util.ToRadians(angleDeg);
+			var angle = SpatialUtil.ToRadians(angleDeg);
             var transform = new AffineTransform {_ax = Math.Cos(angle), _ay = Math.Sin(angle)};
             transform._bx = -transform._ay;
 			transform._by = transform._ax;

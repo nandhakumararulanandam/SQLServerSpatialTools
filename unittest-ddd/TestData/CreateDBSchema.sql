@@ -330,7 +330,7 @@ ALTER TABLE [LRS_ValidateLRSGeometryData] ADD CONSTRAINT [PK_ValidateLRSGeometry
 GO
 
 -- PolygonToLine
-CREATE TABLE [LRS_PolygonToLineData] (
+CREATE TABLE [Util_PolygonToLineData] (
  [Id] int IDENTITY (1,1) NOT NULL
 , [InputGeom] nvarchar(4000) NOT NULL
 , [OutputComparison1] bit
@@ -347,5 +347,5 @@ CREATE TABLE [LRS_PolygonToLineData] (
 , [Comments] nvarchar(1000)
 );
 GO
-ALTER TABLE [LRS_PolygonToLineData] ADD CONSTRAINT [PK_PolygonToLineData] PRIMARY KEY ([Id]);
+ALTER TABLE [Util_PolygonToLineData] ADD CONSTRAINT [PK_PolygonToLineData] PRIMARY KEY ([Id]);
 GO

@@ -648,6 +648,22 @@ namespace SQLSpatialTools.Utility
         #region Exception Handling
 
         /// <summary>
+        /// Throws Argument Exception if the element index to be extracted is greater than the input geometry.
+        /// </summary>
+        internal static void ThrowInvalidElementIndex()
+        {
+            throw new ArgumentException(ErrorMessage.InvalidElementIndex);
+        }
+
+        /// <summary>
+        /// Throws Argument Exception if the sub-element index to be extracted is greater than the input geometry.
+        /// </summary>
+        internal static void ThrowInvalidSubElementIndex()
+        {
+            throw new ArgumentException(ErrorMessage.InvalidSubElementIndex);
+        }
+
+        /// <summary>
         /// Throw if input geometry is not a LRS Geometry collection POINT, LINESTRING or MULTILINESTRING.
         /// </summary>
         /// <param name="sqlGeometries">Input Sql Geometry</param>

@@ -3,7 +3,6 @@
 //------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Data.SqlServerCe;
 using System.Globalization;
 using System.IO;
@@ -17,43 +16,19 @@ using SQLSpatialTools.Utility;
 namespace SQLSpatialTools.UnitTests.DDD
 {
     [TestClass]
-    public class LRSFunctionTests : BaseUnitTest
+    public class LRSFunctionTests : BaseDDDFunctionTest 
     {
-        private static SqlCeConnection _dbConnection;
-        private static DataManipulator _dataManipulator;
-        private static OracleConnector _oracleConnector;
-        private static string _connectionString;
-        private const string DatabaseFile = "SpatialTestData.sdf";
-        private const string SchemaFile = @"Dataset\CreateDBSchema.sql";
-        private int _passCount, _failCount;
-
-        [ClassInitialize()]
-        public static void Initialize(TestContext testContext)
-        {
-            if (File.Exists(DatabaseFile))
-                File.Delete(DatabaseFile);
-
-            _connectionString = string.Format(CultureInfo.CurrentCulture, "Data Source=|DataDirectory|\\{0}", DatabaseFile);
-            _dbConnection = new SqlCeConnection(_connectionString);
-
-            _dataManipulator = new DataManipulator(_connectionString, SchemaFile, _dbConnection, new TestLogger(testContext));
-            _dataManipulator.CreateDB();
-            _dbConnection.Open();
-            _dataManipulator.LoadDataSet();
-            _oracleConnector = OracleConnector.GetInstance();
-        }
-
         [TestMethod]
         public void ClipGeometrySegmentTest()
         {
             Logger.LogLine("Clip Geometry Segments Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.ClipGeometrySegmentData>(LRSDataSet.ClipGeometrySegmentData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.ClipGeometrySegmentData>(LRSDataSet.ClipGeometrySegmentData.SelectQuery);
 
             var clipGeometrySegmentData = dataSet.ToList();
             if (!clipGeometrySegmentData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in clipGeometrySegmentData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -88,7 +63,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoClipGeometrySegment(test);
+                OracleConnectorObj.DoClipGeometrySegment(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -104,14 +79,14 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void GetEndMeasureTest()
         {
-            Logger.LogLine("Clip Geometry Segments Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.GetEndMeasureData>(LRSDataSet.GetEndMeasureData.SelectQuery);
+            Logger.LogLine("Get End Measure Tests");
+            var dataSet = DBConnectionObj.Query<LRSDataSet.GetEndMeasureData>(LRSDataSet.GetEndMeasureData.SelectQuery);
 
             var getEndMeasureData = dataSet.ToList();
             if (!getEndMeasureData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in getEndMeasureData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -144,7 +119,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoGetEndMeasure(test);
+                OracleConnectorObj.DoGetEndMeasure(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -161,14 +136,14 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void GetStartMeasureTest()
         {
-            Logger.LogLine("Clip Geometry Segments Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.GetStartMeasureData>(LRSDataSet.GetStartMeasureData.SelectQuery);
+            Logger.LogLine("Get Start Measure Tests");
+            var dataSet = DBConnectionObj.Query<LRSDataSet.GetStartMeasureData>(LRSDataSet.GetStartMeasureData.SelectQuery);
 
             var getStartMeasureData = dataSet.ToList();
             if (!getStartMeasureData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in getStartMeasureData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -201,7 +176,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoGetStartMeasure(test);
+                OracleConnectorObj.DoGetStartMeasure(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -218,14 +193,14 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void InterpolateBetweenGeomTest()
         {
-            Logger.LogLine("IsConnected Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.InterpolateBetweenGeomData>(LRSDataSet.InterpolateBetweenGeomData.SelectQuery);
+            Logger.LogLine("Interpolate Between Points Tests");
+            var dataSet = DBConnectionObj.Query<LRSDataSet.InterpolateBetweenGeomData>(LRSDataSet.InterpolateBetweenGeomData.SelectQuery);
 
             var interpolateBetweenGeomData = dataSet.ToList();
             if (!interpolateBetweenGeomData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in interpolateBetweenGeomData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -269,13 +244,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         public void IsConnectedTest()
         {
             Logger.LogLine("IsConnected Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.IsConnectedData>(LRSDataSet.IsConnectedData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.IsConnectedData>(LRSDataSet.IsConnectedData.SelectQuery);
 
             var isConnectedData = dataSet.ToList();
             if (!isConnectedData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in isConnectedData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -310,7 +285,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoIsConnectedGeomSegmentTest(test);
+                OracleConnectorObj.DoIsConnectedGeomSegmentTest(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -327,13 +302,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         public void LocatePointAlongGeomTest()
         {
             Logger.LogLine("LocatePointAlongGeom Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.LocatePointAlongGeomData>(LRSDataSet.LocatePointAlongGeomData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.LocatePointAlongGeomData>(LRSDataSet.LocatePointAlongGeomData.SelectQuery);
 
             var locatePointAlongGeomData = dataSet.ToList();
             if (!locatePointAlongGeomData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in locatePointAlongGeomData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -366,7 +341,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoLocatePointAlongGeomTest(test);
+                OracleConnectorObj.DoLocatePointAlongGeomTest(test);
                 Logger.Log("Oracle Result: {0}", test.OracleResult1);
                 OracleTimer.Stop();
 
@@ -383,13 +358,14 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void MergeGeometrySegmentsTest()
         {
-            var dataSet = _dbConnection.Query<LRSDataSet.MergeGeometrySegmentsData>(LRSDataSet.MergeGeometrySegmentsData.SelectQuery);
+            Logger.LogLine("Merge Geometry Segments Tests");
+            var dataSet = DBConnectionObj.Query<LRSDataSet.MergeGeometrySegmentsData>(LRSDataSet.MergeGeometrySegmentsData.SelectQuery);
 
             var mergeGeometrySegmentsData = dataSet.ToList();
             if (!mergeGeometrySegmentsData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in mergeGeometrySegmentsData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -426,7 +402,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoMergeGeomTest(test);
+                OracleConnectorObj.DoMergeGeomTest(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -442,7 +418,8 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void MergeAndResetGeometrySegments()
         {
-            var dataSet = _dbConnection.Query<LRSDataSet.MergeAndResetGeometrySegmentsData>(LRSDataSet.MergeAndResetGeometrySegmentsData.SelectQuery);
+            Logger.LogLine("Merge and Reset Geometry Segments Tests");
+            var dataSet = DBConnectionObj.Query<LRSDataSet.MergeAndResetGeometrySegmentsData>(LRSDataSet.MergeAndResetGeometrySegmentsData.SelectQuery);
             var mergeAndResetGeometrySegmentsData = dataSet.ToList();
             if (!mergeAndResetGeometrySegmentsData.Any())
                 Logger.Log("No test cases found");
@@ -484,7 +461,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoMergeAndResetGeomTest(test);
+                OracleConnectorObj.DoMergeAndResetGeomTest(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -501,13 +478,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         public void OffsetGeometrySegmentTest()
         {
             Logger.LogLine("Offset Geometry Segments Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.OffsetGeometrySegmentData>(LRSDataSet.OffsetGeometrySegmentData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.OffsetGeometrySegmentData>(LRSDataSet.OffsetGeometrySegmentData.SelectQuery);
 
             var offsetGeometrySegmentData = dataSet.ToList();
             if (!offsetGeometrySegmentData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in offsetGeometrySegmentData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -543,7 +520,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoOffsetGeometrySegment(test);
+                OracleConnectorObj.DoOffsetGeometrySegment(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -560,13 +537,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         public void PopulateGeometryMeasuresTest()
         {
             Logger.LogLine("PopulateGeometryMeasures Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.PopulateGeometryMeasuresData>(LRSDataSet.PopulateGeometryMeasuresData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.PopulateGeometryMeasuresData>(LRSDataSet.PopulateGeometryMeasuresData.SelectQuery);
 
             var populateGeometryMeasuresData = dataSet.ToList();
             if (!populateGeometryMeasuresData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in populateGeometryMeasuresData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -598,7 +575,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoPopulateMeasuresTest(test);
+                OracleConnectorObj.DoPopulateMeasuresTest(test);
                 OracleTimer.Stop();
                 Logger.Log("Oracle Result: {0}", test.OracleResult1);
 
@@ -616,13 +593,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         public void ResetMeasureTest()
         {
             Logger.LogLine("Reset Measure Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.ResetMeasureData>(LRSDataSet.ResetMeasureData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.ResetMeasureData>(LRSDataSet.ResetMeasureData.SelectQuery);
 
             var resetMeasureData = dataSet.ToList();
             if (!resetMeasureData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in resetMeasureData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -658,13 +635,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         public void ReverseLinearGeometryTest()
         {
             Logger.LogLine("ReverseLinearGeometry Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.ReverseLinearGeometryData>(LRSDataSet.ReverseLinearGeometryData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.ReverseLinearGeometryData>(LRSDataSet.ReverseLinearGeometryData.SelectQuery);
 
             var reverseLinearGeometryData = dataSet.ToList();
             if (!reverseLinearGeometryData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in reverseLinearGeometryData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -697,7 +674,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoReverseLinearGeomTest(test);
+                OracleConnectorObj.DoReverseLinearGeomTest(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -714,13 +691,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         public void SplitGeometrySegmentTest()
         {
             Logger.LogLine("SplitGeometrySegment Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.SplitGeometrySegmentData>(LRSDataSet.SplitGeometrySegmentData.SelectQuery);
+            var dataSet = DBConnectionObj.Query<LRSDataSet.SplitGeometrySegmentData>(LRSDataSet.SplitGeometrySegmentData.SelectQuery);
 
             var splitGeometrySegmentData = dataSet.ToList();
             if (!splitGeometrySegmentData.Any())
                 Logger.Log("No test cases found");
 
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in splitGeometrySegmentData)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -759,7 +736,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.DoSplitGeometrySegmentTest(test);
+                OracleConnectorObj.DoSplitGeometrySegmentTest(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -775,9 +752,9 @@ namespace SQLSpatialTools.UnitTests.DDD
         [TestMethod]
         public void ValidateLRSGeometryTest()
         {
-            Logger.LogLine("Clip Geometry Segments Tests");
-            var dataSet = _dbConnection.Query<LRSDataSet.ValidateLRSGeometryData>(LRSDataSet.ValidateLRSGeometryData.SelectQuery);
-            var testIterator = 1; _passCount = 0; _failCount = 0;
+            Logger.LogLine("Validate LRS Geometry Segments Tests");
+            var dataSet = DBConnectionObj.Query<LRSDataSet.ValidateLRSGeometryData>(LRSDataSet.ValidateLRSGeometryData.SelectQuery);
+            var testIterator = 1; PassCount = 0; FailCount = 0;
             foreach (var test in dataSet)
             {
                 Logger.LogLine("Executing test {0}", testIterator);
@@ -810,7 +787,7 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 OracleTimer.Restart();
                 // Oracle Function Execution
-                _oracleConnector.ValidateLRSGeometry(test);
+                OracleConnectorObj.ValidateLRSGeometry(test);
                 OracleTimer.Stop();
 
                 #endregion
@@ -823,224 +800,6 @@ namespace SQLSpatialTools.UnitTests.DDD
             }
             if (testIterator == 1)
                 Logger.Log("No test cases found");
-        }
-
-        [TestMethod]
-        public void PolygonToLineTest()
-        {
-            var dataSet = _dbConnection.Query<LRSDataSet.PolygonToLineData>(LRSDataSet.PolygonToLineData.SelectQuery);
-
-            var polygonToLineData = dataSet.ToList();
-            if (!polygonToLineData.Any())
-                Logger.Log("No test cases found");
-
-            var testIterator = 1; _passCount = 0; _failCount = 0;
-            foreach (var test in polygonToLineData)
-            {
-                Logger.LogLine("Executing test {0}", testIterator);
-
-                #region Run against OSS
-
-                try
-                {
-                    var geom = test.InputGeom.GetGeom();
-                    var expectedGeom = test.ExpectedResult1.GetGeom();
-
-                    Logger.LogLine("Input geom 1:{0}", geom);
-                    Logger.LogLine("Expected Result: {0}", expectedGeom);
-
-                    MSSQLTimer.Restart();
-                    // OSS Function Execution
-
-                    test.SqlObtainedResult1 = Geometry.PolygonToLine(geom).ToString();
-                    MSSQLTimer.Stop();
-                    Logger.Log("Obtained Result : {0}", test.SqlObtainedResult1);
-                }
-                catch (Exception ex)
-                {
-                    test.Result = "Failed";
-                    test.SqlError = ex.Message;
-                    Logger.LogError(ex);
-                }
-
-                #endregion
-
-                #region Run against Oracle
-
-                OracleTimer.Restart();
-                // Oracle Function Execution
-                _oracleConnector.DoPolygonToLineTest(test);
-                OracleTimer.Stop();
-
-                #endregion
-
-                // Update results to database
-                UpdateTestResults(test, LRSDataSet.PolygonToLineData.TableName, testIterator);
-
-                Logger.Log("Test Result : {0}", test.Result);
-                testIterator++;
-            }
-        }
-
-        [ClassCleanup]
-        public static void Cleanup()
-        {
-            _dbConnection?.Close();
-        }
-
-        /// <summary>
-        /// Update test results specific to SQL Server alone
-        /// </summary>
-        /// <param name="test"></param>
-        /// <param name="tableName"></param>
-        /// <param name="count"></param>
-        private void UpdateSqlServerTestResults(LRSDataSet.BaseDataSet test, string tableName, int count)
-        {
-            test.SetElapsedTime(MSSQLTimer.Elapsed);
-
-            test.SqlObtainedResult1 = test.SqlObtainedResult1.TrimNullValue();
-            test.ExpectedResult1 = test.ExpectedResult1.TrimNullValue();
-
-            test.Result = test.SqlObtainedResult1.Compare(test.ExpectedResult1).GetResult();
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlObtainedResult1), test.SqlObtainedResult1));
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Result), test.Result));
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlElapsedTime), test.SqlElapsedTime));
-            if (!string.IsNullOrWhiteSpace(test.SqlError))
-                _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlError), test.SqlError));
-
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExecutionTime), test.ExecutionTime));
-
-            if (test.Result.Equals("Passed", StringComparison.CurrentCulture))
-                _passCount++;
-            else
-                _failCount++;
-
-            if (count == 1)
-                _dataManipulator.ExecuteQuery(test.InsertOverallStatusQuery(tableName));
-            _dataManipulator.ExecuteQuery(test.UpdateOverallStatusCountQuery(tableName, count, _passCount, _failCount));
-        }
-
-        /// <summary>
-        /// Update Test Results.
-        /// </summary>
-        /// <param name="test">Test Obj.</param>
-        /// <param name="tableName">Table name.</param>
-        /// <param name="count"></param>
-        /// <param name="isMultiResult">Is result singular</param>
-        private void UpdateTestResults(LRSDataSet.BaseDataSet test, string tableName, int count, bool isMultiResult = false)
-        {
-            test.SetElapsedTime(MSSQLTimer.Elapsed);
-            test.SetOracleElapsedTime(OracleTimer.Elapsed);
-
-            test.SqlObtainedResult1 = test.SqlObtainedResult1?.TrimNullValue();
-            test.ExpectedResult1 = test.ExpectedResult1?.TrimNullValue();
-            test.OracleResult1 = test.OracleResult1?.TrimDecimalPoints()?.TrimNullValue();
-
-            test.OutputComparison1 = test.SqlObtainedResult1.Compare(test.OracleResult1);
-            test.Result = test.SqlObtainedResult1.Compare(test.ExpectedResult1).GetResult();
-
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlObtainedResult1), test.SqlObtainedResult1));
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExpectedResult1), test.ExpectedResult1));
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleResult1), test.OracleResult1));
-
-            if (isMultiResult)
-            {
-                test.SqlObtainedResult2 = test.SqlObtainedResult2?.TrimNullValue();
-                test.ExpectedResult2 = test.ExpectedResult2?.TrimNullValue();
-                test.OracleResult2 = test.OracleResult2?.TrimDecimalPoints()?.TrimNullValue();
-
-                test.OutputComparison2 = test.SqlObtainedResult2.Compare(test.OracleResult2);
-                test.Result = (test.Result.Equals("Passed", StringComparison.CurrentCulture) && test.SqlObtainedResult2.Compare(test.ExpectedResult2)).GetResult();
-
-                _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlObtainedResult2), test.SqlObtainedResult2));
-                _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExpectedResult2), test.ExpectedResult2));
-                _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleResult2), test.OracleResult2));
-                _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OutputComparison2), test.OutputComparison2));
-            }
-
-            // comparison of result with expected against obtained results from MSSQL OSS extension functions
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.Result), test.Result));
-            // comparison of obtained results from MSSQL OSS extension functions against results from competitive Oracle functions.
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OutputComparison1), test.OutputComparison1));
-
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlElapsedTime), test.SqlElapsedTime));
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleElapsedTime), test.OracleElapsedTime));
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleQuery), test.OracleQuery.EscapeQueryString()));
-
-            if (!string.IsNullOrWhiteSpace(test.SqlError))
-                _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.SqlError), test.SqlError));
-
-            if (!string.IsNullOrWhiteSpace(test.OracleError))
-                _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.OracleError), test.OracleError));
-
-            _dataManipulator.ExecuteQuery(test.GetTargetUpdateQuery(tableName, nameof(test.ExecutionTime), test.ExecutionTime));
-
-            //update test results
-            if (isMultiResult)
-            {
-                if (test.OutputComparison1 && test.OutputComparison2)
-                    _passCount++;
-                else
-                    _failCount++;
-            }
-            else
-            {
-                if (test.OutputComparison1)
-                    _passCount++;
-                else
-                    _failCount++;
-            }
-
-            if (count == 1)
-                _dataManipulator.ExecuteQuery(test.InsertOverallStatusQuery(tableName));
-            _dataManipulator.ExecuteQuery(test.UpdateOverallStatusCountQuery(tableName, count, _passCount, _failCount));
-        }
-    }
-
-    [TestClass]
-    public class LRSFunctionsOverallTests : BaseUnitTest
-    {
-        private static SqlCeConnection _dbConnection;
-        private static string _connectionString;
-        private const string DatabaseFile = "SpatialTestData.sdf";
-
-        [ClassInitialize()]
-        public static void Initialize(TestContext testContext)
-        {
-            _connectionString = string.Format(CultureInfo.CurrentCulture, @"Data Source=|DataDirectory|\{0}", DatabaseFile);
-            _dbConnection = new SqlCeConnection(_connectionString);
-            _dbConnection.Open();
-        }
-
-        [TestMethod]
-        public void OverallResultTest()
-        {
-            Logger.LogLine("Overall Result Tests");
-            Logger.LogLine("This should be run separately after all tests as MS test doesn't support test priority order.");
-            var dataSet = _dbConnection.Query<LRSDataSet.OverallResult>(LRSDataSet.OverallResult.SelectQuery);
-            var testIterator = 1;
-
-            var failedCases = new List<string>();
-            foreach (var test in dataSet)
-            {
-                Logger.LogLine("{0}. Function : {1}", testIterator, test.FunctionName);
-                Logger.Log("Total : {0}", test.TotalCount);
-                Logger.Log("Passed : {0} / {1}", test.PassCount, test.TotalCount);
-                Logger.Log("Failed : {0} / {1}", test.FailCount, test.TotalCount);
-
-                if (test.FailCount > 0)
-                    failedCases.Add($"In {test.FunctionName}; {test.FailCount} failed out {test.TotalCount}");
-                testIterator++;
-            }
-
-            if (failedCases.Any())
-                throw new Exception(string.Join("\n", failedCases.ToArray()));
-        }
-
-        [ClassCleanup]
-        public static void Cleanup()
-        {
-            _dbConnection?.Close();
-        }
+        }        
     }
 }
