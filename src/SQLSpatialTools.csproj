@@ -80,8 +80,7 @@
     <Compile Include="Functions\General\Geometry.cs" />
     <Compile Include="Functions\LRS\Geometry.cs" />
     <Compile Include="Functions\Util\Geometry.cs" />
-    <Compile Include="Sinks\Geometry\ExtractPolygonGeometrySink.cs" />
-    <Compile Include="Sinks\Geometry\ExtractGeometrySink.cs" />
+    <Compile Include="Sinks\Geometry\ExtractPolygonFromLineGeometrySink.cs" />
     <Compile Include="Sinks\Geometry\BuildMultiLineFromLinesSink.cs" />
     <Compile Include="Sinks\Geometry\ClipMGeometrySegmentSink.cs" />
     <Compile Include="Sinks\Geometry\ReverseLinearGeometrySink.cs" />

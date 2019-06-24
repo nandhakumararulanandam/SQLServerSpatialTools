@@ -2,13 +2,8 @@
 // Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 //------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Linq;
 using Microsoft.SqlServer.Types;
 using SQLSpatialTools.Sinks.Geometry;
-using SQLSpatialTools.Types;
 using SQLSpatialTools.Utility;
 using Ext = SQLSpatialTools.Utility.SpatialExtensions;
 
@@ -21,6 +16,20 @@ namespace SQLSpatialTools.Functions.Util
     {
         public static SqlGeometry ExtractGeometry(SqlGeometry sqlGeometry, int elementIndex, int ringIndex = 0)
         {
+            if (sqlGeometry.IsNullOrEmpty())
+                return sqlGeometry;
+
+            // GEOMETRYCOLLECTION
+            if(sqlGeometry.IsGeometryCollection())
+            {
+                if (elementIndex == 0 || elementIndex > sqlGeometry.STNumGeometries())
+                    Ext.ThrowInvalidElementIndex();
+
+                // reset geometry and element index and pass through
+                sqlGeometry = sqlGeometry.STGeometryN(elementIndex);
+                elementIndex = 1; 
+            }
+
             var isSimpleType = sqlGeometry.IsPoint() || sqlGeometry.IsLineString() || sqlGeometry.IsCircularString();
 
             // if simple type then return input geometry when index is 1 or 0
@@ -41,27 +50,37 @@ namespace SQLSpatialTools.Functions.Util
 
             if (isMultiPointOrLine)
             {
-                var obtainedGeom = sqlGeometry.STGeometryN(elementIndex);
-                if (obtainedGeom == null)
+                if (elementIndex != 1)
                     Ext.ThrowInvalidElementIndex();
+
+                if (ringIndex == 0)
+                    return sqlGeometry;
+
+                var obtainedGeom = sqlGeometry.STGeometryN(ringIndex);
+                if (obtainedGeom == null || obtainedGeom.IsNull)
+                    Ext.ThrowInvalidSubElementIndex();
 
                 return obtainedGeom;
             }
 
-            // Is Polygon type
-            var isPolygonType = sqlGeometry.IsPolygon() || sqlGeometry.IsCurvePolygon() || sqlGeometry.IsMultiPolygon();
+            // COMPOUND CURVE
+            if (sqlGeometry.IsCompoundCurve())
+            {
+                if (elementIndex != 1)
+                    Ext.ThrowInvalidElementIndex();
 
+                if (ringIndex > 1)
+                    Ext.ThrowInvalidSubElementIndex();
 
-            // Ring Index is applicable only for Polygon; for other types throw error
-            if (!isPolygonType && ringIndex > 0)
-                Ext.ThrowInvalidSubElementIndex();
-
-            // IF NOT POLYGON or MULTIPOLYGON or CURVEPOLYGON and element index is 1 then return the input geometry as is
-            if (!isPolygonType && elementIndex == 1)
                 return sqlGeometry;
+            }
 
+            // POLYGON
             if (sqlGeometry.IsPolygon())
             {
+                if (elementIndex != 1)
+                    Ext.ThrowInvalidElementIndex();
+
                 // if sub element index is zero then return the input geometry
                 if (ringIndex == 0)
                     return sqlGeometry;
@@ -69,25 +88,47 @@ namespace SQLSpatialTools.Functions.Util
                 if (ringIndex > sqlGeometry.STNumInteriorRing() + 1)
                     Ext.ThrowInvalidSubElementIndex();
 
-                var polygonBuilder = new SqlGeometryBuilder();
-                var polygonSink = new ExtractPolygonGeometrySink(polygonBuilder, ringIndex);
-                sqlGeometry.Populate(polygonSink);
-                if (!polygonSink.IsExtracted)
-                    Ext.ThrowInvalidSubElementIndex();
-                return polygonBuilder.ConstructedGeometry;
+                return GetPolygon(sqlGeometry, ringIndex);
             }
 
-            var geomBuilder = new SqlGeometryBuilder();
-            var geomSink = new ExtractGeometrySink(geomBuilder, elementIndex, ringIndex);
-            sqlGeometry.Populate(geomSink);
-
-            if (!geomSink.IsExtracted)
+            // MULTIPOLYGON
+            if (sqlGeometry.IsMultiPolygon())
             {
-                if (sqlGeometry.IsPolygon())
+                if (elementIndex == 0 || elementIndex > sqlGeometry.STNumGeometries())
+                    Ext.ThrowInvalidElementIndex();
+
+                sqlGeometry = sqlGeometry.STGeometryN(elementIndex);
+
+                // if sub element index is zero then return the input geometry
+                if (ringIndex == 0)
+                    return sqlGeometry;
+
+                if (ringIndex > sqlGeometry.STNumInteriorRing() + 1)
                     Ext.ThrowInvalidSubElementIndex();
-                Ext.ThrowInvalidSubElementIndex();
+
+                return GetPolygon(sqlGeometry, ringIndex);
             }
-            return geomBuilder.ConstructedGeometry;
+
+            return sqlGeometry;
+        }
+
+        /// <summary>
+        /// Build Polygon from Linestring
+        /// </summary>
+        /// <param name="sqlGeometry">Input Sql Geometry</param>
+        /// <param name="ringIndex">Polygon Ring Index</param>
+        /// <returns></returns>
+        private static SqlGeometry GetPolygon(SqlGeometry sqlGeometry, int ringIndex)
+        {
+            if (ringIndex == 1)
+                sqlGeometry = sqlGeometry.STExteriorRing();
+            else
+                sqlGeometry = sqlGeometry.STInteriorRingN(ringIndex - 1);
+
+            var polygonBuilder = new SqlGeometryBuilder();
+            var polygonSink = new ExtractPolygonFromLineGeometrySink(polygonBuilder);
+            sqlGeometry.Populate(polygonSink);
+            return polygonBuilder.ConstructedGeometry;
         }
 
         /// <summary>
