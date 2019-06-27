@@ -193,6 +193,9 @@ namespace SQLSpatialTools.Functions.Util
         /// <returns></returns>
         public static SqlGeometry RemoveDuplicateVertices(SqlGeometry geometry, double tolerance = Constants.Tolerance)
         {
+            if(!geometry.STIsValid())
+                Ext.ThrowIfInvalidGeometry();
+
             return geometry.Reduce(tolerance);
         }
     }

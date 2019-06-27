@@ -22,5 +22,6 @@ namespace SQLSpatialTools.Utility
         public const string TwoDimensionalCoordinates = "Cannot operate on 2 Dimensional co-ordinates without measure values.";
         public const string InvalidElementIndex = "Invalid index for element to be extracted.";
         public const string InvalidSubElementIndex = "Invalid index for sub-element to be extracted.";
+        public const string InvalidGeometry = "Invalid geometry";
     }
 }

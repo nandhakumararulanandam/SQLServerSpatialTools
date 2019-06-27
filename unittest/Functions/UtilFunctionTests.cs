@@ -482,5 +482,76 @@ namespace SQLSpatialTools.UnitTests.Functions
             obtainedGeom = Geometry.ExtractGeometry(geom, 3, 3);
             SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
         }
+
+        [TestMethod]
+        public void RemoveDuplicateVerticesTest()
+        {
+            var geometry = "POINT (1 2 3)".GetGeom();
+            var expected = "POINT (1 2)".GetGeom();
+            var tolerance = 0.5;
+            var resultantGeom = Geometry.RemoveDuplicateVertices(geometry, tolerance);
+            SqlAssert.IsTrue(expected.STEquals(resultantGeom));
+
+            geometry = "MULTIPOINT ((1 2 NULL 3), (5 5 NULL 6))".GetGeom();
+            expected = "MULTIPOINT ((1 2), (5 5))".GetGeom();
+            tolerance = 0.5;
+            resultantGeom = Geometry.RemoveDuplicateVertices(geometry, tolerance);
+            SqlAssert.IsTrue(expected.STEquals(resultantGeom));
+
+            geometry = "MULTILINESTRING((1 1, 3 2, 3.2 2.2, 3 8), (6 6, 10 10))".GetGeom();
+            expected = "MULTILINESTRING ((1 1, 3.2 2.2, 3 8), (6 6, 10 10))".GetGeom();
+            tolerance = 0.5;
+            resultantGeom = Geometry.RemoveDuplicateVertices(geometry, tolerance);
+            SqlAssert.IsTrue(expected.STEquals(resultantGeom));
+
+            geometry = "POLYGON ((1 1, 1 5, 8 2, 7.8 1.8, 1 1, 1 1))".GetGeom();
+            expected = "POLYGON ((1 1, 1 5, 8 2, 1 1))".GetGeom();
+            tolerance = 0.5;
+            resultantGeom = Geometry.RemoveDuplicateVertices(geometry, tolerance);
+            SqlAssert.IsTrue(expected.STEquals(resultantGeom));
+
+            geometry = "MULTIPOLYGON (((1 1, 1 -1, -1 -1, -1 1, 1 1)), ((1 1, 3 1, 3.1 3.2, 3.3 3.5 1 3, 1 1)))".GetGeom();
+            expected = "MULTIPOLYGON (((1 1, 1 -1, -1 -1, -1 1, 1 1)), ((1 1, 3 1, 3.3 3.5, 1 1)))".GetGeom();
+            tolerance = 0.5;
+            resultantGeom = Geometry.RemoveDuplicateVertices(geometry, tolerance);
+            SqlAssert.IsTrue(expected.STEquals(resultantGeom));
+
+            geometry = "CURVEPOLYGON(CIRCULARSTRING(1 3, 3 5, 4 7, 4.2 7.3, 4.5 7.5, 7 3, 1 3))".GetGeom();
+            expected = "CURVEPOLYGON (COMPOUNDCURVE (CIRCULARSTRING (1 3, 3 5, 4 7), (4 7, 4.5 7.5), CIRCULARSTRING (4.5 7.5, 7 3, 1 3)))".GetGeom();
+            tolerance = 0.5;
+            resultantGeom = Geometry.RemoveDuplicateVertices(geometry, tolerance);
+            SqlAssert.IsTrue(expected.STEquals(resultantGeom));
+
+            geometry = "GEOMETRYCOLLECTION(LINESTRING(1 1,3 5, 3.2 5.1), POINT (2 3 NULL 1), MULTIPOLYGON(((5 5, 5 10, 10 15, 15 15, 15.4 15.4, 15 10, 5 5))))".GetGeom();
+            expected = "GEOMETRYCOLLECTION (LINESTRING (1 1, 3.2 5.1), POINT (2 3), POLYGON ((5 5, 5 10, 10 15, 15.4 15.4, 15 10, 5 5)))".GetGeom();
+            tolerance = 0.5;
+            resultantGeom = Geometry.RemoveDuplicateVertices(geometry, tolerance);
+            SqlAssert.IsTrue(expected.STEquals(resultantGeom));
+
+            //negative cases
+            try
+            {
+                geometry = "LINESTRING (1 1, 6 6, 3 3, 2 2)".GetGeom(); // linestring overlaps
+                tolerance = 0.5;
+                Geometry.RemoveDuplicateVertices(geometry, tolerance);
+                Assert.Fail("Should throw exception for the invalid overlapping geometry");
+            }
+            catch(Exception ex)
+            {
+                Assert.AreEqual(ErrorMessage.InvalidGeometry, ex.Message);
+            }
+
+            try
+            {
+                geometry = "MULTILINESTRING((1 1, 3 3, 12 12), (5 5, 5 5))".GetGeom();
+                tolerance = 0.5;
+                Geometry.RemoveDuplicateVertices(geometry, tolerance);
+                Assert.Fail("Should throw exception for invalid geometry");
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual(ErrorMessage.InvalidGeometry, ex.Message);
+            }
+        }
     }
 }

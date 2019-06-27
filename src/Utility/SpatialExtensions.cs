@@ -674,6 +674,13 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Throws Argument Exception if the geometry is not valid
+        /// </summary>
+        internal static void ThrowIfInvalidGeometry()
+        {
+            throw new ArgumentException(ErrorMessage.InvalidGeometry);
+        }
+        /// <summary>
         /// Throw if input geometry is not a LRS Geometry collection POINT, LINESTRING or MULTILINESTRING.
         /// </summary>
         /// <param name="sqlGeometries">Input Sql Geometry</param>
