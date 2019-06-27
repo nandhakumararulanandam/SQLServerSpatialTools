@@ -213,6 +213,16 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ClipGeometrySegment
 GO
 
+CREATE FUNCTION LRS_ConvertToLrsGeom (
+    @geometry GEOMETRY
+    ,@startMeasure FLOAT
+    ,@endMeasure FLOAT
+    )
+RETURNS GEOMETRY
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.LRS.Geometry].ConvertToLrsGeom
+GO
+
 CREATE FUNCTION LRS_GetEndMeasure (@geometry GEOMETRY)
 RETURNS FLOAT
 AS

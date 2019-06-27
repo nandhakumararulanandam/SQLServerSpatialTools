@@ -36,6 +36,28 @@ GO
 ALTER TABLE [LRS_ClipGeometrySegmentData] ADD CONSTRAINT [PK_ClipGeometrySegmentData] PRIMARY KEY ([Id]);
 GO
 
+-- ConvertToLrsGeom
+CREATE TABLE [LRS_ConvertToLrsGeomData] (
+ [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom] nvarchar(1000) NOT NULL
+, [StartMeasure] float
+, [EndMeasure] float
+, [OutputComparison1] bit
+, [SqlObtainedResult1] nvarchar(1000)
+, [OracleResult1] nvarchar(1000)
+, [SqlError] nvarchar(1000)
+, [OracleError] nvarchar(1000)
+, [OracleQuery] nvarchar(1000)
+, [SqlElapsedTime] nvarchar(100)
+, [OracleElapsedTime] nvarchar(100)
+, [ExecutionTime] datetime
+, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [Result] nvarchar(50)
+, [Comments] nvarchar(1000)
+);
+GO
+ALTER TABLE [LRS_ConvertToLrsGeomData] ADD CONSTRAINT [PK_ConvertToLrsGeomData] PRIMARY KEY ([Id]);
+GO
 
 -- Get End Measure
 CREATE TABLE [LRS_GetEndMeasureData] (

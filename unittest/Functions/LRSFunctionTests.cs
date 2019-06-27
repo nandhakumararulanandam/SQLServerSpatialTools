@@ -199,6 +199,26 @@ namespace SQLSpatialTools.UnitTests.Functions
         }
 
         [TestMethod]
+        public void ConvertToLrsGeomTest()
+        {
+            // 4 point line string
+            var geom = "LINESTRING (10 4 , 20 7 , 30 9 )".GetGeom();
+            Logger.Log("Input Geom : {0}", geom.ToString());
+
+            Logger.Log("ConvertToLrs Geom with null Start and End Measure");
+            var ConvertedLrsGeom = Geometry.ConvertToLrsGeom(geom,9,null);
+            Logger.Log("ConvertToLrs Geom : {0}", ConvertedLrsGeom );
+
+            // As per requirement; 
+            // the default value of start point is 0 when null is specified
+            // the default value of end point is cartographic length of the segment when null is specified
+            // if the start or end measure anything is null then it returns null value
+
+            //SqlAssert.AreEqual(ConvertedLrsGeom.GetStartPointMeasure(), 10.0F);
+            //SqlAssert.AreEqual(ConvertedLrsGeom.GetEndPointMeasure(), 1.0F);
+        }
+
+        [TestMethod]
         public void GetEndMeasureTest()
         {
             var endMeasureValue = 14.0F;

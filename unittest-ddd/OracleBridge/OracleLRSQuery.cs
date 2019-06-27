@@ -88,6 +88,17 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                       + "INSERT INTO TEMP_DATA (Output1) SELECT SDO_UTIL.TO_WKTGEOMETRY(geom_segment) FROM dual; "
                                                       + "END; ";
 
+        public const string GetConvertToLrsGeom     = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                      + "SDO_LRS.CONVERT_TO_LRS_GEOM("
+                                                      + "SDO_UTIL.FROM_WKTGEOMETRY('{0}') {1})"
+                                                      + ")from dual";
+
+        public const string GetConvertToLrsGeomPoint = "SELECT SDO_UTIL.TO_WKTGEOMETRY( "
+                                                      + "SDO_LRS.CONVERT_TO_LRS_GEOM("
+                                                      + "SDO_GEOMETRY(2001, NULL, NULL, SDO_ELEM_INFO_ARRAY(1, 1, 1), SDO_ORDINATE_ARRAY({0})) {1}) "
+                                                      + ")FROM dual";
+              
+
         public const string GetSplitGeometrySegmentQuery = "DECLARE "
                                                            + "geom_segment SDO_GEOMETRY;"
                                                            + "result_geom_1 SDO_GEOMETRY;"

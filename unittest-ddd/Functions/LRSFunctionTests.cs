@@ -77,6 +77,66 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         [TestMethod]
+        public void ConvertToLrsGeomTest()
+        {
+            Logger.LogLine("ConvertedLrsGeomTest() Tests");
+            var dataSet = DBConnectionObj.Query<LRSDataSet.ConvertToLrsGeomData>(LRSDataSet.ConvertToLrsGeomData.SelectQuery);
+
+            var ConvertToLrsGeomData = dataSet.ToList();
+            if (!ConvertToLrsGeomData.Any())
+                Logger.Log("No test cases found");
+
+            var testIterator = 1; PassCount = 0; FailCount = 0;
+            foreach (var test in ConvertToLrsGeomData)
+            {
+                Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
+                try
+                {
+                    var geom = test.InputGeom.GetGeom();
+                    Logger.LogLine("Input geom: {0}", geom);
+                    Logger.LogLine("Expected Result: {0}", test.ExpectedResult1);
+
+                    MSSQLTimer.Restart();
+                    // OSS Function Execution
+                    if (Geometry.ConvertToLrsGeom(geom, test.StartMeasure, test.EndMeasure) != null)
+                        test.SqlObtainedResult1 = Geometry.ConvertToLrsGeom(geom, test.StartMeasure, test.EndMeasure).ToString();
+                    else
+                        test.SqlObtainedResult1 = null;
+
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result: {0}", test.SqlObtainedResult1);
+                }
+                catch (Exception ex)
+                {
+                    test.Result = "Failed";
+                    test.SqlError = ex.Message;
+                    Logger.LogError(ex);
+                }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                OracleConnectorObj.DoConvertToLrsGeom(test);
+                OracleTimer.Stop();
+                Logger.Log("Oracle Result: {0}", test.OracleResult1);
+
+                #endregion
+
+                // Update results to database
+                UpdateTestResults(test, LRSDataSet.ConvertToLrsGeomData.TableName, testIterator);
+
+                Logger.Log("Test Result : {0}", test.Result);
+                testIterator++;
+            }
+        }
+
+        [TestMethod]
         public void GetEndMeasureTest()
         {
             Logger.LogLine("Get End Measure Tests");

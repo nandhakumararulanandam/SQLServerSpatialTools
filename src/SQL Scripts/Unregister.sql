@@ -75,6 +75,9 @@ IF OBJECT_ID('VacuousGeographyToGeometry') IS NOT NULL
 IF OBJECT_ID('LRS_ClipGeometrySegment') IS NOT NULL
     DROP FUNCTION LRS_ClipGeometrySegment
 
+IF OBJECT_ID('LRS_ConvertToLrsGeom') IS NOT NULL
+DROP FUNCTION LRS_ConvertToLrsGeom
+
 IF OBJECT_ID('LRS_GetEndMeasure') IS NOT NULL
     DROP FUNCTION LRS_GetEndMeasure    
 

@@ -122,7 +122,12 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="TestData\LRS\ValidateLRSGeometryTest.data">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\ConvertToLrsGeomData.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dataset\LRS\ValidateLRSGeometryTest.data">
     </None>
     <None Include="TestData\LRS\LocatePointAlongGeom.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

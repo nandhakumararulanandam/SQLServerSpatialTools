@@ -206,6 +206,44 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
+        /// Test ConvertedLrs Geom Function against Oracle.
+        /// </summary>
+        /// <param name="testObj">The test object.</param>
+        internal void DoConvertToLrsGeom(LRSDataSet.ConvertToLrsGeomData testObj)
+        {
+            var inputGeom = testObj.InputGeom.GetGeom();
+            var optionBuilder = new StringBuilder();
+
+            if (testObj.StartMeasure != null)
+                optionBuilder.AppendFormat(CultureInfo.CurrentCulture, ", {0}", testObj.StartMeasure);
+
+            if (testObj.EndMeasure != null)
+                optionBuilder.AppendFormat(CultureInfo.CurrentCulture, ", {0}", testObj.EndMeasure);
+
+            var errorInfo = string.Empty;
+            string query1;
+            if (inputGeom.CheckGeomPoint())
+            {
+                var pointInOracle =
+                    $"{inputGeom.STX}, {inputGeom.STY}"; //Two dimensional line string 
+                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetConvertToLrsGeomPoint, pointInOracle, optionBuilder.ToString());
+            }
+            else
+            {
+                query1 = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetConvertToLrsGeom, testObj.InputGeom, optionBuilder.ToString());
+            }
+
+            // Here oracle query execution  happens for specific function
+            if (string.IsNullOrEmpty(errorInfo))
+            {
+                var result = ExecuteScalar<string>(query1, out  errorInfo);
+                testObj.OracleQuery = query1;
+                testObj.OracleResult1 = result;
+            }
+            testObj.OracleError = errorInfo;
+        }
+
+        /// <summary>
         /// Test GetEndMeasure Function against Oracle.
         /// </summary>
         /// <param name="testObj">The test object.</param>
@@ -243,7 +281,7 @@ namespace SQLSpatialTools.UnitTests.DDD
             testObj.OracleQuery = query;
             testObj.OracleResult1 = result;
         }
-
+        
         /// <summary>
         /// Test LocatePoint Function against Oracle.
         /// </summary>

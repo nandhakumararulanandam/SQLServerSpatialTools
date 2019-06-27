@@ -55,6 +55,9 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             ExecuteQuery(ParseDataSet(LRSDataSet.ClipGeometrySegmentData.DataFile,
                 LRSDataSet.ClipGeometrySegmentData.ParamCount, LRSDataSet.ClipGeometrySegmentData.InsertQuery));
+            ExecuteQuery(ParseDataSet(LRSDataSet.ConvertToLrsGeomData.DataFile,
+                LRSDataSet.ConvertToLrsGeomData.ParamCount,
+                LRSDataSet.ConvertToLrsGeomData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.GetEndMeasureData.DataFile, LRSDataSet.GetEndMeasureData.ParamCount,
                 LRSDataSet.GetEndMeasureData.InsertQuery));
             ExecuteQuery(ParseDataSet(LRSDataSet.GetStartMeasureData.DataFile,

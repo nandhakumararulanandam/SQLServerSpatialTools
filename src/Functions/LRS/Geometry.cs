@@ -225,6 +225,48 @@ namespace SQLSpatialTools.Functions.LRS
         }
 
         /// <summary>
+        /// calculate measure value across shape points.
+        /// </summary>
+        /// <param name="geometry">Input Geometry</param>
+        /// <param name="startMeasure"></param>
+        /// <param name="endMeasure"></param>
+        /// <returns></returns>
+        public static SqlGeometry ConvertToLrsGeom(SqlGeometry geometry, double? startMeasure, double? endMeasure)
+        {   //Line string geometry should not contain measure information.
+            Ext.ThrowIfNotLRSType(geometry);
+            if (geometry.HasZ || geometry.HasM)
+                throw new ArgumentException(ErrorMessage.LineOrMultiLineStringCompatible);
+
+            var NullConditonFirst = (startMeasure == null || endMeasure == null);
+            var NullConditionSecond = (startMeasure == null && endMeasure == null);
+
+            //if start measure or end measure is null then it returns null geometry
+            if (NullConditonFirst &&!NullConditionSecond)
+            {
+                return null;
+            }
+             //point always takes start measure value if start and end measure values are not null
+            if (geometry.IsPoint())
+            {
+                var pointMeasure = NullConditionSecond ? 0 : (double)startMeasure;
+                return Ext.GetPointWithUpdatedM(geometry, pointMeasure);
+            }
+
+            // segment length
+            var segmentLength = geometry.STLength().Value;
+
+            // As per requirement; 
+            // the default value of start point is 0 when null is specified
+            // the default value of end point is cartographic length of the segment when null is specified
+            var localStartMeasure = startMeasure ?? 0;
+            var localEndMeasure = endMeasure ?? segmentLength;
+            //internally ConvertToLrsGeom uses PopulateGeometry functionalities
+            var geomSink = new PopulateGeometryMeasuresSink(localStartMeasure, localEndMeasure, segmentLength);
+            geometry.Populate(geomSink);
+            return geomSink.GetConstructedGeom();
+        }
+
+        /// <summary>
         /// Get end point measure of a LRS Geom Segment.
         /// </summary>
         /// <param name="geometry">Input Geometry</param>
