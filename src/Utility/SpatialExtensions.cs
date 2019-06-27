@@ -54,6 +54,16 @@ namespace SQLSpatialTools.Utility
         }
 
         /// <summary>
+        /// Check if Geometry is Point; Works on invalid types too.
+        /// </summary>
+        /// <param name="wktGeometry">Geometry in WKT format</param>
+        /// <returns></returns>
+        public static bool IsPoint(this string wktGeometry)
+        {
+            return Regex.IsMatch(wktGeometry, @"^POINT\s*\(.*\)", RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
         /// Check if Geography type is Point
         /// </summary>
         /// <param name="sqlGeography">SQL Geography</param>
@@ -862,11 +872,43 @@ namespace SQLSpatialTools.Utility
             return dmDimensionalInfo;
         }
 
-        /// <summary>
-        /// Validate and convert to LRS dimension
+        // <summary>
+        /// Gets the dimension info of input geometry
+        /// Here no way to infer 2D with measure value
         /// </summary>
-        /// <param name="sqlGeometry">Input SQL Geometry</param>
-        internal static void ValidateLRSDimensions(ref SqlGeometry sqlGeometry)
+        /// <param name="wktGeometry">The SQL geometry in wkt format.</param>
+        /// <returns>Dimensional Info 2D, 2DM, 3D or 3DM</returns>
+        public static DimensionalInfo GetDimension(this string wktGeometry)
+        {
+            if (string.IsNullOrEmpty(wktGeometry))
+                return DimensionalInfo.None;
+
+            var match = Regex.Match(wktGeometry, @"\w+.*?\((?<content>.*?)[\,\)]");
+
+            if(match.Success)
+            {
+                var dimensions = match.Groups["content"].Value.Split(' ');
+                switch(dimensions.Count())
+                {
+                    case 2:
+                        return DimensionalInfo.Dim2D;
+                    case 3:
+                        return DimensionalInfo.Dim3D;
+                    case 4:
+                        return DimensionalInfo.Dim3DWithMeasure;
+                    default:
+                        return DimensionalInfo.None;
+                }
+            }
+
+            return DimensionalInfo.None;
+        }
+
+            /// <summary>
+            /// Validate and convert to LRS dimension
+            /// </summary>
+            /// <param name="sqlGeometry">Input SQL Geometry</param>
+            internal static void ValidateLRSDimensions(ref SqlGeometry sqlGeometry)
         {
             var dimension = sqlGeometry.STGetDimension();
 

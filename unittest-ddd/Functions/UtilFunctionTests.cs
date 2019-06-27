@@ -71,5 +71,61 @@ namespace SQLSpatialTools.UnitTests.DDD
             }
         }
 
+        [TestMethod]
+        public void ExtractTest()
+        {
+            var dataSet = DBConnectionObj.Query<UtilDataSet.ExtractData>(UtilDataSet.ExtractData.SelectQuery);
+
+            var extractData = dataSet.ToList();
+            if (!extractData.Any())
+                Logger.Log("No test cases found");
+
+            var testIterator = 1; PassCount = 0; FailCount = 0;
+            foreach (var test in extractData)
+            {
+                Logger.LogLine("Executing test {0}", testIterator);
+
+                #region Run against OSS
+
+                try
+                {
+                    var geom = test.InputGeom.GetGeom();
+                    var expectedGeom = test.ExpectedResult1.GetGeom();
+
+                    Logger.LogLine("Input geom 1:{0}", geom);
+                    Logger.LogLine("Expected Result: {0}", expectedGeom);
+
+                    MSSQLTimer.Restart();
+                    // OSS Function Execution
+
+                    test.SqlObtainedResult1 = Geometry.ExtractGeometry(geom, test.ElementIndex, test.ElementSubIndex).ToString();
+                    MSSQLTimer.Stop();
+                    Logger.Log("Obtained Result : {0}", test.SqlObtainedResult1);
+                }
+                catch (Exception ex)
+                {
+                    test.Result = "Failed";
+                    test.SqlError = ex.Message;
+                    Logger.LogError(ex);
+                }
+
+                #endregion
+
+                #region Run against Oracle
+
+                OracleTimer.Restart();
+                // Oracle Function Execution
+                OracleConnectorObj.DoExtractTest(test);
+                OracleTimer.Stop();
+
+                #endregion
+
+                // Update results to database
+                UpdateTestResults(test, UtilDataSet.ExtractData.TableName, testIterator);
+
+                Logger.Log("Test Result : {0}", test.Result);
+                testIterator++;
+            }
+        }
     }
 }

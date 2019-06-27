@@ -18,5 +18,20 @@ namespace SQLSpatialTools.UnitTests.DDD
 
             public string InputGeom { get; set; }
         }
+
+        public class ExtractData : BaseDataSet
+        {
+            public const short ParamCount = 5;
+            public const string TableName = "Util_ExtractData";
+            public const string DataFile = @"TestData\Util\Extract.data";
+            public static readonly string SelectQuery =
+                $"SELECT [Id], [InputGeom], [ElementIndex], [ElementSubIndex], [ExpectedResult1], [Comments] FROM [{TableName}];";
+            public static readonly string InsertQuery =
+                $"INSERT INTO [{TableName}] ([InputGeom], [ElementIndex], [ElementSubIndex], [ExpectedResult1], [Comments]) VALUES (N'[0]', [1], [2], N'[3]', N'[4]');";
+
+            public string InputGeom { get; set; }
+            public int ElementIndex { get; set; }
+            public int ElementSubIndex { get; set; }
+        }
     }
 }

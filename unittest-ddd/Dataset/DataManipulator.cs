@@ -88,6 +88,8 @@ namespace SQLSpatialTools.UnitTests.DDD
             // Utility functions data set
             ExecuteQuery(ParseDataSet(UtilDataSet.PolygonToLineData.DataFile,
                 UtilDataSet.PolygonToLineData.ParamCount, UtilDataSet.PolygonToLineData.InsertQuery));
+            ExecuteQuery(ParseDataSet(UtilDataSet.ExtractData.DataFile,
+               UtilDataSet.ExtractData.ParamCount, UtilDataSet.ExtractData.InsertQuery));
         }
 
         /// <summary>

@@ -24,10 +24,12 @@ namespace SQLSpatialTools.UnitTests.DDD
         private static string _registerScriptFilePath;
         private static string _unRegisterScriptFilePath;
         private static string _lrsExampleScriptFilePath;
+        private static string _utilExampleScriptFilePath;
 
         private const string RegisterScriptFileName = "Register.sql";
         private const string UnregisterScriptFileName = "Unregister.sql";
         private const string LRSExampleScriptFileName = "lrs_geometry_example.sql";
+        private const string UtilExampleScriptFileName = "util_geometry_example.sql";
 
         [ClassInitialize()]
         public static void Initialize(TestContext testContext)
@@ -56,10 +58,14 @@ namespace SQLSpatialTools.UnitTests.DDD
 
                 // LRS examples script
                 _lrsExampleScriptFilePath = Path.Combine(_targetDir, LRSExampleScriptFileName);
-            }
+                if (!File.Exists(_lrsExampleScriptFilePath))
+                    throw new Exception("LRS examples Script file not found : " + _lrsExampleScriptFilePath);
 
-            if (!File.Exists(_lrsExampleScriptFilePath))
-                throw new Exception("Unregister Script file not found : " + _lrsExampleScriptFilePath);
+                // Util examples script
+                _utilExampleScriptFilePath = Path.Combine(_targetDir, UtilExampleScriptFileName);
+                if (!File.Exists(_utilExampleScriptFilePath))
+                    throw new Exception("Util examples Script file not found : " + _utilExampleScriptFilePath);
+            }
 
             // call unregister script as part of initialize
             Unregister();
@@ -93,6 +99,15 @@ namespace SQLSpatialTools.UnitTests.DDD
         {
             RegisterOSSLibraryTest();
             var scriptContent = File.ReadAllText(_lrsExampleScriptFilePath);
+            _dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
+        }
+
+        [TestMethod]
+        [Priority(4)]
+        public void RunUtilExamplesTest()
+        {
+            RegisterOSSLibraryTest();
+            var scriptContent = File.ReadAllText(_utilExampleScriptFilePath);
             _dbServer.ConnectionContext.ExecuteNonQuery(scriptContent);
         }
 

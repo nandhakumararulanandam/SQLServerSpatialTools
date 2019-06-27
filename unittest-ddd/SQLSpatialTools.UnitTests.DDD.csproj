@@ -112,6 +112,9 @@
     <None Include="TestData\LRS\OffsetGeometrySegment.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="TestData\Util\Extract.data">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="TestData\Util\PolygonToLine.data">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

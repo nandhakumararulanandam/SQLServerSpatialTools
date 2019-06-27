@@ -3,10 +3,8 @@
 //------------------------------------------------------------------------------
 
 using System;
-using Microsoft.SqlServer.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SQLSpatialTools.Functions.Util;
-using SQLSpatialTools.Sinks.Geometry;
 using SQLSpatialTools.UnitTests.Extension;
 using SQLSpatialTools.Utility;
 
@@ -132,21 +130,19 @@ namespace SQLSpatialTools.UnitTests.Functions
 
             // MULTILINESTRING
             geom = "MULTILINESTRING((1 1 1, 2 2 2), (3 3 3, 4 4 4))".GetGeom();
-            expected = geom;
+            expected = "LINESTRING(1 1 1, 2 2 2)".GetGeom();
             SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 1)));
             SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 1, 0)));
-
-            geom = "MULTILINESTRING((1 1 1, 2 2 2), (3 3 3, 4 4 4))".GetGeom();
-            expected = "LINESTRING(1 1 1, 2 2 2)".GetGeom();
             SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 1, 1)));
 
-            geom = "MULTILINESTRING((1 1 1, 2 2 2), (3 3 3, 4 4 4))".GetGeom();
             expected = "LINESTRING(3 3 3, 4 4 4)".GetGeom();
-            SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 1, 2)));
+            SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 2)));
+            SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 2, 0)));
+            SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 2, 1)));
 
             try
             {
-                Geometry.ExtractGeometry(geom, 2, 2);
+                Geometry.ExtractGeometry(geom, 3, 2);
                 Assert.Fail("Should through exception : invalid index for element to be extracted");
             }
             catch (ArgumentException ex)
@@ -156,7 +152,7 @@ namespace SQLSpatialTools.UnitTests.Functions
 
             try
             {
-                Geometry.ExtractGeometry(geom, 1, 3);
+                Geometry.ExtractGeometry(geom, 1, 2);
                 Assert.Fail("Should through exception : invalid index for sub-element to be extracted");
             }
             catch (ArgumentException ex)
@@ -180,9 +176,11 @@ namespace SQLSpatialTools.UnitTests.Functions
             SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
 
             geom = "POLYGON((-5 -5, -5 5, 5 5, 5 -5, -5 -5), (0 0, 3 0, 3 3, 0 3, 0 0))".GetGeom();
-            expected = "POLYGON((0 0, 3 0, 3 3, 0 3, 0 0))".GetGeom();
+            expected = "POLYGON((0 0, 0 3, 3 3, 3 0, 0 0))".GetGeom();
             obtainedGeom = Geometry.ExtractGeometry(geom, 1, 2);
             SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+            // here for the interior ring; the polygon is rotated; so checking the points
+            SqlAssert.IsTrue(expected.STPointN(2).STEquals(obtainedGeom.STPointN(2)));
 
             try
             {
@@ -224,7 +222,6 @@ namespace SQLSpatialTools.UnitTests.Functions
                 Assert.AreEqual("Invalid index for element to be extracted.", ex.Message);
             }
 
-
             geom = "MULTIPOLYGON(((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 1 2, 2 1, 1 1)), ((9 9, 9 10, 10 9, 9 9)))".GetGeom();
             expected = "POLYGON((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 1 2, 2 1, 1 1))".GetGeom();
             SqlAssert.IsTrue(expected.STEquals(Geometry.ExtractGeometry(geom, 1)));
@@ -259,6 +256,102 @@ namespace SQLSpatialTools.UnitTests.Functions
             {
                 Assert.AreEqual("Invalid index for sub-element to be extracted.", ex.Message);
             }
+        }
+
+        [TestMethod]
+        public void ExtractCurvePolygonTest()
+        {
+            var geom = "CURVEPOLYGON (CIRCULARSTRING (3 3, 4 9, 2 3, 0 0, 3 3), (1 1, 2 2, 2 1, 1 1))".GetGeom();
+            var expected = "CURVEPOLYGON (CIRCULARSTRING (3 3, 4 9, 2 3, 0 0, 3 3), (1 1, 2 2, 2 1, 1 1))".GetGeom();
+            var obtainedGeom = Geometry.ExtractGeometry(geom, 1);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 0);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            expected = "CURVEPOLYGON (CIRCULARSTRING (3 3, 4 9, 2 3, 0 0, 3 3))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 1);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            expected = "POLYGON ((1 1, 2 1, 2 2, 1 1))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 2);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+            // here for the interior ring; the curve polygon is rotated; so checking the points
+            SqlAssert.IsTrue(expected.STPointN(2).STEquals(obtainedGeom.STPointN(2)));
+
+            geom = "CURVEPOLYGON ((0 1, 0.5 0.5, 1 0, 0.8 0.8, 0 1), CIRCULARSTRING(0.8 0.4, 0.6 0.6, 0.2 0.9, 0.7 0.7, 0.8 0.4))".GetGeom();
+            expected = "POLYGON ((0 1, 0.5 0.5, 1 0, 0.8 0.8, 0 1))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 1);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+            // here for the exterior ring; the curve polygon shouldn't be rotated; so checking the points
+            SqlAssert.IsTrue(expected.STPointN(2).STEquals(obtainedGeom.STPointN(2)));
+
+            expected = "CURVEPOLYGON(CIRCULARSTRING(0.8 0.4, 0.7 0.7, 0.2 0.9, 0.6 0.6, 0.8 0.4))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 2);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            geom = "CURVEPOLYGON ((0 1, 0.5 0.5, 1 0, 0.8 0.8, 0 1), (0.8 0.4, 0.6 0.6, 0.2 0.9, 0.7 0.7, 0.8 0.4))".GetGeom();
+            expected = "POLYGON ((0 1, 0.5 0.5, 1 0, 0.8 0.8, 0 1))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 1);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+            // here for the exterior ring; the curve polygon shouldn't be rotated; so checking the points
+            SqlAssert.IsTrue(expected.STPointN(2).STEquals(obtainedGeom.STPointN(2)));
+
+            expected = "POLYGON ((0.8 0.4, 0.7 0.7, 0.2 0.9, 0.6 0.6, 0.8 0.4))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 2);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            try
+            {
+                Geometry.ExtractGeometry(geom, 2, 0);
+                Assert.Fail("Should through exception : invalid index for element to be extracted");
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.AreEqual("Invalid index for element to be extracted.", ex.Message);
+            }
+
+            try
+            {
+                Geometry.ExtractGeometry(geom, 1, 3);
+                Assert.Fail("Should through exception : invalid index for sub-element to be extracted");
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.AreEqual("Invalid index for sub-element to be extracted.", ex.Message);
+            }
+
+            geom = "CURVEPOLYGON(COMPOUNDCURVE(CIRCULARSTRING (1 0, 0.7 0.7, 0 1), (0 1, 1 0)))".GetGeom();
+            expected = "CURVEPOLYGON(COMPOUNDCURVE(CIRCULARSTRING (1 0, 0.7 0.7, 0 1), (0 1, 1 0)))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 0);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            expected = "COMPOUNDCURVE(CIRCULARSTRING (1 0, 0.7 0.7, 0 1), (0 1, 1 0))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 1);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            try
+            {
+                Geometry.ExtractGeometry(geom, 2, 0);
+                Assert.Fail("Should through exception : invalid index for element to be extracted");
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.AreEqual("Invalid index for element to be extracted.", ex.Message);
+            }
+
+            geom = "CURVEPOLYGON(COMPOUNDCURVE(CIRCULARSTRING(1 3, 3 5, 4 7, 7 3, 1 3)), COMPOUNDCURVE(CIRCULARSTRING(1 3, 3 2, 5 6, 6 3, 1 3)))".GetGeom();
+            expected = "CURVEPOLYGON(COMPOUNDCURVE(CIRCULARSTRING(1 3, 3 5, 4 7, 7 3, 1 3)), COMPOUNDCURVE(CIRCULARSTRING(1 3, 3 2, 5 6, 6 3, 1 3)))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 0);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            expected = "COMPOUNDCURVE(CIRCULARSTRING(1 3, 3 5, 4 7, 7 3, 1 3))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 1);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
+
+            expected = "COMPOUNDCURVE(CIRCULARSTRING(1 3, 3 2, 5 6, 6 3, 1 3))".GetGeom();
+            obtainedGeom = Geometry.ExtractGeometry(geom, 1, 2);
+            SqlAssert.IsTrue(expected.STEquals(obtainedGeom));
         }
 
         [TestMethod]

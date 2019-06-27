@@ -349,3 +349,26 @@ CREATE TABLE [Util_PolygonToLineData] (
 GO
 ALTER TABLE [Util_PolygonToLineData] ADD CONSTRAINT [PK_PolygonToLineData] PRIMARY KEY ([Id]);
 GO
+
+-- Extract
+CREATE TABLE [Util_ExtractData] (
+ [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom] nvarchar(4000) NOT NULL
+, [ElementIndex] integer NOT NULL
+, [ElementSubIndex] integer NULL
+, [OutputComparison1] bit
+, [SqlObtainedResult1] nvarchar(4000)
+, [OracleResult1] nvarchar(4000)
+, [OracleError] nvarchar(1000)
+, [SqlError] nvarchar(1000)
+, [OracleQuery] nvarchar(4000)
+, [SqlElapsedTime] nvarchar(100)
+, [OracleElapsedTime] nvarchar(100)
+, [ExecutionTime] datetime
+, [ExpectedResult1] nvarchar(4000) NOT NULL
+, [Result] nvarchar(50)
+, [Comments] nvarchar(1000)
+);
+GO
+ALTER TABLE [Util_ExtractData] ADD CONSTRAINT [PK_ExtractData] PRIMARY KEY ([Id]);
+GO

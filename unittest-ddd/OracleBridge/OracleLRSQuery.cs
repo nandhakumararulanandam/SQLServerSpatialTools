@@ -152,7 +152,28 @@ namespace SQLSpatialTools.UnitTests.DDD
         public const string GetPolygonToLineQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
                                                 + "SDO_UTIL.POLYGONTOLINE("
                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
-                                                + "))from dual";
+                                                + ")) from dual";
+
+        public const string GetExtractQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                               + "SDO_UTIL.EXTRACT("
+                                               + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2})"
+                                               + ") from dual";
+
+        public const string GetExtractPoint3DQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                   + "SDO_UTIL.EXTRACT("                                                   
+                                                   + "SDO_GEOMETRY(3001, NULL, NULL, "
+                                                   + "SDO_ELEM_INFO_ARRAY(1, 1, 1), "
+                                                   + "SDO_ORDINATE_ARRAY({0})"
+                                                   + "), {1}, {2})"
+                                                   + ") from dual";
+
+        public const string GetExtractPoint2DQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                   + "SDO_UTIL.EXTRACT("
+                                                   + "SDO_GEOMETRY(2001, NULL, NULL, "
+                                                   + "SDO_ELEM_INFO_ARRAY(1, 1, 1), "
+                                                   + "SDO_ORDINATE_ARRAY({0})"
+                                                   + "), {1}, {2})"
+                                                   + ") from dual";
 
         #endregion Oracle Queries
 

@@ -15,6 +15,9 @@
 -- Run LRS Functions 
 :r "ScriptDirPath\lrs_geometry_example.sql"
 
+-- Run Util Functions 
+:r "ScriptDirPath\util_geometry_example.sql"
+
 -- Run Sample Projections
 :r "ScriptDirPath\projection_example.sql"
 

@@ -383,6 +383,24 @@ namespace SQLSpatialTools.UnitTests.DDD
             testObj.OracleResult1 = result;
         }
 
+        /// <summary>
+        /// Test Extract Function against Oracle.
+        /// </summary>
+        /// <param name="testObj">The test object.</param>
+        internal void DoExtractTest(UtilDataSet.ExtractData testObj)
+        {
+            var query = testObj.InputGeom.IsPoint()
+                ? string.Format(CultureInfo.CurrentCulture,
+                (testObj.InputGeom.GetDimension() == DimensionalInfo.Dim2D ? OracleLRSQuery.GetExtractPoint2DQuery : OracleLRSQuery.GetExtractPoint3DQuery), 
+                GetOracleOrdinatePoint(testObj.InputGeom.GetGeom()), testObj.ElementIndex, testObj.ElementSubIndex)
+                : string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetExtractQuery, ConvertTo3DCoordinates(testObj.InputGeom), testObj.ElementIndex, testObj.ElementSubIndex);
+
+            var result = ExecuteScalar<string>(query, out var errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
+        }
+
         #endregion Util Functions
 
         #region Helper Functions
@@ -394,7 +412,13 @@ namespace SQLSpatialTools.UnitTests.DDD
         /// <returns></returns>
         internal string GetOracleOrdinatePoint(SqlGeometry inputGeom)
         {
-            return $"{inputGeom.STX}, {inputGeom.STY}, {(inputGeom.HasM ? inputGeom.M.Value : inputGeom.Z.Value)}";
+            var thirdDContent = string.Empty;
+            var thirdDimension = inputGeom.HasM ? inputGeom.M.Value : inputGeom.HasZ ? inputGeom.Z.Value : 0;
+
+            if (thirdDimension.NotEqualsTo(0))
+                thirdDContent = $", {thirdDimension}";
+
+            return $"{inputGeom.STX}, {inputGeom.STY}{thirdDContent}";
         }
 
         /// <summary>

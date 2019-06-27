@@ -28,6 +28,30 @@ namespace SQLSpatialTools.Functions.Util
                 // reset geometry and element index and pass through
                 sqlGeometry = sqlGeometry.STGeometryN(elementIndex);
                 elementIndex = 1; 
+
+                // if the resultant is MULTILINE; reset the ring index and assign it to element index
+                if(sqlGeometry.IsMultiLineString())
+                {
+                    elementIndex = ringIndex;
+                    ringIndex = 0;
+                }
+            }
+
+            // Handle for Curve Polygon with Compound Curve
+            if(sqlGeometry.IsCurvePolygon())
+            {
+                if (elementIndex != 1)
+                    Ext.ThrowInvalidElementIndex();
+                if (ringIndex == 0)
+                    return sqlGeometry;
+                // re-assign sub component; if it is a COMPOUND CURVE
+                var subComponent = ringIndex == 1 ? sqlGeometry.STExteriorRing() : sqlGeometry.STInteriorRingN(ringIndex - 1); // subtracting exterior ring count
+                if (subComponent.IsCompoundCurve())
+                {
+                    sqlGeometry = subComponent;
+                    elementIndex = 1;
+                    ringIndex = 1;
+                }
             }
 
             var isSimpleType = sqlGeometry.IsPoint() || sqlGeometry.IsLineString() || sqlGeometry.IsCircularString();
@@ -45,10 +69,8 @@ namespace SQLSpatialTools.Functions.Util
                     return sqlGeometry;
             }
 
-            // Is Multi point or line
-            var isMultiPointOrLine = sqlGeometry.IsMultiPoint() || sqlGeometry.IsMultiLineString();
-
-            if (isMultiPointOrLine)
+            // MULTIPOINT
+            if (sqlGeometry.IsMultiPoint())
             {
                 if (elementIndex != 1)
                     Ext.ThrowInvalidElementIndex();
@@ -63,6 +85,18 @@ namespace SQLSpatialTools.Functions.Util
                 return obtainedGeom;
             }
 
+            // MULTILINESTRING
+            if (sqlGeometry.IsMultiLineString())
+            {
+                if (elementIndex > sqlGeometry.STNumGeometries())
+                    Ext.ThrowInvalidElementIndex();
+
+                if (ringIndex > 1)
+                    Ext.ThrowInvalidSubElementIndex();
+
+                return sqlGeometry.STGeometryN(elementIndex);
+            }
+
             // COMPOUND CURVE
             if (sqlGeometry.IsCompoundCurve())
             {
@@ -75,8 +109,8 @@ namespace SQLSpatialTools.Functions.Util
                 return sqlGeometry;
             }
 
-            // POLYGON
-            if (sqlGeometry.IsPolygon())
+            // POLYGON and CURVEPOLYGON
+            if (sqlGeometry.IsPolygon() || sqlGeometry.IsCurvePolygon())
             {
                 if (elementIndex != 1)
                     Ext.ThrowInvalidElementIndex();
@@ -117,6 +151,7 @@ namespace SQLSpatialTools.Functions.Util
         /// </summary>
         /// <param name="sqlGeometry">Input Sql Geometry</param>
         /// <param name="ringIndex">Polygon Ring Index</param>
+        /// <param name="isCurvePolygon">Is Polygon type is CurvePolygon</param>
         /// <returns></returns>
         private static SqlGeometry GetPolygon(SqlGeometry sqlGeometry, int ringIndex)
         {
@@ -126,7 +161,7 @@ namespace SQLSpatialTools.Functions.Util
                 sqlGeometry = sqlGeometry.STInteriorRingN(ringIndex - 1);
 
             var polygonBuilder = new SqlGeometryBuilder();
-            var polygonSink = new ExtractPolygonFromLineGeometrySink(polygonBuilder);
+            var polygonSink = new ExtractPolygonFromLineGeometrySink(polygonBuilder, ringIndex != 1);
             sqlGeometry.Populate(polygonSink);
             return polygonBuilder.ConstructedGeometry;
         }

@@ -362,6 +362,14 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.Util.Geometry].PolygonToLine
 GO
 
+CREATE FUNCTION Util_Extract (@geometry GEOMETRY
+    ,@elementIndex INTEGER
+    ,@ringIndex INTEGER)
+RETURNS GEOMETRY
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.Util.Geometry].ExtractGeometry
+GO
+
 --#endregion
 
 -- Create aggregates.

@@ -58,7 +58,7 @@ namespace SQLSpatialTools.UnitTests.DDD
         private static string GetFieldValue(object fieldValue)
         {
             if (fieldValue == null)
-                return string.Empty;
+                return $"N''";
             var type = fieldValue.GetType();
 
             if (type == typeof(int) || type == typeof(float) || type == typeof(double))
