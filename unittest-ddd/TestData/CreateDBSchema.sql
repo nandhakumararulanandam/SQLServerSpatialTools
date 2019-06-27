@@ -372,3 +372,26 @@ CREATE TABLE [Util_ExtractData] (
 GO
 ALTER TABLE [Util_ExtractData] ADD CONSTRAINT [PK_ExtractData] PRIMARY KEY ([Id]);
 GO
+
+			
+			
+-- RemoveDuplicateVertices
+CREATE TABLE [Util_RemoveDuplicateVerticesData] (
+ [Id] int IDENTITY (1,1) NOT NULL
+, [InputGeom] nvarchar(1000) NOT NULL
+, [Tolerance] float NOT NULL
+, [OutputComparison1] bit
+, [SqlObtainedResult1] nvarchar(1000)
+, [OracleResult1] nvarchar(1000)
+, [OracleError] nvarchar(1000)
+, [SqlError] nvarchar(1000)
+, [OracleQuery] nvarchar(1000)
+, [SqlElapsedTime] nvarchar(100)
+, [OracleElapsedTime] nvarchar(100)
+, [ExecutionTime] datetime
+, [ExpectedResult1] nvarchar(1000) NOT NULL
+, [Result] nvarchar(50)
+, [Comments] nvarchar(1000)
+);
+GO
+ALTER TABLE [Util_RemoveDuplicateVerticesData] ADD CONSTRAINT [PK_RemoveDuplicateVerticesData] PRIMARY KEY ([Id]);

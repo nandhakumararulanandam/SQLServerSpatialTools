@@ -184,5 +184,16 @@ namespace SQLSpatialTools.Functions.Util
             else
                 return geometry;
         }
+
+        /// <summary>
+        /// Utility Method for removing the consecutive duplicate vertices
+        /// </summary>
+        /// <param name="geometry"></param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
+        public static SqlGeometry RemoveDuplicateVertices(SqlGeometry geometry, double tolerance = Constants.Tolerance)
+        {
+            return geometry.Reduce(tolerance);
+        }
     }
 }

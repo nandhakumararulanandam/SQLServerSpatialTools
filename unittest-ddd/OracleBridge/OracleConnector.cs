@@ -384,6 +384,19 @@ namespace SQLSpatialTools.UnitTests.DDD
         }
 
         /// <summary>
+        /// Test RemoveDuplicate vertices Function against Oracle.
+        /// </summary>
+        /// <param name="testObj"></param>
+        internal void DoRemoveDuplicateVertices(UtilDataSet.RemoveDuplicateVerticesData testObj)
+        {
+            var query = string.Format(CultureInfo.CurrentCulture, OracleLRSQuery.GetRemoveDuplicateVerticesQuery, testObj.InputGeom, testObj.Tolerance);
+            var result = ExecuteScalar<string>(query, out var errorInfo);
+            testObj.OracleError = errorInfo;
+            testObj.OracleQuery = query;
+            testObj.OracleResult1 = result;
+        }
+
+        /// <summary>
         /// Test Extract Function against Oracle.
         /// </summary>
         /// <param name="testObj">The test object.</param>

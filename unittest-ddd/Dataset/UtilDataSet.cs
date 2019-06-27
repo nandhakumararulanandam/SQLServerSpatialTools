@@ -33,5 +33,18 @@ namespace SQLSpatialTools.UnitTests.DDD
             public int ElementIndex { get; set; }
             public int ElementSubIndex { get; set; }
         }
+
+        public class RemoveDuplicateVerticesData : BaseDataSet
+        {
+            public const short ParamCount = 4;
+            public const string TableName = "Util_RemoveDuplicateVerticesData";
+            public const string DataFile = @"TestData\Util\RemoveDuplicateVertices.data";
+            public static readonly string SelectQuery =
+                $"SELECT [Id], [InputGeom], [Tolerance], [ExpectedResult1], [Comments] FROM [{TableName}];";
+            public static readonly string InsertQuery =
+                $"INSERT INTO [{TableName}] ([InputGeom], [Tolerance], [ExpectedResult1], [Comments]) VALUES (N'[0]', N'[1]', N'[2]', N'[3]');";
+            public string InputGeom { get; set; }
+            public double Tolerance { get; set; }
+        }
     }
 }

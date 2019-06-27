@@ -370,6 +370,11 @@ AS
 EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.Util.Geometry].ExtractGeometry
 GO
 
+CREATE FUNCTION Util_RemoveDuplicateVertices (@geometry GEOMETRY, @tolerance FLOAT)
+RETURNS GEOMETRY
+AS
+EXTERNAL NAME SQLSpatialTools.[SQLSpatialTools.Functions.Util.Geometry].RemoveDuplicateVertices
+GO
 --#endregion
 
 -- Create aggregates.

@@ -90,6 +90,8 @@ namespace SQLSpatialTools.UnitTests.DDD
                 UtilDataSet.PolygonToLineData.ParamCount, UtilDataSet.PolygonToLineData.InsertQuery));
             ExecuteQuery(ParseDataSet(UtilDataSet.ExtractData.DataFile,
                UtilDataSet.ExtractData.ParamCount, UtilDataSet.ExtractData.InsertQuery));
+            ExecuteQuery(ParseDataSet(UtilDataSet.RemoveDuplicateVerticesData.DataFile,
+               UtilDataSet.RemoveDuplicateVerticesData.ParamCount, UtilDataSet.RemoveDuplicateVerticesData.InsertQuery));
         }
 
         /// <summary>

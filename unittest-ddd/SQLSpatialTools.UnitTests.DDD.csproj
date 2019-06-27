@@ -118,6 +118,9 @@
     <None Include="TestData\Util\PolygonToLine.data">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="TestData\Util\RemoveDuplicateVertices.data">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="TestData\LRS\ValidateLRSGeometryTest.data">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

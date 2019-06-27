@@ -154,6 +154,11 @@ namespace SQLSpatialTools.UnitTests.DDD
                                                 + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
                                                 + ")) from dual";
 
+        public const string GetRemoveDuplicateVerticesQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
+                                                + "SDO_UTIL.REMOVE_DUPLICATE_VERTICES("
+                                                + "SDO_UTIL.FROM_WKTGEOMETRY('{0}')"
+                                                + ", {1})) from dual";
+
         public const string GetExtractQuery = "SELECT SDO_UTIL.TO_WKTGEOMETRY("
                                                + "SDO_UTIL.EXTRACT("
                                                + "SDO_UTIL.FROM_WKTGEOMETRY('{0}'), {1}, {2})"

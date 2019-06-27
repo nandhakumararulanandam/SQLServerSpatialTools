@@ -130,6 +130,9 @@ IF OBJECT_ID('LRS_ValidateLRSGeometry') IS NOT NULL
 IF OBJECT_ID('Util_PolygonToLine') IS NOT NULL
     DROP FUNCTION Util_PolygonToLine
 
+IF OBJECT_ID('Util_RemoveDuplicateVertices') IS NOT NULL
+    DROP FUNCTION Util_RemoveDuplicateVertices
+	
 IF OBJECT_ID('Util_Extract') IS NOT NULL
     DROP FUNCTION Util_Extract
 
